@@ -31,6 +31,7 @@ public class Controller
     {
         this.mapSegment = mapSegment;
         mapCanvas.init(mapSegment);
+        osmLoader = new Loader();
         openFile();
     }
 
