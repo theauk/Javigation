@@ -6,6 +6,7 @@ import bfst21.data.NonRoadData;
 import bfst21.data.NonRoadElements;
 import bfst21.data.RefData;
 import bfst21.data.RoadData;
+
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -27,16 +28,15 @@ public class Creator {
     private NonRoadElements nonRoadElements;
     private RefData refData;
     private RoadData roadData;
-    List<Way> roads;
-    List<Way> footway;
-    List<Way> bridges;
+    List<Way> roads = new ArrayList<>();
+    List<Way> footway = new ArrayList<>();
+    List<Way> bridges = new ArrayList<>();
+    List<Long> refnumbers = new ArrayList<>();
+    List<Node> nodeRefnumbers = new ArrayList<Node>();
     float minx, miny, maxx, maxy;
     //ArrayList<Way> relation = new ArrayList<>();
     boolean iscoastline, isRoad, isPrimaryHighway, isBridge, isFootWay, ispedestrianRoad;
     boolean isRelation;
-
-    public Creator() {}
-
 
     public void create(InputStream input) throws IOException, XMLStreamException {
         XMLStreamReader reader = XMLInputFactory
@@ -69,7 +69,7 @@ public class Creator {
                             break;
                         case "way":
                             way = new Way();
-                            //way.setId(Long.parseLong(reader.getAttributeValue(null, "id")));
+                            way.setId(Long.parseLong(reader.getAttributeValue(null, "id")));
                             allBooleansFalse();
                             break;
                         case "tag":
@@ -87,11 +87,14 @@ public class Creator {
                                 case "nd":
                                     var refNode = Long.parseLong(reader.getAttributeValue(null, "ref"));
                                     way.add(idToNode.get(refNode));
+                                    if(isRoad) nodeRefnumbers.add(idToNode.get(refNode));
+
+
                                     break;
                         case "member":
                             if(isRelation){
                                 var refWay = Long.parseLong(reader.getAttributeValue(null,"ref"));
-                                //member.add(refWay);
+                                member.add(refWay);
                             }
                             break;
                             }
@@ -100,9 +103,18 @@ public class Creator {
                             switch (reader.getLocalName()) {
                                 case "way":
                                     if (iscoastline) coastlinesTemp.add(way);
-                                    if (isRoad) roads.add(way);
-                                    if (isPrimaryHighway) highWayTemp.add(way);
-                                    if (isFootWay) footway.add(way);
+                                    if (isRoad) {
+                                        roads.add(way);
+                                        refnumbers.add(way.getId());
+                                    }
+                                    if (isPrimaryHighway) {
+                                        highWayTemp.add(way);
+                                        refnumbers.add(way.getId());
+                                    }
+                                    if (isFootWay) {
+                                        footway.add(way);
+                                        refnumbers.add(way.getId());
+                                    }
                                     if (isBridge) bridges.add(way);
                                     break;
                             }
@@ -118,8 +130,19 @@ public class Creator {
         isFootWay = false;
         ispedestrianRoad = false;
     }
+    public void printRefnumbers() {
+        for (Long ref : refnumbers) {
+            System.out.println(ref);
+        }
+    }
+        public List<Long>getList(){
+            return refnumbers;
+        }
+        public List<Node>getNodeRefnumbers(){
+            return nodeRefnumbers;
+        }
+    }
 
-}
 
     //create Node Object
 
