@@ -6,8 +6,9 @@ public class Node { // TODO: 3/17/21 removed extends element. Doesn't have min a
 
     public Node(long id, float lat, float lon) {
         this.id = id;
-        this.x = lon;
-        this.y = -lat/0.56f;
+        this.x = lat;
+        //this.y = -lat/0.56f;
+        this.y = lon;
     }
 
     public float getX() {

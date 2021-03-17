@@ -50,4 +50,13 @@ public class RTreeNode {
         elements[numberOfElements] = e;
         numberOfElements++;
     }
+
+    public void addChild(RTreeNode r) {
+        children.add(r);
+        r.setParent(this);
+    }
+
+    public void setParent(RTreeNode r) {
+        parent = r;
+    }
 }

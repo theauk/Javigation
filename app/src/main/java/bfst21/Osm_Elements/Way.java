@@ -17,8 +17,15 @@ public class Way extends Element implements Spatializable {
     
     public void addNode(Node node) {
         nodes.add(node);
-        checkX(node.getX());
-        checkY(node.getY());
+        if(nodes.size() > 1) {
+            checkX(node.getX());
+            checkY(node.getY());
+        } else {
+            xMin = node.getX();
+            xMax = node.getX();
+            yMin = node.getY();
+            yMax = node.getY();
+        }
     }
 
     private void checkX(float xValue) {

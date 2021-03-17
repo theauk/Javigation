@@ -16,25 +16,34 @@ public class RTree {
         this.size = 0;
     }
 
+    // TODO: 3/17/21 delete both root methods later 
+    public void setRoot(RTreeNode n) {
+        root = n;
+    }
+
+    public RTreeNode getRoot() {
+        return root;
+    }
+
     public List<Element> search(float xMin, float xMax, float yMin, float yMax) {
         float[] searchCoordinates = new float[]{xMin, xMax, yMin, yMax};
         ArrayList<Element> results = new ArrayList<>();
         search(searchCoordinates, root, results);
+        System.out.println(root);
         return results;
     }
 
     private void search(float[] searchCoordinates, RTreeNode node, ArrayList<Element> results) {
-        if (node.isLeaf()) {
+        System.out.println("root: " + node.getCoordinates()[0] + " " + node.getCoordinates()[1] + " " + node.getCoordinates()[2] + " " + node.getCoordinates()[3]);
+        if (intersects(searchCoordinates, node.getCoordinates())) {
+            System.out.println("intersects");
+            results.addAll(Arrays.asList(node.getElements()));
+        }
+
+        if (!node.isLeaf()) {
+            System.out.println("not leaf");
             for (RTreeNode currentNode : node.getChildren()) {
-                if (intersects(searchCoordinates, currentNode.getCoordinates())) {
-                    results.addAll(Arrays.asList(currentNode.getElements()));
-                }
-            }
-        } else {
-            for (RTreeNode currentNode : node.getChildren()) {
-                if (intersects(searchCoordinates, currentNode.getCoordinates())) {
-                    search(searchCoordinates, currentNode, results);
-                }
+                search(searchCoordinates, currentNode, results);
             }
         }
     }
@@ -44,6 +53,7 @@ public class RTree {
     }
 
     public Boolean intersects(float[] coordinates1, float[] coordinates2) {
+        System.out.println("in intersects");
         for (int i = 0; i < coordinates1.length; i += 2) {
             if (doesNotIntersect(coordinates1[i], coordinates2[i + 1])) {
                 return false;
@@ -54,8 +64,10 @@ public class RTree {
         return true;
     }
 
-    private boolean doesNotIntersect(float minCoordinateOneObject, float maxCoordinateDifObject) {
-        return minCoordinateOneObject >= maxCoordinateDifObject;
+    private boolean doesNotIntersect(float minCoordinateFirstElement, float maxCoordinateSecondElement) {
+        System.out.println(minCoordinateFirstElement + " " + maxCoordinateSecondElement);
+        System.out.println(minCoordinateFirstElement >= maxCoordinateSecondElement);
+        return minCoordinateFirstElement >= maxCoordinateSecondElement;
     }
 
     private Boolean contains(Element outerElement, Element innerElement) {
