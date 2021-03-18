@@ -85,7 +85,6 @@ public class RTree {
     }
 
     public Boolean intersects(float[] coordinates1, float[] coordinates2) {
-        System.out.println("in intersects");
         for (int i = 0; i < coordinates1.length; i += 2) {
             if (doesNotIntersect(coordinates1[i], coordinates2[i + 1])) {
                 return false;
@@ -97,8 +96,6 @@ public class RTree {
     }
 
     private boolean doesNotIntersect(float minCoordinateFirstElement, float maxCoordinateSecondElement) {
-        System.out.println(minCoordinateFirstElement + " " + maxCoordinateSecondElement);
-        System.out.println(minCoordinateFirstElement >= maxCoordinateSecondElement);
         return minCoordinateFirstElement >= maxCoordinateSecondElement;
     }
 

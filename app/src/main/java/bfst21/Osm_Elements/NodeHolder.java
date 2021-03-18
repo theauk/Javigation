@@ -6,7 +6,6 @@ import java.util.List;
 public abstract class NodeHolder extends Element implements Spatializable {
 
     private List<Node> nodes = new ArrayList<>();
-    private Long id;
     private float xMin;
     private float xMax;
     private float yMin;
@@ -43,14 +42,6 @@ public abstract class NodeHolder extends Element implements Spatializable {
         } else if (yValue < yMin) {
             yMin = yValue;
         }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public float getxMin() {
