@@ -9,4 +9,6 @@ public interface Spatializable {
     public float getyMax();
 
     public float getyMin();
+
+    public float[] getCoordinates();
 }

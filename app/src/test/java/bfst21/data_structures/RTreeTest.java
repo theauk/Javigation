@@ -52,9 +52,9 @@ class RTreeTest {
 
         rTree.setRoot(r1);
 
-        r1.addElement(e1);
-        r2.addElement(e2);
-        r3.addElement(e3);
+        r1.addNodeHolderElement(e1);
+        r2.addNodeHolderElement(e2);
+        r3.addNodeHolderElement(e3);
 
         //System.out.println(rTree.search(6, 10, 0, 5).size());
         assertEquals(2, rTree.search(6, 10, 0, 5).size());

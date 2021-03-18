@@ -1,24 +1,30 @@
 package bfst21.Osm_Elements;
 
-public class Relation extends Element {
+import java.util.ArrayList;
 
-    @Override
-    public float getxMax() {
-        return 0;
+public class Relation extends NodeHolder {
+
+    private ArrayList<Way> ways;
+    private ArrayList<Node> nodes;
+
+    public Relation() {
+        ways = new ArrayList<>();
+        nodes = new ArrayList<>();
     }
 
-    @Override
-    public float getxMin() {
-        return 0;
+    public ArrayList<Way> getWays() {
+        return ways;
     }
 
-    @Override
-    public float getyMax() {
-        return 0;
+    public void addWay(Way way) {
+        ways.add(way);
     }
 
-    @Override
-    public float getyMin() {
-        return 0;
+    public ArrayList<Node> getNodes() {
+        return nodes;
+    }
+
+    public void addNode(Node node) {
+        nodes.add(node);
     }
 }
