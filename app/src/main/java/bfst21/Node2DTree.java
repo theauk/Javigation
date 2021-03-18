@@ -1,7 +1,7 @@
 package bfst21;
 
 
-import java.util.Collections;
+
 import java.util.Comparator;
 import java.util.List;
 
@@ -11,7 +11,6 @@ import javafx.geometry.Point2D;
 public class Node2DTree{
     private Node root;
     private final Comparator<Node> comparatorX = new Comparator<Node>() {
-
         @Override
         public int compare(Node p1, Node p2) {
             return Double.compare(p1.getX(), p2.getY());
@@ -89,8 +88,6 @@ public class Node2DTree{
             System.out.println("Chil Right"+ " " + node.getX() + " " + node.getY());
             printTree(node.getRightChild(), !x);
         }
-   
-
     }
 
     
@@ -122,60 +119,55 @@ public class Node2DTree{
     }
 
 
-     public Node getNearestNode(long lon, long lat){
+     public Node getNearestNode(long x, long y){
         Node nearestNode = root;
         Node leftChild;
         Node rightChild;
 
-        double shortestDistance = getDistance(nearestNode, lon, lat);
+        double shortestDistance = getDistance(nearestNode, x, y);
 
         if(root.getLeftChild() != null){
-            leftChild = getNearestNode(root.getLeftChild(), lon, lat, shortestDistance, nearestNode);
-            if(shortestDistance > getDistance(leftChild, lon, lat)) {
+            leftChild = getNearestNode(root.getLeftChild(), x, y, shortestDistance, nearestNode);
+            if(shortestDistance > getDistance(leftChild, x, y)) {
                 nearestNode = leftChild;
             }
         }
         if(root.getRightChild() != null){
-            rightChild = getNearestNode(root.getRightChild(), lon, lat, shortestDistance, nearestNode);
-            if(shortestDistance > getDistance(rightChild, lon, lat)) {
+            rightChild = getNearestNode(root.getRightChild(), x, y, shortestDistance, nearestNode);
+            if(shortestDistance > getDistance(rightChild, x, y)) {
                 nearestNode = rightChild;
             }
         } 
-        
-        
-      
         return nearestNode;
         
     }
     
-    // TODO get this done
-    private Node getNearestNode(Node nextNode, long lon, long lat, double shortestDistance, Node nearestNode){
+    private Node getNearestNode(Node nextNode, long x, long y, double shortestDistance, Node nearestNode){
         Node leftChild;
         Node rightChild;
 
-        double newDistance = getDistance(nextNode, lon, lat);
+        double newDistance = getDistance(nextNode, x, y);
         if(newDistance<shortestDistance){
             shortestDistance = newDistance;
             nearestNode = nextNode;
         }
         if(nextNode.getLeftChild() != null){
-            leftChild = getNearestNode(nextNode.getLeftChild(), lon, lat, shortestDistance, nearestNode);
-            if(shortestDistance > getDistance(leftChild, lon, lat)) {
+            leftChild = getNearestNode(nextNode.getLeftChild(), x, y, shortestDistance, nearestNode);
+            if(shortestDistance > getDistance(leftChild, x, y)) {
                 nearestNode = leftChild;
             }
         }
         if(nextNode.getRightChild() != null){
-            rightChild = getNearestNode(nextNode.getRightChild(), lon, lat, shortestDistance, nearestNode);
-            if(shortestDistance > getDistance(rightChild, lon, lat)) {
+            rightChild = getNearestNode(nextNode.getRightChild(), x, y, shortestDistance, nearestNode);
+            if(shortestDistance > getDistance(rightChild, x, y)) {
                 nearestNode = rightChild;
             }
         } 
-
         return nearestNode;
     }
 
-    private double getDistance(Node from, long lon, long lat){
-        Point2D p = new Point2D(lon, lat);
+    private double getDistance(Node from, long x, long y){
+        Point2D p = new Point2D(x, y);
        double result = p.distance(from.getX(), from.getY());
         return result;
     }
