@@ -11,6 +11,7 @@ import javafx.geometry.Point2D;
 
 public class Node2DTree{
     private KDTreeNode root;
+
     private final Comparator<Node> comparatorX = new Comparator<Node>() {
         @Override
         public int compare(Node p1, Node p2) {
@@ -103,13 +104,13 @@ public class Node2DTree{
         double shortestDistance = getDistance(nearestNode, x, y);
 
         if(root.getLeftChild() != null){
-            leftChild = getNearestNode(root.getLeftChild(), x, y, shortestDistance, nearestNode);
+            leftChild = getNearestNode(root.getLeftChild(), x, y, shortestDistance, nearestNode, false);
             if(shortestDistance > getDistance(leftChild, x, y)) {
                 nearestNode = leftChild;
             }
         }
         if(root.getRightChild() != null){
-            rightChild = getNearestNode(root.getRightChild(), x, y, shortestDistance, nearestNode);
+            rightChild = getNearestNode(root.getRightChild(), x, y, shortestDistance, nearestNode, false);
             if(shortestDistance > getDistance(rightChild, x, y)) {
                 nearestNode = rightChild;
             }
@@ -118,28 +119,34 @@ public class Node2DTree{
         
     }
     
-    private KDTreeNode getNearestNode(KDTreeNode nextNode, long x, long y, double shortestDistance, KDTreeNode nearestNode){
-        KDTreeNode leftChild;
-        KDTreeNode rightChild;
-
+    private KDTreeNode getNearestNode(KDTreeNode nextNode, long x, long y, double shortestDistance, KDTreeNode nearestNode, Boolean xAxis){
+        if (nextNode == null){
+            return nearestNode;
+        }
+        
+        
         double newDistance = getDistance(nextNode, x, y);
         if(newDistance<shortestDistance){
             shortestDistance = newDistance;
             nearestNode = nextNode;
         }
-        if(nextNode.getLeftChild() != null){
-            leftChild = getNearestNode(nextNode.getLeftChild(), x, y, shortestDistance, nearestNode);
-            if(shortestDistance > getDistance(leftChild, x, y)) {
-                nearestNode = leftChild;
-            }
+
+
+        //checks if we should search the left or right side of the tree first, to save time/space.
+        double compare = xAxis ? Math. abs(x - nextNode.getX()) : Math. abs(y - nextNode.getY());
+
+        KDTreeNode node1 = compare < 0 ? nextNode.getLeftChild() : nextNode.getRightChild();
+        KDTreeNode node2 = compare < 0 ? nextNode.getRightChild() : nextNode.getLeftChild();
+
+        nearestNode = getNearestNode(node1, x, y, shortestDistance, nearestNode, !xAxis);
+
+
+        if(shortestDistance > Math. abs((xAxis ? x - nextNode.getX() : y - nextNode.getY()))){
+            nearestNode = getNearestNode(node2, x, y, shortestDistance, nearestNode, !xAxis);
         }
-        if(nextNode.getRightChild() != null){
-            rightChild = getNearestNode(nextNode.getRightChild(), x, y, shortestDistance, nearestNode);
-            if(shortestDistance > getDistance(rightChild, x, y)) {
-                nearestNode = rightChild;
-            }
-        } 
+        
         return nearestNode;
+        
     }
 
     private double getDistance(KDTreeNode from, long x, long y){
