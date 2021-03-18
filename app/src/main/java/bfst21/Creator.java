@@ -24,19 +24,27 @@ import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 Creates Objects such as Nodes, Ways and Relations from the .osm file given from the Loader.
  */
 public class Creator {
+
+    ArrayList<Drawable> roads;
+    List<Drawable> residentialRoads = new ArrayList<>();
+    List<Drawable> highways = new ArrayList<>();
+    ArrayList<Drawable> coastlines = new ArrayList<>();
     private NonRoadData nonRoadData;
     private NonRoadElements nonRoadElements;
     private RefData refData;
     private RoadData roadData;
-    List<Way> roads = new ArrayList<>();
-    List<Way> footway = new ArrayList<>();
-    List<Way> bridges = new ArrayList<>();
+    List<Drawable> footway = new ArrayList<>();
+    List<Drawable> bridges = new ArrayList<>();
     List<Long> refnumbers = new ArrayList<>();
-    List<Node> nodeRefnumbers = new ArrayList<Node>();
+    List<Node> nodeRefnumbers = new ArrayList<>();
     float minx, miny, maxx, maxy;
-    //ArrayList<Way> relation = new ArrayList<>();
-    boolean iscoastline, isRoad, isPrimaryHighway, isBridge, isFootWay, ispedestrianRoad;
+    boolean iscoastline, isRoad, isPrimaryHighway, isBridge, isFootWay, ispedestrianRoad, isresidentialRoad;
     boolean isRelation;
+    //ArrayList<Way> relation = new ArrayList<>();
+
+    public Creator(InputStream input) throws IOException, XMLStreamException {
+        create(input);
+    }
 
     public void create(InputStream input) throws IOException, XMLStreamException {
         XMLStreamReader reader = XMLInputFactory
@@ -45,6 +53,7 @@ public class Creator {
         var idToNode = new HashMap<Long,Node>();
         Way way = null;
         Node node = null;
+        var roads = new ArrayList<>();
         var member = new ArrayList<Long>();
         var coastlinesTemp = new ArrayList<Way>();
         var highWayTemp = new ArrayList<Way>();
@@ -69,8 +78,8 @@ public class Creator {
                             break;
                         case "way":
                             way = new Way();
-                            way.setId(Long.parseLong(reader.getAttributeValue(null, "id")));
                             allBooleansFalse();
+                            way.setId(Long.parseLong(reader.getAttributeValue(null, "id")));
                             break;
                         case "tag":
                             var k = reader.getAttributeValue(null, "k");
@@ -80,14 +89,18 @@ public class Creator {
                             } else if (k.equals("highway")){
                                 if (v.equals("primary")) isPrimaryHighway = true;
                                 if (v.equals("pedestrian")) ispedestrianRoad = true;
+                                if(v.equals("residential")) isresidentialRoad = true;
                                 else isRoad = true;
                             }
 
                                 break;
                                 case "nd":
                                     var refNode = Long.parseLong(reader.getAttributeValue(null, "ref"));
-                                    way.add(idToNode.get(refNode));
                                     if(isRoad) nodeRefnumbers.add(idToNode.get(refNode));
+                                    if(isPrimaryHighway) nodeRefnumbers.add(idToNode.get(refNode));
+                                    if (ispedestrianRoad) nodeRefnumbers.add(idToNode.get(refNode));
+                                    if(isresidentialRoad) nodeRefnumbers.add(idToNode.get(refNode));
+                                    way.add(idToNode.get(refNode));
 
 
                                     break;
@@ -102,17 +115,21 @@ public class Creator {
                         case END_ELEMENT:
                             switch (reader.getLocalName()) {
                                 case "way":
-                                    if (iscoastline) coastlinesTemp.add(way);
+                                    if (iscoastline) coastlines.add(way);
                                     if (isRoad) {
                                         roads.add(way);
                                         refnumbers.add(way.getId());
                                     }
                                     if (isPrimaryHighway) {
-                                        highWayTemp.add(way);
+                                        highways.add(way);
                                         refnumbers.add(way.getId());
                                     }
                                     if (isFootWay) {
                                         footway.add(way);
+                                        refnumbers.add(way.getId());
+                                    }
+                                    if(isresidentialRoad){
+                                        residentialRoads.add(way);
                                         refnumbers.add(way.getId());
                                     }
                                     if (isBridge) bridges.add(way);
@@ -129,10 +146,19 @@ public class Creator {
         isBridge = false;
         isFootWay = false;
         ispedestrianRoad = false;
+        isresidentialRoad = false;
     }
     public void printRefnumbers() {
+        System.out.println("References for ways");
         for (Long ref : refnumbers) {
             System.out.println(ref);
+        }
+    }
+    public void printNodeRefnumbers(){
+        System.out.println("references for nodes in ways:");
+        for(Node node: nodeRefnumbers){
+            System.out.println("test");
+            System.out.println(node.getID());
         }
     }
         public List<Long>getList(){
@@ -141,7 +167,46 @@ public class Creator {
         public List<Node>getNodeRefnumbers(){
             return nodeRefnumbers;
         }
+        public ArrayList<Drawable> getRoads(){
+            return roads;
+        }
+    public ArrayList<Drawable> getcoastlines(){
+    return coastlines;
+
     }
+
+    public float getMaxx() {
+        return maxx;
+    }
+
+    public float getMaxy() {
+        return maxy;
+    }
+
+    public float getMinx() {
+        return minx;
+    }
+
+    public float getMiny() {
+        return miny;
+    }
+
+    public List<Drawable> getHighways() {
+        return highways;
+    }
+
+    public List<Drawable> getBridges() {
+        return bridges;
+    }
+
+    public List<Drawable> getFootway() {
+        return footway;
+    }
+
+    public List<Drawable> getResidentialRoads() {
+        return residentialRoads;
+    }
+}
 
 
     //create Node Object

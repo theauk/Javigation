@@ -12,10 +12,15 @@ import java.util.zip.ZipInputStream;
 // Loads the file given from the Filechooser
 public class Loader {
     private static Creator creator;
+    //private Creator creator;
 
-    public Loader(){
-        creator = new Creator();
+    public Loader(String filename) throws IOException, XMLStreamException {
+        load(filename);
     }
+
+
+
+
     public void load(String filename) throws IOException, XMLStreamException, FactoryConfigurationError {
        if (filename.endsWith(".zip")) {
             loadZIP(filename);
@@ -29,14 +34,18 @@ public class Loader {
     }
 
     private void loadOSM(InputStream input) throws IOException, XMLStreamException, FactoryConfigurationError {
-        creator = new Creator();
-        creator.create(input);
+        creator = new Creator(input);
     }
 
     public static void main(String[] args) throws IOException, XMLStreamException {
-        var loader = new Loader();
-        loader.load("C:\\Users\\Stribe\\IdeaProjects\\BFST21Group10\\app\\src\\main\\resources\\map.zip");
+        var filename = "C:\\Users\\Stribe\\IdeaProjects\\BFST21Group10\\app\\src\\main\\resources\\map.zip";
+        var loader = new Loader(filename);
         creator.printRefnumbers();
+        creator.printNodeRefnumbers();
+    }
+
+    public Creator getCreator() {
+        return creator;
     }
 }
 
