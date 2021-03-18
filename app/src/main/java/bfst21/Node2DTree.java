@@ -121,31 +121,55 @@ public class Node2DTree{
         }
     }
 
-     //TODO does the x and y coordinates from the screen match lon and lat?
+
      public Node getNearestNode(long lon, long lat){
         Node nearestNode = root;
+        Node leftChild;
+        Node rightChild;
 
         double shortestDistance = getDistance(nearestNode, lon, lat);
-        
-        int compare = compareTo(nearestNode.getX(), lon);
-        //TODO problem, selvom at koordinatet i den ene side af træet kan den tætteste node være i den den anden side.
-        if(compare == -1){
-            return getNearestNode(nearestNode.getRightChild(), lon, lat, shortestDistance, nearestNode);
-        } else {
-            return getNearestNode(nearestNode.getLeftChild(), lon, lat, shortestDistance, nearestNode);
+
+        if(root.getLeftChild() != null){
+            leftChild = getNearestNode(root.getLeftChild(), lon, lat, shortestDistance, nearestNode);
+            if(shortestDistance > getDistance(leftChild, lon, lat)) {
+                nearestNode = leftChild;
+            }
         }
+        if(root.getRightChild() != null){
+            rightChild = getNearestNode(root.getRightChild(), lon, lat, shortestDistance, nearestNode);
+            if(shortestDistance > getDistance(rightChild, lon, lat)) {
+                nearestNode = rightChild;
+            }
+        } 
+        
         
       
-
+        return nearestNode;
         
     }
-    //TODO get this done
+    
+    // TODO get this done
     private Node getNearestNode(Node nextNode, long lon, long lat, double shortestDistance, Node nearestNode){
-        double newDistance = getDistance(nextNode, lon, lat);
-        if(newDistance<shortestDistance)
-            shortestDistance = newDistance;
+        Node leftChild;
+        Node rightChild;
 
-        
+        double newDistance = getDistance(nextNode, lon, lat);
+        if(newDistance<shortestDistance){
+            shortestDistance = newDistance;
+            nearestNode = nextNode;
+        }
+        if(nextNode.getLeftChild() != null){
+            leftChild = getNearestNode(nextNode.getLeftChild(), lon, lat, shortestDistance, nearestNode);
+            if(shortestDistance > getDistance(leftChild, lon, lat)) {
+                nearestNode = leftChild;
+            }
+        }
+        if(nextNode.getRightChild() != null){
+            rightChild = getNearestNode(nextNode.getRightChild(), lon, lat, shortestDistance, nearestNode);
+            if(shortestDistance > getDistance(rightChild, lon, lat)) {
+                nearestNode = rightChild;
+            }
+        } 
 
         return nearestNode;
     }
