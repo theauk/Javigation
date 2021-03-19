@@ -44,8 +44,3 @@ public class Loader {
         return creator;
     }
 }
-
-
-        //var waterTemp = new ArrayList<ArrayList<Way>>();
-
-    // Load default .osm(binary) file
