@@ -1,4 +1,4 @@
-package bfst21;
+package bfst21.data_structures;
 
 
 
