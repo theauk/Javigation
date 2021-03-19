@@ -73,35 +73,12 @@ public class Node2DTree{
     }
 
 
-    private int compareNodes(KDTreeNode currentNode, KDTreeNode node){
-        if(currentNode.IsOnXAxis()){
-            return compareTo(currentNode.getX(), node.getX());
-        }
-        else {
-            return compareTo(currentNode.getY(), node.getY());
-        }
-        
-    }
-    private int compareTo(double currentNode, double newNode){
-        // less than (return -1)    equal to (return 0)       greater than (return 1)
-        if(currentNode < newNode){
-            return -1;
-        }
-        if(currentNode > newNode){
-            return 1;
-        }
-        else {
-            //TODO edgecase??
-            return 0;
-        }
-    }
-
 
      public KDTreeNode getNearestNode(float x, float y){
         double shortestDistance = Double.MAX_VALUE;
 
         KDTreeNode nearestNode = getNearestNode(root, x, y, shortestDistance, null, root.IsOnXAxis());
-        
+
         return nearestNode;
         
     }
