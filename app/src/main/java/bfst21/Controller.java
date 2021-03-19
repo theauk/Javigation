@@ -69,7 +69,7 @@ public class Controller
      * @param e The ScrollEvent associated with the caller.
      */
     @FXML
-    public void onScroll(ScrollEvent e)
+    private void onScroll(ScrollEvent e)
     {
         viaSlider = false;
         zoom(e.getDeltaY(), new Point2D(e.getX(), e.getY()));
@@ -124,7 +124,7 @@ public class Controller
     }
 
     @FXML
-    public void onMouseDragged(MouseEvent e)
+    private void onMouseDragged(MouseEvent e)
     {
         double dx = e.getX() - lastMouse.getX();
         double dy = e.getY() - lastMouse.getY();
@@ -137,7 +137,7 @@ public class Controller
     }
 
     @FXML
-    public void onMouseMoved(MouseEvent e)
+    private void onMouseMoved(MouseEvent e)
     {
         mapCanvas.setCursor(Cursor.DEFAULT);
         setCoordsLabel(new Point2D(e.getX(), e.getY()));
@@ -145,7 +145,7 @@ public class Controller
     }
 
     @FXML
-    public void onMousePressed(MouseEvent e)
+    private void onMousePressed(MouseEvent e)
     {
         lastMouse = new Point2D(e.getX(), e.getY());
         currentMouse = new Point2D(e.getX(), e.getY());
@@ -153,13 +153,13 @@ public class Controller
     }
 
     @FXML
-    public void onMouseReleased()
+    private void onMouseReleased()
     {
         mapCanvas.setCursor(Cursor.DEFAULT);
     }
 
     @FXML
-    public void resetView()
+    private void resetView()
     {
         mapCanvas.reset();
         zoomLevel = MIN_ZOOM_LEVEL;
@@ -168,7 +168,7 @@ public class Controller
     }
 
     @FXML
-    public void openFile()
+    private void openFile()
     {
         File file = showFileChooser().showOpenDialog(scene.getWindow());
 
@@ -177,7 +177,7 @@ public class Controller
     }
 
     @FXML
-    public void exit()
+    private void exit()
     {
         System.exit(0);
     }
