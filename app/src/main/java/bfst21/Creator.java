@@ -27,7 +27,6 @@ public class Creator {
     private List<Element> coastLines;
 
     List<Node> nodesInRoads = new ArrayList<>();
-    float minx, miny, maxx, maxy;
     boolean iscoastline, isRoad;
     boolean isRelation;
 
@@ -56,10 +55,10 @@ public class Creator {
                     switch (reader.getLocalName())
                     {
                         case "bounds":
-                            minx = Float.parseFloat(reader.getAttributeValue(null, "minlon"));
-                            maxx = Float.parseFloat(reader.getAttributeValue(null, "maxlon"));
-                            maxy = Float.parseFloat(reader.getAttributeValue(null, "minlat")) / -0.56f;
-                            miny = Float.parseFloat(reader.getAttributeValue(null, "maxlat")) / -0.56f;
+                            map.setMinX(Float.parseFloat(reader.getAttributeValue(null, "minlon")));
+                            map.setMaxX(Float.parseFloat(reader.getAttributeValue(null, "maxlon")));
+                            map.setMaxY(Float.parseFloat(reader.getAttributeValue(null, "minlat")) / -0.56f);
+                            map.setMinY(Float.parseFloat(reader.getAttributeValue(null, "maxlat")) / -0.56f);
                             break;
                         case "relation":
                             // adding memebers like Node and Way into the list
@@ -68,7 +67,7 @@ public class Creator {
                             var id = Long.parseLong(reader.getAttributeValue(null, "id"));
                             var lon = Float.parseFloat(reader.getAttributeValue(null, "lon"));
                             var lat = Float.parseFloat(reader.getAttributeValue(null, "lat"));
-                            node = new Node(id, lat, lon);
+                            node = new Node(id, lon, lat);
                             idToNode.put(id, node);
                             break;
                         case "way":
@@ -120,22 +119,6 @@ public class Creator {
     private void allBooleansFalse() {
         iscoastline = false;
         isRoad = false;
-    }
-
-    public float getMaxx() {
-        return maxx;
-    }
-
-    public float getMaxy() {
-        return maxy;
-    }
-
-    public float getMinx() {
-        return minx;
-    }
-
-    public float getMiny() {
-        return miny;
     }
 }
 
