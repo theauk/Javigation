@@ -25,20 +25,21 @@ Creates Objects such as Nodes, Ways and Relations from the .osm file given from 
  */
 public class Creator {
 
-    ArrayList<Drawable> roads;
-    List<Drawable> residentialRoads = new ArrayList<>();
-    List<Drawable> highways = new ArrayList<>();
-    ArrayList<Drawable> coastlines = new ArrayList<>();
+    List<Way> roads = new ArrayList<>();
+    List<Way> residentialRoads = new ArrayList<>();
+    List<Way> highways = new ArrayList<>();
+    ArrayList<Way> coastlines = new ArrayList<>();
     private NonRoadData nonRoadData;
     private NonRoadElements nonRoadElements;
     private RefData refData;
     private RoadData roadData;
-    List<Drawable> footway = new ArrayList<>();
-    List<Drawable> bridges = new ArrayList<>();
-    List<Long> refnumbers = new ArrayList<>();
-    List<Node> nodeRefnumbers = new ArrayList<>();
+    List<Way> footway = new ArrayList<>();
+    List<Way> tertiary = new ArrayList<>();
+    List<Way> bridges = new ArrayList<>();
+    List<Node> nodesInRoads = new ArrayList<>();
     float minx, miny, maxx, maxy;
     boolean iscoastline, isRoad, isPrimaryHighway, isBridge, isFootWay, ispedestrianRoad, isresidentialRoad;
+    boolean istertiary;
     boolean isRelation;
     //ArrayList<Way> relation = new ArrayList<>();
 
@@ -53,7 +54,6 @@ public class Creator {
         var idToNode = new HashMap<Long,Node>();
         Way way = null;
         Node node = null;
-        var roads = new ArrayList<>();
         var member = new ArrayList<Long>();
         var coastlinesTemp = new ArrayList<Way>();
         var highWayTemp = new ArrayList<Way>();
@@ -90,16 +90,14 @@ public class Creator {
                                 if (v.equals("primary")) isPrimaryHighway = true;
                                 if (v.equals("pedestrian")) ispedestrianRoad = true;
                                 if(v.equals("residential")) isresidentialRoad = true;
-                                else isRoad = true;
+                                if(v.equals("tertiary")) istertiary = true;
+                                if(v.equals("footway")) isFootWay = true;
+                                else isRoad = true; //if there's other roads, then add them to this list.
                             }
 
                                 break;
                                 case "nd":
                                     var refNode = Long.parseLong(reader.getAttributeValue(null, "ref"));
-                                    if(isRoad) nodeRefnumbers.add(idToNode.get(refNode));
-                                    if(isPrimaryHighway) nodeRefnumbers.add(idToNode.get(refNode));
-                                    if (ispedestrianRoad) nodeRefnumbers.add(idToNode.get(refNode));
-                                    if(isresidentialRoad) nodeRefnumbers.add(idToNode.get(refNode));
                                     way.add(idToNode.get(refNode));
 
 
@@ -118,21 +116,25 @@ public class Creator {
                                     if (iscoastline) coastlines.add(way);
                                     if (isRoad) {
                                         roads.add(way);
-                                        refnumbers.add(way.getId());
+                                        nodesInRoads.addAll(way.getNodes()); // adding the Nodes in a Way that contains a road to this list;
                                     }
                                     if (isPrimaryHighway) {
                                         highways.add(way);
-                                        refnumbers.add(way.getId());
+                                        nodesInRoads.addAll(way.getNodes()); // adding the Nodes in a Way that contains a road to this list;
                                     }
                                     if (isFootWay) {
                                         footway.add(way);
-                                        refnumbers.add(way.getId());
+                                        nodesInRoads.addAll(way.getNodes()); // adding the Nodes in a Way that contains a road to this list;
                                     }
                                     if(isresidentialRoad){
                                         residentialRoads.add(way);
-                                        refnumbers.add(way.getId());
+                                        nodesInRoads.addAll(way.getNodes()); // adding the Nodes in a Way that contains a road to this list;
                                     }
                                     if (isBridge) bridges.add(way);
+                                    if (istertiary){
+                                        tertiary.add(way);
+                                        nodesInRoads.addAll(way.getNodes());
+                                    }
                                     break;
                             }
                             break;
@@ -147,32 +149,13 @@ public class Creator {
         isFootWay = false;
         ispedestrianRoad = false;
         isresidentialRoad = false;
-    }
-    public void printRefnumbers() {
-        System.out.println("References for ways");
-        for (Long ref : refnumbers) {
-            System.out.println(ref);
-        }
+        istertiary = false;
     }
     public void printNodeRefnumbers(){
         System.out.println("references for nodes in ways:");
-        for(Node node: nodeRefnumbers){
-            System.out.println("test");
+        for(Node node: nodesInRoads){
             System.out.println(node.getID());
         }
-    }
-        public List<Long>getList(){
-            return refnumbers;
-        }
-        public List<Node>getNodeRefnumbers(){
-            return nodeRefnumbers;
-        }
-        public ArrayList<Drawable> getRoads(){
-            return roads;
-        }
-    public ArrayList<Drawable> getcoastlines(){
-    return coastlines;
-
     }
 
     public float getMaxx() {
@@ -191,21 +174,39 @@ public class Creator {
         return miny;
     }
 
-    public List<Drawable> getHighways() {
+    public List<Way> getHighways() {
         return highways;
     }
 
-    public List<Drawable> getBridges() {
+    public List<Way> getBridges() {
         return bridges;
     }
 
-    public List<Drawable> getFootway() {
+    public List<Way> getFootway() {
         return footway;
     }
 
-    public List<Drawable> getResidentialRoads() {
+    public List<Way> getResidentialRoads() {
         return residentialRoads;
     }
+
+    public List<Way> getTertiary() {
+        return tertiary;
+    }
+
+    public List<Node> getNodesInRoads(){
+        return nodesInRoads;
+    }
+
+    public List<Way> getRoads() {
+        return roads;
+    }
+
+    public ArrayList<Way> getCoastlines() {
+        return coastlines;
+    }
+
+
 }
 
 

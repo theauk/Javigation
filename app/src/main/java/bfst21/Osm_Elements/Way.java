@@ -1,12 +1,12 @@
 package bfst21.Osm_Elements;
 
-import bfst21.Drawable;
+
 import javafx.scene.canvas.GraphicsContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Way extends Element implements Drawable {
+public class Way extends Element {
     private List<Node> nodes = new ArrayList<>();
     private Long id;
 
@@ -33,5 +33,8 @@ public class Way extends Element implements Drawable {
             gc.lineTo(node.getX(), node.getY());
         }
         gc.stroke();
+    }
+    public List<Node> getNodes() {
+        return nodes;
     }
 }

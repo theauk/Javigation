@@ -2,7 +2,6 @@ package bfst21;
 
 import bfst21.view.MapSegment;
 import bfst21.view.View;
-import bfst21.view.ViewDrawing;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -16,6 +15,6 @@ public class App extends Application
         var filename = "C:\\Users\\Stribe\\IdeaProjects\\BFST21Group10\\app\\src\\main\\resources\\map.zip";
         //var filename = getParameters().getRaw().get(0);
         var loader = new Loader(filename);
-        new ViewDrawing(loader, primaryStage);
+        new View(loader, primaryStage);
     }
 }

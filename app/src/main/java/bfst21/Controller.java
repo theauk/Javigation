@@ -11,7 +11,9 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.stage.FileChooser;
 
+import javax.xml.stream.XMLStreamException;
 import java.io.File;
+import java.io.IOException;
 
 public class Controller
 {
@@ -27,11 +29,9 @@ public class Controller
     @FXML
     private Label coordsLabel;
 
-    public void init(MapSegment mapSegment)
-    {
-        this.mapSegment = mapSegment;
-        mapCanvas.init(mapSegment);
-        osmLoader = new Loader();
+    public void init(Loader loader) throws IOException, XMLStreamException {
+        this.osmLoader = loader;
+       mapCanvas.init(loader);
         openFile();
     }
 
@@ -86,8 +86,7 @@ public class Controller
     }
 
     @FXML
-    public void openFile()
-    {
+    public void openFile() throws IOException, XMLStreamException {
         File file = showFileChooser().showOpenDialog(scene.getWindow());
 
         if(file != null) loadFile(file.getAbsolutePath());
@@ -100,13 +99,13 @@ public class Controller
         System.exit(0);
     }
 
-    private void loadFile(String path)
-    {
+    private void loadFile(String path) throws IOException, XMLStreamException {
         /*
         TO-DO
         IMPLEMENT LOADER
         osmLoader.load(path);
          */
+        osmLoader = new Loader(path);
     }
 
     private void setCoordsLabel(Point2D point)

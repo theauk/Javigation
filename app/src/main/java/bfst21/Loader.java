@@ -36,13 +36,12 @@ public class Loader {
     private void loadOSM(InputStream input) throws IOException, XMLStreamException, FactoryConfigurationError {
         creator = new Creator(input);
     }
-
-    public static void main(String[] args) throws IOException, XMLStreamException {
+    //Test
+    /* public static void main(String[] args) throws IOException, XMLStreamException {
         var filename = "C:\\Users\\Stribe\\IdeaProjects\\BFST21Group10\\app\\src\\main\\resources\\map.zip";
         var loader = new Loader(filename);
-        creator.printRefnumbers();
-        creator.printNodeRefnumbers();
     }
+     */
 
     public Creator getCreator() {
         return creator;
