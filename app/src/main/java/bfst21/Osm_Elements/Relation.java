@@ -9,7 +9,8 @@ public class Relation extends NodeHolder {
     private ArrayList<Way> ways;
     private ArrayList<Node> nodes;
 
-    public Relation() {
+    public Relation(long id) {
+        super(id);
         ways = new ArrayList<>();
         nodes = new ArrayList<>();
     }

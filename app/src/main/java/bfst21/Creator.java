@@ -72,9 +72,8 @@ public class Creator {
                             idToNode.put(id, node);
                             break;
                         case "way":
-                            way = new Way();
+                            way = new Way(Long.parseLong(reader.getAttributeValue(null, "id")));
                             allBooleansFalse();
-                            way.setId(Long.parseLong(reader.getAttributeValue(null, "id")));
                             break;
                         case "tag":
                             var k = reader.getAttributeValue(null, "k");
@@ -85,25 +84,20 @@ public class Creator {
                                     break;
 
                                 case "highway":
-                                    if (v.equals("primary")) isPrimaryHighway = true;
-                                    if (v.equals("pedestrian")) ispedestrianRoad = true;
-                                    if(v.equals("residential")) isresidentialRoad = true;
-                                    if(v.equals("tertiary")) istertiary = true;
-                                    if(v.equals("footway")) isFootWay = true;
-                                    else isRoad = true; //if there's other roads, then add them to this list.
+                                    isRoad = true;
                                     break;
                             }
                             break;
 
                         case "nd":
                             var refNode = Long.parseLong(reader.getAttributeValue(null, "ref"));
-                            way.add(idToNode.get(refNode));
+                            way.addNode(idToNode.get(refNode));
                             break;
 
                         case "member":
                             if(isRelation){
-                                var refWay = Long.parseLong(reader.getAttributeValue(null,"ref"));
-                                member.add(refWay);
+                                //var refWay = Long.parseLong(reader.getAttributeValue(null,"ref"));
+                                //member.add(refWay);
                             }
                             break;
                     }
@@ -111,43 +105,21 @@ public class Creator {
                 case END_ELEMENT:
                     switch (reader.getLocalName()) {
                         case "way":
-                            if (iscoastline) coastlines.add(way);
-                            if (isRoad) addRoadToList(roads, way);
-                            if (isPrimaryHighway) addRoadToList(highways, way);
-                            if (isFootWay) addRoadToList(footway, way);
-                            if(isresidentialRoad) addRoadToList(residentialRoads, way);
-                            if (isBridge) bridges.add(way);
-                            if (istertiary) addRoadToList(tertiary, way);
-
+                            if (iscoastline) coastLines.add(way);
+                            if (isRoad) roads.add(way);
                             break;
                     }
                     break;
             }
         }
 
-        map.addData(coastlines);
+        map.addData(coastLines);
+        map.addData(roads);
     }
 
-    private void addRoadToList(List<Way> list, Way way){
-        list.add(way);
-        nodesInRoads.addAll(way.getNodes()); // adding the Nodes in a Way that contains a road to this list;
-
-    }
-    private void allBooleansFalse(){
+    private void allBooleansFalse() {
         iscoastline = false;
         isRoad = false;
-        isPrimaryHighway = false;
-        isBridge = false;
-        isFootWay = false;
-        ispedestrianRoad = false;
-        isresidentialRoad = false;
-        istertiary = false;
-    }
-    public void printNodeRefnumbers(){
-        System.out.println("references for nodes in ways:");
-        for(Node node: nodesInRoads){
-            System.out.println(node.getID());
-        }
     }
 
     public float getMaxx() {
@@ -165,49 +137,5 @@ public class Creator {
     public float getMiny() {
         return miny;
     }
-
-    public List<Way> getHighways() {
-        return highways;
-    }
-
-    public List<Way> getBridges() {
-        return bridges;
-    }
-
-    public List<Way> getFootway() {
-        return footway;
-    }
-
-    public List<Way> getResidentialRoads() {
-        return residentialRoads;
-    }
-
-    public List<Way> getTertiary() {
-        return tertiary;
-    }
-
-    public List<Node> getNodesInRoads(){
-        return nodesInRoads;
-    }
-
-    public List<Way> getRoads() {
-        return roads;
-    }
-
-    public ArrayList<Way> getCoastlines() {
-        return coastlines;
-    }
-
-
 }
 
-
-//create Node Object
-
-//create Way Object
-
-//create Road Object
-
-//Create Relation Object
-
-// add methods to the different Datasets

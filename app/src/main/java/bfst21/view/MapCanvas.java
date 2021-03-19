@@ -36,39 +36,11 @@ public class MapCanvas extends Canvas
         gc.setTransform(trans);
         gc.setLineWidth(1 / Math.sqrt(trans.determinant()));
 
-        for (var coast: map.getCoastlines()){
+        for (var element: map.getMapData()) {
             gc.setStroke(Color.BLACK);
-            coast.draw(gc);
-        }
-        for(var footway: map.getFootway()){
-            footway.draw(gc);
-        }
-        for(var resRoad: map.getResidentialRoads()){
-            resRoad.draw(gc);
-        }
-        for (var highway : map.getHighways()){
-            highway.draw(gc);
-        }
-        for (var tertiary: map.getTertiary()){
-            tertiary.draw(gc);
-        }
-        for (var bridge: map.getBridges()){
-            bridge.draw(gc);
-        }
-        for (var road: map.getRoads()){
-            road.draw(gc);
+            element.draw(gc);
         }
 
-        //TEST LINE
-        /*gc.beginPath();
-        gc.moveTo(10, 10);
-        gc.lineTo(20, 20);
-        gc.stroke();
-*/
-        /*
-        TO-DO:
-        DRAWING ACTION -> GET ELEMENTS TO DRAW
-         */
         gc.restore();
     }
 

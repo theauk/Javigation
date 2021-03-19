@@ -26,4 +26,9 @@ public class Map
          */
         return null;
     }
+
+    public List<Element> getMapData()
+    {
+        return mapData;
+    }
 }
