@@ -31,10 +31,7 @@ public class Creator {
     List<Way> residentialRoads = new ArrayList<>();
     List<Way> highways = new ArrayList<>();
     ArrayList<Way> coastlines = new ArrayList<>();
-    private NonRoadData nonRoadData;
-    private NonRoadElements nonRoadElements;
-    private RefData refData;
-    private RoadData roadData;
+   
     List<Way> footway = new ArrayList<>();
     List<Way> tertiary = new ArrayList<>();
     List<Way> bridges = new ArrayList<>();
@@ -57,8 +54,7 @@ public class Creator {
         Way way = null;
         Node node = null;
         var member = new ArrayList<Long>();
-        var coastlinesTemp = new ArrayList<Way>();
-        var highWayTemp = new ArrayList<Way>();
+        
         while (reader.hasNext()) {
             switch (reader.next()) {
                 case START_ELEMENT:
@@ -76,7 +72,8 @@ public class Creator {
                             var id = Long.parseLong(reader.getAttributeValue(null, "id"));
                             var lon = Float.parseFloat(reader.getAttributeValue(null, "lon"));
                             var lat = Float.parseFloat(reader.getAttributeValue(null, "lat"));
-                            idToNode.put(id, new Node(id,lat,lon));
+                            node = new Node(id, lat, lon);
+                            idToNode.put(id, node);
                             break;
                         case "way":
                             way = new Way();
@@ -86,24 +83,27 @@ public class Creator {
                         case "tag":
                             var k = reader.getAttributeValue(null, "k");
                             var v = reader.getAttributeValue(null, "v");
-                            if (k.equals("natural") && v.equals("coastline")) {
-                                iscoastline = true;
-                            } else if (k.equals("highway")){
-                                if (v.equals("primary")) isPrimaryHighway = true;
-                                if (v.equals("pedestrian")) ispedestrianRoad = true;
-                                if(v.equals("residential")) isresidentialRoad = true;
-                                if(v.equals("tertiary")) istertiary = true;
-                                if(v.equals("footway")) isFootWay = true;
-                                else isRoad = true; //if there's other roads, then add them to this list.
-                            }
-
+                            switch(k){
+                                case "natural":
+                                    if(v.equals("coastline")) iscoastline = true;
                                 break;
-                                case "nd":
-                                    var refNode = Long.parseLong(reader.getAttributeValue(null, "ref"));
-                                    way.add(idToNode.get(refNode));
 
+                                case "highway":
+                                    if (v.equals("primary")) isPrimaryHighway = true;
+                                    if (v.equals("pedestrian")) ispedestrianRoad = true;
+                                    if(v.equals("residential")) isresidentialRoad = true;
+                                    if(v.equals("tertiary")) istertiary = true;
+                                    if(v.equals("footway")) isFootWay = true;
+                                    else isRoad = true; //if there's other roads, then add them to this list.
+                                break;
+                            }
+                            break;
 
-                                    break;
+                        case "nd":
+                            var refNode = Long.parseLong(reader.getAttributeValue(null, "ref"));
+                            way.add(idToNode.get(refNode));
+                                break;
+
                         case "member":
                             if(isRelation){
                                 var refWay = Long.parseLong(reader.getAttributeValue(null,"ref"));
@@ -116,33 +116,25 @@ public class Creator {
                             switch (reader.getLocalName()) {
                                 case "way":
                                     if (iscoastline) coastlines.add(way);
-                                    if (isRoad) {
-                                        roads.add(way);
-                                        nodesInRoads.addAll(way.getNodes()); // adding the Nodes in a Way that contains a road to this list;
-                                    }
-                                    if (isPrimaryHighway) {
-                                        highways.add(way);
-                                        nodesInRoads.addAll(way.getNodes()); // adding the Nodes in a Way that contains a road to this list;
-                                    }
-                                    if (isFootWay) {
-                                        footway.add(way);
-                                        nodesInRoads.addAll(way.getNodes()); // adding the Nodes in a Way that contains a road to this list;
-                                    }
-                                    if(isresidentialRoad){
-                                        residentialRoads.add(way);
-                                        nodesInRoads.addAll(way.getNodes()); // adding the Nodes in a Way that contains a road to this list;
-                                    }
+                                    if (isRoad) addRoadToList(roads, way);
+                                    if (isPrimaryHighway) addRoadToList(highways, way);
+                                    if (isFootWay) addRoadToList(footway, way);
+                                    if(isresidentialRoad) addRoadToList(residentialRoads, way);
                                     if (isBridge) bridges.add(way);
-                                    if (istertiary){
-                                        tertiary.add(way);
-                                        nodesInRoads.addAll(way.getNodes());
-                                    }
+                                    if (istertiary) addRoadToList(tertiary, way);
+                                        
                                     break;
                             }
                             break;
                     }
             }
         }
+
+    private void addRoadToList(List<Way> list, Way way){
+        list.add(way);
+        nodesInRoads.addAll(way.getNodes()); // adding the Nodes in a Way that contains a road to this list;
+
+    }
     private void allBooleansFalse(){
         iscoastline = false;
         isRoad = false;
