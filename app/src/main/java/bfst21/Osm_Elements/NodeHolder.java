@@ -5,11 +5,15 @@ import java.util.List;
 
 public abstract class NodeHolder extends Element implements Spatializable {
 
-    private List<Node> nodes = new ArrayList<>();
+    protected List<Node> nodes = new ArrayList<>();
     private float xMin;
     private float xMax;
     private float yMin;
     private float yMax;
+
+    public NodeHolder(long id) {
+        super(id);
+    }
 
     public Node firstNode() {
         return nodes.get(0);

@@ -1,19 +1,21 @@
 package bfst21.view;
 
+import bfst21.Map;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Affine;
+import javafx.scene.transform.NonInvertibleTransformException;
 
 public class MapCanvas extends Canvas
 {
-    private MapSegment segment;
+    private Map map;
     private Affine trans;
 
-    public void init(MapSegment segment)
+    public void init(Map map)
     {
-        this.segment = segment;
+        this.map = map;
         trans = new Affine();
 
         widthProperty().addListener(observable -> repaint());
@@ -34,16 +36,12 @@ public class MapCanvas extends Canvas
         gc.setTransform(trans);
         gc.setLineWidth(1 / Math.sqrt(trans.determinant()));
 
-        //TEST LINE
-        gc.beginPath();
-        gc.moveTo(10, 10);
-        gc.lineTo(20, 20);
-        gc.stroke();
+        for (var element: map.getMapData()) {
+            gc.setStroke(Color.BLACK);
+            element.draw(gc);
+        }
 
-        /*
-        TO-DO:
-        DRAWING ACTION -> GET ELEMENTS TO DRAW
-         */
+        gc.restore();
     }
 
     public void zoom(double factor, Point2D center)
@@ -64,15 +62,15 @@ public class MapCanvas extends Canvas
         pan(0, 0);
     }
 
-    public Point2D getTransCoords(double x, double y)
+    public Point2D getTransCoords(double x, double y) throws NonInvertibleTransformException
     {
-        //Invert scale
-        double invertedScaleX = 1 / trans.getMxx();
-        double invertedScaleY = 1 / trans.getMyy();
+        return trans.inverseTransform(x, y);
+    }
 
-        double transformedX = invertedScaleX * x - invertedScaleX * trans.getTx();
-        double transformedY = invertedScaleY * y - invertedScaleY * trans.getTy();
+    public Point2D getGeoCoords(double x, double y) throws NonInvertibleTransformException
+    {
+        Point2D geoCoords = getTransCoords(x, y);
 
-        return new Point2D(transformedX, transformedY);
+        return new Point2D(geoCoords.getX(), -geoCoords.getY() * 0.56f);
     }
 }
