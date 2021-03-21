@@ -1,53 +1,111 @@
 package bfst21.data_structures;
 
 import bfst21.Osm_Elements.Node;
+import bfst21.Osm_Elements.NodeHolder;
 import bfst21.Osm_Elements.Way;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RTreeTest {
 
+    private RTree rTree;
+    private Way w1, w2, w3, w4;
+
+    @BeforeEach
+    void setUp() {
+        rTree = new RTree(1, 2, 4);
+
+        w1 = new Way(1);
+        Node n1 = new Node(1, 1, 2);
+        //Node n2 = new Node(2, 3, 4);
+        w1.addNode(n1);
+        //w1.addNode(n2);
+
+        w2 = new Way(2);
+        Node n3 = new Node(3, 6, 4);
+        //Node n4 = new Node(4, 12, 1);
+        w2.addNode(n3);
+        //w2.addNode(n4);
+
+        w3 = new Way(3);
+        Node n5 = new Node(5, 3, 1);
+        //Node n6 = new Node(6, 9, 4);
+        w3.addNode(n5);
+        //w3.addNode(n6);
+
+        w4 = new Way(4);
+        Node n7 = new Node(7, 10, 1);
+        //Node n8 = new Node(8, 20, 14);
+        w4.addNode(n7);
+        //w4.addNode(n8);
+
+    }
+
     @Test
     void searchTest() {
-        RTree rTree = new RTree(1, 1, 2);
 
-        Way e1 = new Way();
-        Node n1 = new Node(1, 1, 2);
-        Node n2 = new Node(2, 3, 4);
-        e1.addNode(n1);
-        e1.addNode(n2);
-
-        Way e2 = new Way();
-        Node n3 = new Node(3, 6, 4);
-        Node n4 = new Node(4, 9, 1);
-        e2.addNode(n3);
-        e2.addNode(n4);
-
-        Way e3 = new Way();
-        Node n5 = new Node(5, 3, 1);
-        Node n6 = new Node(6, 9, 4);
-        e3.addNode(n5);
-        e3.addNode(n6);
-
-        RTreeNode r1 = new RTreeNode(e1.getCoordinates(), false, 0,  1, null);
-        RTreeNode r2 = new RTreeNode(e2.getCoordinates(), false, 0, 1, r1);
+        RTreeNode r1 = new RTreeNode(w1.getCoordinates(), false, 0, 1, null);
+        RTreeNode r2 = new RTreeNode(w2.getCoordinates(), false, 0, 1, r1);
         r1.addChild(r2);
-        RTreeNode r3 = new RTreeNode(e3.getCoordinates(), true, 0, 1, r2);
+        RTreeNode r3 = new RTreeNode(w3.getCoordinates(), true, 0, 1, r2);
         r2.addChild(r3);
 
         rTree.setRoot(r1);
 
-        r1.addNodeHolderEntry(e1);
-        r2.addNodeHolderEntry(e2);
-        r3.addNodeHolderEntry(e3);
+        r1.addNodeHolderEntry(w1);
+        r2.addNodeHolderEntry(w2);
+        r3.addNodeHolderEntry(w3);
 
-        System.out.println(rTree.search(6, 10, 0, 5).size());
-        /*assertEquals(2, rTree.search(6, 10, 0, 5).size());
-        assertEquals(3, rTree.search(0, 10, 0, 10).size());
-        assertEquals(0, rTree.search(10, 20, 10, 20).size());
-        assertEquals(1, rTree.search(0,2, 2, 3).size());
-        assertEquals(1, rTree.search(1,3, 2, 4).size());
-        assertEquals(0, rTree.search(1,3, 4, 9).size());*/
+        System.out.println(rTree.search(6, 10, 0, -5 / 0.56f).size());
+        /*assertEquals(2, rTree.search(6, 10, 0, -5/0.56f).size());
+        assertEquals(3, rTree.search(0, 10, 0, -10/0.56f).size());
+        assertEquals(0, rTree.search(10, 20, -10/0.56f, -20/0.56f).size());
+        assertEquals(1, rTree.search(0,2, -2/0.56f, -3/0.56f).size());
+        assertEquals(1, rTree.search(1,3, -2/0.56f, -4/0.56f).size());
+        assertEquals(0, rTree.search(1,3, -4/0.56f, -9/0.56f).size());*/
+    }
+
+    @Test
+    void insertNoOverFlowRootTest() {
+
+        rTree.insert(w1);
+        System.out.println("root cor: " + Arrays.toString(rTree.getRoot().getCoordinates()));
+
+        System.out.println("");
+        System.out.println("second");
+        rTree.insert(w2);
+        System.out.println("root cor: " + Arrays.toString(rTree.getRoot().getCoordinates()));
+        System.out.println(rTree.getRoot().getChildren().size());
+
+        System.out.println("");
+        System.out.println("third");
+        rTree.insert(w3);
+        System.out.println("root cor: " + Arrays.toString(rTree.getRoot().getCoordinates()));
+        System.out.println(rTree.getRoot().getChildren().size());
+
+        System.out.println("");
+        System.out.println("fourth");
+        rTree.insert(w4);
+
+        float[] rootCoordinates = rTree.getRoot().getCoordinates();
+        assertEquals(1.0, rootCoordinates[0]);
+        assertEquals(10.0, rootCoordinates[1]);
+        assertEquals(2, rTree.getRoot().getChildren().size());
+
+        System.out.println("");
+        System.out.println("root cor: " + Arrays.toString(rTree.getRoot().getCoordinates()));
+        System.out.println(rTree.getRoot().getChildren().size());
+
+        System.out.println("");
+        for (RTreeNode r: rTree.getRoot().getChildren()) {
+            System.out.println("child: " + Arrays.toString(r.getCoordinates()));
+            for(RTreeNode h : r.getChildren()) {
+                System.out.println("entry: " + Arrays.toString(h.getCoordinates()));
+            }
+        }
     }
 }

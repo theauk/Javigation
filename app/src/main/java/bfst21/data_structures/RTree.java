@@ -3,17 +3,18 @@ package bfst21.data_structures;
 import bfst21.Osm_Elements.NodeHolder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class RTree {
-    private int minimumChildren, maximumChildren, size, dimensions;
+    private int minimumChildren, maximumChildren, size, numberOfCoordinates;
     private RTreeNode root;
 
-    public RTree(int minimumChildren, int maximumChildren, int dimensions) {
+    public RTree(int minimumChildren, int maximumChildren, int numberOfCoordinates) {
         this.minimumChildren = minimumChildren;
         this.maximumChildren = maximumChildren;
-        this.dimensions = dimensions;
+        this.numberOfCoordinates = numberOfCoordinates;
         root = null;
         size = 0;
     }
@@ -52,23 +53,46 @@ public class RTree {
     }
 
     public void insert(NodeHolder nodeHolder) {
-        RTreeNode selectedNode = chooseLeaf(nodeHolder, root);
 
-        RTreeNode newEntry = new RTreeNode(nodeHolder.getCoordinates(), true, minimumChildren, maximumChildren, selectedNode.getParent());
-        newEntry.addNodeHolderEntry(nodeHolder);
-
-        selectedNode.addChild(newEntry);
-
-        if (selectedNode.overflow()) {
-            RTreeNode[] result = splitNodeShuffle(selectedNode);
-            adjustTree(result[0], result[1]);
+        System.out.println("");
+        if(root == null) {
+            System.out.println("insert root null");
+            root = new RTreeNode(nodeHolder.getCoordinates(), true, minimumChildren, maximumChildren, null);
+            RTreeNode dataLeaf = new RTreeNode(nodeHolder.getCoordinates(), false, minimumChildren, maximumChildren, root);
+            root.addChild(dataLeaf);
         } else {
-            adjustTree(selectedNode, null);
+            System.out.println("ELSE INSERT");
+            RTreeNode selectedNode = chooseLeaf(nodeHolder, root);
+            System.out.println("selected node: " + selectedNode.getParent());
+
+            RTreeNode newEntry = new RTreeNode(nodeHolder.getCoordinates(), false, minimumChildren, maximumChildren, selectedNode.getParent());
+            newEntry.addNodeHolderEntry(nodeHolder);
+
+            selectedNode.addChild(newEntry);
+
+            if (selectedNode.overflow()) {
+                System.out.println("insert overflow");
+                RTreeNode[] result = splitNodeShuffle(selectedNode);
+                System.out.println("split length; " + result[0] + " " + result[1]);
+                System.out.println("new nodes child size: " + result[0].getChildren().size() + " " + result[1].getChildren().size());
+                for(RTreeNode r : result[0].getChildren()) {
+                    System.out.println(Arrays.toString(r.getCoordinates()));
+                }
+                for(RTreeNode r : result[1].getChildren()) {
+                    System.out.println(Arrays.toString(r.getCoordinates()));
+                }
+
+                adjustTree(result[0], result[1]);
+            } else {
+                adjustTree(selectedNode, null);
+                System.out.println("insert else");
+            }
         }
     }
 
     private RTreeNode chooseLeaf(NodeHolder nodeHolder, RTreeNode node) {
         if (node.isLeaf()) {
+            System.out.println("is leaf");
             return node;
         } else {
             ArrayList<RTreeNode> children = node.getChildren();
@@ -84,10 +108,15 @@ public class RTree {
 
     private void adjustTree(RTreeNode originalNode, RTreeNode newNode) {
         if (originalNode.getParent() == null) { // root
-            if (originalNode.overflow()) {
-                createNewRoot(originalNode);
-            }
+            System.out.println("adjust tree if: root");
+
+            if (originalNode.overflow()) createNewRoot(originalNode);
+            if(newNode != null) updateNodeCoordinates(newNode); // TODO: 3/21/21 necessary?
+
+            updateNodeCoordinates(originalNode);
+
         } else if (newNode == null) {
+            System.out.println("adjust else if: no split");
             updateNodeCoordinates(originalNode);
             adjustTree(originalNode.getParent(), null);
         } else {
@@ -106,19 +135,22 @@ public class RTree {
 
     private void createNewRoot(RTreeNode oldRoot) {
         RTreeNode[] rootChildren = splitNodeShuffle(oldRoot);
-        RTreeNode newRoot = new RTreeNode(new float[dimensions], false, minimumChildren, maximumChildren, null);
+        RTreeNode newRoot = new RTreeNode(new float[numberOfCoordinates], false, minimumChildren, maximumChildren, null);
         newRoot.addChild(rootChildren[0]);
         newRoot.addChild(rootChildren[1]);
         updateNodeCoordinates(newRoot);
+        root = newRoot;
     }
 
     private void updateNodeCoordinates(RTreeNode node) {
         for (RTreeNode childNode : node.getChildren()) {
-            for (int i = 0; i < dimensions; i += 2) {
+            for (int i = 0; i < numberOfCoordinates; i += 2) {
+                System.out.println("child: " + childNode.getCoordinates()[i] + " node: " + node.getCoordinates()[i]);
+                System.out.println("child: " + childNode.getCoordinates()[i + 1] + " node: " + node.getCoordinates()[i + 1]);
                 if (childNode.getCoordinates()[i] < node.getCoordinates()[i])
                     node.updateCoordinate(i, childNode.getCoordinates()[i]);
                 if (childNode.getCoordinates()[i + 1] > node.getCoordinates()[i + 1])
-                    node.updateCoordinate(i + 1, childNode.getCoordinates()[i]);
+                    node.updateCoordinate(i + 1, childNode.getCoordinates()[i + 1]);
             }
         }
     }
@@ -128,13 +160,20 @@ public class RTree {
         ArrayList<RTreeNode> elementsToSplit = node.getChildren();
         Collections.shuffle(elementsToSplit);
 
-        node.removeChildren();
+        ArrayList<RTreeNode> childrenForOldNode = new ArrayList<>();
         ArrayList<RTreeNode> childrenForNewNode = new ArrayList<>();
 
-        for (int i = 0; i < elementsToSplit.size(); i += 2) {
-            node.addChild(elementsToSplit.get(i));
-            childrenForNewNode.add(elementsToSplit.get(i + 1));
+        for (int i = 0; i < elementsToSplit.size(); i++) {
+            if(i % 2 == 0) {
+                childrenForOldNode.add(elementsToSplit.get(i));
+            } else {
+                childrenForNewNode.add(elementsToSplit.get(i));
+            }
         }
+
+        node.removeChildren();
+        node.addChildren(childrenForOldNode);
+
         RTreeNode newNode = new RTreeNode(node.getCoordinates(), node.isLeaf(), minimumChildren, maximumChildren, node.getParent());
         newNode.addChildren(childrenForNewNode);
 
@@ -155,21 +194,21 @@ public class RTree {
     }*/
 
     private float getNewBoundingBoxArea(NodeHolder nodeHolder, RTreeNode node) {
-        float[] newCoordinates = new float[dimensions];
+        float[] newCoordinates = new float[numberOfCoordinates];
 
-        for (int i = 0; i < dimensions; i += 2) {
+        for (int i = 0; i < numberOfCoordinates; i += 2) {
             newCoordinates[i] = Math.min(nodeHolder.getCoordinates()[i], node.getCoordinates()[i]);
             newCoordinates[i + 1] = Math.max(nodeHolder.getCoordinates()[i + 1], node.getCoordinates()[i + 1]);
         }
         float area = 1;
-        for (int j = 0; j < dimensions - 1; j += 2) {
+        for (int j = 0; j < numberOfCoordinates - 1; j += 2) {
             area *= (newCoordinates[j + 1] - newCoordinates[j]);
         }
         return Math.abs(area);
     }
 
-    public Boolean intersects(float[] coordinates1, float[] coordinates2) {
-        for (int i = 0; i < dimensions; i += 2) {
+    private Boolean intersects(float[] coordinates1, float[] coordinates2) {
+        for (int i = 0; i < numberOfCoordinates; i += 2) {
             if (doesNotIntersect(coordinates1[i], coordinates2[i + 1])) {
                 return false;
             } else if (doesNotIntersect(coordinates2[i], coordinates1[i + 1])) {

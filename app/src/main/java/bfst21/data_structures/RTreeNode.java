@@ -26,6 +26,10 @@ public class RTreeNode {
         return leaf;
     }
 
+    public void setIsLeaf(boolean value) {
+        leaf = value;
+    }
+
     public float[] getCoordinates() {
         return coordinates;
     }
@@ -43,7 +47,8 @@ public class RTreeNode {
     }
 
     public boolean overflow() {
-        return children.size() >= maximumChildren;
+        System.out.println(children.size() + " " + maximumChildren);
+        return children.size() > maximumChildren;
     }
 
     public boolean underflow() {
@@ -56,6 +61,7 @@ public class RTreeNode {
 
     public void addChild(RTreeNode r) {
         children.add(r);
+        System.out.println("in add child " + children.size());
         r.addParent(this);
     }
 
