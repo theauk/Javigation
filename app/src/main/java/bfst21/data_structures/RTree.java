@@ -7,14 +7,15 @@ import java.util.Collections;
 import java.util.List;
 
 public class RTree {
-    private int minimumChildren, maximumChildren, size;
+    private int minimumChildren, maximumChildren, size, dimensions;
     private RTreeNode root;
 
-    public RTree(int minimumChildren, int maximumChildren) {
+    public RTree(int minimumChildren, int maximumChildren, int dimensions) {
         this.minimumChildren = minimumChildren;
         this.maximumChildren = maximumChildren;
-        this.root = null;
-        this.size = 0;
+        this.dimensions = dimensions;
+        root = null;
+        size = 0;
     }
 
     public RTreeNode getRoot() {
@@ -83,12 +84,8 @@ public class RTree {
 
     private void adjustTree(RTreeNode originalNode, RTreeNode newNode) {
         if (originalNode.getParent() == null) { // root
-            if(originalNode.overflow()) {
-                RTreeNode[] rootChildren = splitNodeShuffle(originalNode);
-                RTreeNode newRoot = new RTreeNode(new float[originalNode.getCoordinates().length], false, minimumChildren, maximumChildren, null);
-                newRoot.addChild(rootChildren[0]);
-                newRoot.addChild(rootChildren[1]);
-                updateNodeCoordinates(newRoot);
+            if (originalNode.overflow()) {
+                createNewRoot(originalNode);
             }
         } else if (newNode == null) {
             updateNodeCoordinates(originalNode);
@@ -96,19 +93,28 @@ public class RTree {
         } else {
             updateNodeCoordinates(originalNode);
             updateNodeCoordinates(newNode);
-            if(originalNode.getParent().overflow()) {
-                splitNodeShuffle(originalNode.getParent());
+            if (originalNode.getParent().overflow()) {
+                RTreeNode[] newParents = splitNodeShuffle(originalNode.getParent());
+                adjustTree(newParents[0], newParents[1]);
             }
         }
     }
 
-    private void updateNodeCoordinates(RTreeNode node) {
+    private void createNewRoot(RTreeNode oldRoot) {
+        RTreeNode[] rootChildren = splitNodeShuffle(oldRoot);
+        RTreeNode newRoot = new RTreeNode(new float[dimensions], false, minimumChildren, maximumChildren, null);
+        newRoot.addChild(rootChildren[0]);
+        newRoot.addChild(rootChildren[1]);
+        updateNodeCoordinates(newRoot);
+    }
 
-        for (RTreeNode r: node.getChildren()) {
-            for (int i = 0; i < node.getCoordinates().length; i++) {
-                if(r.getCoordinates()[i] > node.getCoordinates()[i]) {
-                    node.updateCoordinate(i, r.getCoordinates()[i]);
-                }
+    private void updateNodeCoordinates(RTreeNode node) {
+        for (RTreeNode childNode : node.getChildren()) {
+            for (int i = 0; i < dimensions; i += 2) {
+                if (childNode.getCoordinates()[i] < node.getCoordinates()[i])
+                    node.updateCoordinate(i, childNode.getCoordinates()[i]);
+                if (childNode.getCoordinates()[i + 1] > node.getCoordinates()[i + 1])
+                    node.updateCoordinate(i + 1, childNode.getCoordinates()[i]);
             }
         }
     }
@@ -145,24 +151,21 @@ public class RTree {
     }*/
 
     private float getNewBoundingBoxArea(NodeHolder nodeHolder, RTreeNode node) {
-        float[] newCoordinates = new float[nodeHolder.getCoordinates().length];
+        float[] newCoordinates = new float[dimensions];
 
-        for (int i = 0; i < nodeHolder.getCoordinates().length; i++) {
-            if (i % 2 == 0) {
-                newCoordinates[i] = Math.min(nodeHolder.getCoordinates()[i], node.getCoordinates()[i]);
-            } else {
-                newCoordinates[i] = Math.max(nodeHolder.getCoordinates()[i], node.getCoordinates()[i]);
-            }
+        for (int i = 0; i < dimensions; i += 2) {
+            newCoordinates[i] = Math.min(nodeHolder.getCoordinates()[i], node.getCoordinates()[i]);
+            newCoordinates[i + 1] = Math.max(nodeHolder.getCoordinates()[i + 1], node.getCoordinates()[i + 1]);
         }
         float area = 1;
-        for (int j = 0; j < newCoordinates.length - 1; j += 2) {
+        for (int j = 0; j < dimensions - 1; j += 2) {
             area *= (newCoordinates[j + 1] - newCoordinates[j]);
         }
         return Math.abs(area);
     }
 
     public Boolean intersects(float[] coordinates1, float[] coordinates2) {
-        for (int i = 0; i < coordinates1.length; i += 2) {
+        for (int i = 0; i < dimensions; i += 2) {
             if (doesNotIntersect(coordinates1[i], coordinates2[i + 1])) {
                 return false;
             } else if (doesNotIntersect(coordinates2[i], coordinates1[i + 1])) {
