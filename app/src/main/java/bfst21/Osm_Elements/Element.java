@@ -1,4 +1,4 @@
-package bfst21.osm_elements;
+package bfst21.Osm_Elements;
 
 public abstract class Element {
 

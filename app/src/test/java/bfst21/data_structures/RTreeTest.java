@@ -1,7 +1,7 @@
 package bfst21.data_structures;
 
-import bfst21.osm_elements.Node;
-import bfst21.osm_elements.Way;
+import bfst21.Osm_Elements.Node;
+import bfst21.Osm_Elements.Way;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
