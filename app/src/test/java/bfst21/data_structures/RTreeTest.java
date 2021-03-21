@@ -21,7 +21,7 @@ class RTreeTest {
 
         assertTrue(rTree.intersects(coor4, coor4));
     }*/
-
+/*
     @Test
     void searchTest() {
         RTree rTree = new RTree(1);
@@ -63,5 +63,5 @@ class RTreeTest {
         assertEquals(1, rTree.search(0,2, 2, 3).size());
         assertEquals(1, rTree.search(1,3, 2, 4).size());
         assertEquals(0, rTree.search(1,3, 4, 9).size());
-    }
+    }*/
 }

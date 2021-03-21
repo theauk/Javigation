@@ -2,15 +2,19 @@ package bfst21.data_structures;
 
 import bfst21.Osm_Elements.NodeHolder;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 public class RTree {
-    private int maxEntries, size;
+    private int minimumChildren, maximumChildren, size;
     private RTreeNode root;
 
-    public RTree(int maxEntries) {
-        this.maxEntries = maxEntries;
+    public RTree(int minimumChildren, int maximumChildren) {
+        this.minimumChildren = minimumChildren;
+        this.maximumChildren = maximumChildren;
         this.root = null;
         this.size = 0;
     }
@@ -49,12 +53,16 @@ public class RTree {
     }
 
     public void insert(NodeHolder nodeHolder) {
-        RTreeNode selectedLeaf = chooseLeaf(nodeHolder, root);
+        RTreeNode selectedNode = chooseLeaf(nodeHolder, root);
 
-        if(selectedLeaf.isFull()) {
-            //splitNodeExhaustive(selectedLeaf);
-        } else {
-            selectedLeaf.addNodeHolderEntry(nodeHolder);
+        RTreeNode newEntry = new RTreeNode(nodeHolder.getCoordinates(), true, minimumChildren, maximumChildren, selectedNode.getParent());
+        newEntry.addNodeHolderEntry(nodeHolder);
+
+        selectedNode.addChild(newEntry);
+
+        if (selectedNode.overflow()) {
+            RTreeNode[] result = splitNodeRandom(selectedNode);
+            adjustTree(result);
         }
     }
 
@@ -73,7 +81,29 @@ public class RTree {
         }
     }
 
-    /*private RTreeNode splitNodeExhaustive(RTreeNode leaf) {
+    private RTreeNode[] splitNodeRandom(RTreeNode node) {
+
+        ArrayList<RTreeNode> elementsToSplit = node.getChildren();
+        Collections.shuffle(elementsToSplit);
+
+        node.removeChildren();
+        ArrayList<RTreeNode> childrenForNewNode = new ArrayList<>();
+
+        for (int i = 0; i < elementsToSplit.size(); i += 2) {
+            node.addChild(elementsToSplit.get(i));
+            childrenForNewNode.add(elementsToSplit.get(i + 1));
+        }
+        RTreeNode newNode = new RTreeNode(node.getCoordinates(), node.isLeaf(), minimumChildren, maximumChildren, node.getParent());
+        newNode.addChildren(childrenForNewNode);
+
+        return new RTreeNode[]{node, newNode};
+    }
+
+    /*
+    private RTreeNode[] splitNodeExhaustive(RTreeNode leaf, NodeHolder nodeHolderToInsert) {
+        ArrayList<NodeHolder> elementsToSplit = new ArrayList<>();
+        elementsToSplit.add(nodeHolderToInsert);
+        elementsToSplit.addAll(leaf.getNodeHolderEntries());
 
     }
 
@@ -85,7 +115,7 @@ public class RTree {
 
     }*/
 
-    private void adjustTree() {
+    private void adjustTree(RTreeNode[] nodes) {
 
     }
 
