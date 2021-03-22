@@ -101,15 +101,17 @@ class RTreeTest {
         System.out.println("root cor: " + Arrays.toString(rTree.getRoot().getCoordinates()));
         System.out.println(rTree.getRoot().getChildren().size());
 
-        /*System.out.println("");
+        System.out.println("");
         System.out.println("--FOURTH--");
         rTree.insert(w4);
+
+        rTree.printTree();
 
         System.out.println("");
         System.out.println("--FIFTH--");
         rTree.insert(w5);
 
-        System.out.println("");
+        /*System.out.println("");
         System.out.println("--SIXTH--");
         rTree.insert(w6);*/
 

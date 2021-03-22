@@ -110,14 +110,13 @@ public class RTree {
 
     private RTreeNode chooseLeaf(NodeHolder nodeHolder, RTreeNode node) {
         if (node.isLeaf()) {
-            System.out.println("Found a leaf");
+            System.out.println("Found a leaf: " + node.id);
             return node;
         } else {
             System.out.println("Search deeper for leaf");
             System.out.println("Number of children: " + node.getChildren().size());
             ArrayList<RTreeNode> children = node.getChildren();
             RTreeNode smallestBoundingBoxNode = children.get(0);
-            System.out.println("0 cor: " + Arrays.toString(smallestBoundingBoxNode.getCoordinates()));
             for (int i = 1; i < node.getChildren().size(); i++) {
                 System.out.println("Coordinates child: " + Arrays.toString(node.getChildren().get(i).getCoordinates()));
                 if (getNewBoundingBoxArea(nodeHolder, children.get(i)) < getNewBoundingBoxArea(nodeHolder, smallestBoundingBoxNode)) {
@@ -149,12 +148,6 @@ public class RTree {
             updateNodeCoordinates(newNode);
             adjustTree(originalNode.getParent(), newNode.getParent());
         }
-    }
-
-    private void createNewParents(RTreeNode oldParent) {
-        System.out.println("Create new parents");
-        RTreeNode[] newParents = splitNodeShuffle(oldParent);
-        adjustTree(newParents[0], newParents[1]);
     }
 
     private void createNewRoot(RTreeNode firstNode, RTreeNode secondNode) {
@@ -224,6 +217,10 @@ public class RTree {
         System.out.println("In split first children: " + node.getChildren().size());
         System.out.println("In split second children: " + newNode.getChildren().size());
         System.out.println("");
+
+        if(node.getParent() != null) {
+            node.getParent().addChild(newNode);
+        }
 
         return new RTreeNode[]{node, newNode};
     }
