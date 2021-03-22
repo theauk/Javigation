@@ -14,15 +14,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class RTreeTest {
 
     private RTree rTree;
-    private Way w1, w2, w3, w4;
+    private Way w1, w2, w3, w4, w5, w6;
 
     @BeforeEach
     void setUp() {
-        System.out.println(NaN < 2);
+
         rTree = new RTree(1, 2, 4);
 
         w1 = new Way(1);
-        Node n1 = new Node(1, 1, 2);
+        Node n1 = new Node(1, -1, 2);
         //Node n2 = new Node(2, 3, 4);
         w1.addNode(n1);
         //w1.addNode(n2);
@@ -40,10 +40,22 @@ class RTreeTest {
         //w3.addNode(n6);
 
         w4 = new Way(4);
-        Node n7 = new Node(7, 10, 1);
+        Node n7 = new Node(7, 10, 3);
         //Node n8 = new Node(8, 20, 14);
         w4.addNode(n7);
         //w4.addNode(n8);
+
+        w5 = new Way(5);
+        Node n9 = new Node(9, -5, 7);
+        //Node n10 = new Node(10, 20, 14);
+        w5.addNode(n9);
+        //w4.addNode(n10);
+
+        w6 = new Way(6);
+        Node n11 = new Node(11, 17, 35);
+        //Node 12 = new Node(12, 20, 14);
+        w6.addNode(n11);
+        //w4.addNode(n12);
 
     }
 
@@ -80,7 +92,7 @@ class RTreeTest {
         System.out.println("");
         System.out.println("--SECOND--");
         rTree.insert(w2);
-        System.out.println("root cor: " + Arrays.toString(rTree.getRoot().getCoordinates()));
+        System.out.println("Current root coordinates after insert: " + Arrays.toString(rTree.getRoot().getCoordinates()));
         System.out.println(rTree.getRoot().getChildren().size());
 
         System.out.println("");
@@ -89,26 +101,28 @@ class RTreeTest {
         System.out.println("root cor: " + Arrays.toString(rTree.getRoot().getCoordinates()));
         System.out.println(rTree.getRoot().getChildren().size());
 
-        System.out.println("");
+        /*System.out.println("");
         System.out.println("--FOURTH--");
         rTree.insert(w4);
 
-        float[] rootCoordinates = rTree.getRoot().getCoordinates();
+        System.out.println("");
+        System.out.println("--FIFTH--");
+        rTree.insert(w5);
+
+        System.out.println("");
+        System.out.println("--SIXTH--");
+        rTree.insert(w6);*/
+
+        /*float[] rootCoordinates = rTree.getRoot().getCoordinates();
         assertEquals(1.0, rootCoordinates[0]);
         assertEquals(10.0, rootCoordinates[1]);
-        assertEquals(2, rTree.getRoot().getChildren().size());
+        assertEquals(2, rTree.getRoot().getChildren().size());*/
 
         System.out.println("");
-        System.out.println("root cor: " + Arrays.toString(rTree.getRoot().getCoordinates()));
-        System.out.println(rTree.getRoot().getChildren().size());
+        System.out.println("Final root coordinates: " + Arrays.toString(rTree.getRoot().getCoordinates()));
 
         System.out.println("");
-        for (RTreeNode r: rTree.getRoot().getChildren()) {
-            System.out.println("child: " + Arrays.toString(r.getCoordinates()));
-            for(RTreeNode h : r.getChildren()) {
-                System.out.println("entry: " + Arrays.toString(h.getCoordinates()));
-            }
-        }
+
         rTree.printTree();
     }
 }

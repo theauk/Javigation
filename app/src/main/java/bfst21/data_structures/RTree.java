@@ -2,10 +2,7 @@ package bfst21.data_structures;
 
 import bfst21.Osm_Elements.NodeHolder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class RTree {
     private int minimumChildren, maximumChildren, size, numberOfCoordinates;
@@ -69,6 +66,7 @@ public class RTree {
             System.out.println("creating first root with leaf true");
             root = new RTreeNode(nodeHolder.getCoordinates(), true, minimumChildren, maximumChildren, null, getId());
             RTreeNode dataLeaf = new RTreeNode(nodeHolder.getCoordinates(), false, minimumChildren, maximumChildren, root, getId());
+            dataLeaf.addNodeHolderEntry(nodeHolder);
             root.addChild(dataLeaf);
         } else {
             System.out.println("root is already created -> invoke selectNode");
@@ -81,41 +79,47 @@ public class RTree {
             RTreeNode newEntry = new RTreeNode(nodeHolder.getCoordinates(), false, minimumChildren, maximumChildren, selectedNode, getId());
             newEntry.addNodeHolderEntry(nodeHolder);
             selectedNode.addChild(newEntry);
+            checkOverflow(selectedNode);
+        }
+    }
 
-            if (selectedNode.overflow()) {
-                System.out.println("the selected node overflows -> split the node");
-                RTreeNode[] result = splitNodeShuffle(selectedNode);
-                System.out.println("the new node(s): " + result[0] + " " + result[1]);
-                System.out.println("nr. children for new node(s): " + result[0].getChildren().size() + " " + result[1].getChildren().size());
-                System.out.println("first coordinate: " + Arrays.toString(result[0].getCoordinates()));
-                System.out.println("second coordinate: " + Arrays.toString(result[1].getCoordinates()));
-                for (RTreeNode r : result[0].getChildren()) {
-                    System.out.println("first: " + Arrays.toString(r.getCoordinates()));
-                }
-                for (RTreeNode r : result[1].getChildren()) {
-                    System.out.println("second : " + Arrays.toString(r.getCoordinates()));
-                }
-                // adjust the new nodes
-                adjustTree(result[0], result[1]);
-            } else {
-                System.out.println("the selected node does not overflow");
-                adjustTree(selectedNode, null);
+    private void checkOverflow(RTreeNode node) {
+        if (node.overflow()) {
+            System.out.println("The selected node overflows -> split the node");
+            RTreeNode[] result = splitNodeShuffle(node);
+            System.out.println("The new node(s): " + result[0].id + " " + result[1].id);
+
+            System.out.println("");
+            System.out.println("Children");
+            for (RTreeNode r : result[0].getChildren()) {
+                System.out.println("First: " + Arrays.toString(r.getCoordinates()) + " id: " + r.id + " parent " + r.getParent().id);
             }
+            for (RTreeNode r : result[1].getChildren()) {
+                System.out.println("Second : " + Arrays.toString(r.getCoordinates()) + " id: " + r.id + " parent " + r.getParent().id);
+            }
+            System.out.println("");
+            // adjust the new nodes
+            adjustTree(result[0], result[1]);
+            System.out.println("HERE: " + result[0].getParent().id + " " + result[1].getParent().id + " " + node.getParent().id);
+            checkOverflow(node.getParent());
+        } else {
+            System.out.println("The selected node does not overflow");
+            adjustTree(node, null);
         }
     }
 
     private RTreeNode chooseLeaf(NodeHolder nodeHolder, RTreeNode node) {
         if (node.isLeaf()) {
-            System.out.println("is leaf");
+            System.out.println("Found a leaf");
             return node;
         } else {
-            System.out.println("choose leaf else");
-            System.out.println("nr of children: " + node.getChildren().size());
+            System.out.println("Search deeper for leaf");
+            System.out.println("Number of children: " + node.getChildren().size());
             ArrayList<RTreeNode> children = node.getChildren();
             RTreeNode smallestBoundingBoxNode = children.get(0);
             System.out.println("0 cor: " + Arrays.toString(smallestBoundingBoxNode.getCoordinates()));
             for (int i = 1; i < node.getChildren().size(); i++) {
-                System.out.println("cor child: " + Arrays.toString(node.getChildren().get(i).getCoordinates()));
+                System.out.println("Coordinates child: " + Arrays.toString(node.getChildren().get(i).getCoordinates()));
                 if (getNewBoundingBoxArea(nodeHolder, children.get(i)) < getNewBoundingBoxArea(nodeHolder, smallestBoundingBoxNode)) {
                     smallestBoundingBoxNode = children.get(i);
                 }
@@ -125,35 +129,30 @@ public class RTree {
     }
 
     private void adjustTree(RTreeNode originalNode, RTreeNode newNode) {
-        if(originalNode.getParent() == null && newNode == null) { // only root
-            System.out.println("we need to adjust the root");
+        if (originalNode.getParent() == null && (newNode == null || originalNode == newNode)) { // only root
+            System.out.println("Adjust the root");
             updateNodeCoordinates(originalNode);
         } else if (originalNode.getParent() == null && newNode != null) {// need to join them under one root
-            System.out.println("we need to create new root");
+            System.out.println("Create new root");
             createNewRoot(originalNode, newNode);
             adjustTree(root, null);
         } else if (newNode == null) {
-            System.out.println("adjust: no split");
+            System.out.println("Adjust: no split");
             updateNodeCoordinates(originalNode);
             adjustTree(originalNode.getParent(), null);
         } else { // not root but two new nodes need to climb the tree
             System.out.println("");
-            System.out.println("update node coordinates original node");
+            System.out.println("Update node coordinates original node");
             updateNodeCoordinates(originalNode);
             System.out.println("");
-            System.out.println("update node coordinates new node");
+            System.out.println("Update node coordinates new node");
             updateNodeCoordinates(newNode);
-
-            if (originalNode.getParent().overflow()) {
-                System.out.println("The parent overflows");
-                createNewParents(originalNode.getParent()); // TODO: 3/22/21 what if root? 
-            }
             adjustTree(originalNode.getParent(), newNode.getParent());
         }
     }
- 
+
     private void createNewParents(RTreeNode oldParent) {
-        System.out.println("create new parents");
+        System.out.println("Create new parents");
         RTreeNode[] newParents = splitNodeShuffle(oldParent);
         adjustTree(newParents[0], newParents[1]);
     }
@@ -164,36 +163,42 @@ public class RTree {
         newRoot.addChild(firstNode);
         newRoot.addChild(secondNode);
         root = newRoot;
-        System.out.println("new parent of nodes below root: " + firstNode.getParent() + " " + secondNode.getParent());
-        System.out.println("should be null as root has no parent: " + firstNode.getParent().getParent());
-        System.out.println("adjust the tree for the two new nodes below the root");
-        //adjustTree(firstNode, secondNode);
+        System.out.println("New parent of nodes below root: " + firstNode.getParent().id + " " + secondNode.getParent().id);
+        System.out.println("Should be null as root has no parent: " + firstNode.getParent().getParent());
+        System.out.println("Adjust the tree for the two new nodes below the root");
+        adjustTree(firstNode, secondNode);
         System.out.println("");
-        System.out.println("new coordinates of first node: " + Arrays.toString(firstNode.getCoordinates()));
-        System.out.println("new coordinates of second node: " + Arrays.toString(secondNode.getCoordinates()));
+        System.out.println("New coordinates of first node: " + Arrays.toString(firstNode.getCoordinates()));
+        System.out.println("New coordinates of second node: " + Arrays.toString(secondNode.getCoordinates()));
     }
 
     private void updateNodeCoordinates(RTreeNode node) {
+        float[] newCoordinates = createNewCoordinateArray();
         for (RTreeNode childNode : node.getChildren()) {
             System.out.println("");
-            System.out.println("new child");
+            System.out.println("New child");
             for (int i = 0; i < numberOfCoordinates; i += 2) {
                 System.out.println("i is: " + i);
-                System.out.println("MIN child: " + childNode.getCoordinates()[i] + " node: " + node.getCoordinates()[i]);
-                if (childNode.getCoordinates()[i] < node.getCoordinates()[i]) {
-                    node.updateCoordinate(i, childNode.getCoordinates()[i]);
+                System.out.println("MIN child: " + childNode.getCoordinates()[i] + " node: " + newCoordinates[i]);
+                if (childNode.getCoordinates()[i] < newCoordinates[i]) {
+                    newCoordinates[i] = childNode.getCoordinates()[i];
                     System.out.println("update min coordinate to: " + childNode.getCoordinates()[i]);
                 }
-                System.out.println("MAX child: " + childNode.getCoordinates()[i + 1] + " node: " + node.getCoordinates()[i + 1]);
-                if (childNode.getCoordinates()[i + 1] > node.getCoordinates()[i + 1]) {
-                    node.updateCoordinate(i + 1, childNode.getCoordinates()[i + 1]);
+                System.out.println("MAX child: " + childNode.getCoordinates()[i + 1] + " node: " + newCoordinates[i + 1]);
+                if (childNode.getCoordinates()[i + 1] > newCoordinates[i + 1]) {
+                    newCoordinates[i + 1] = childNode.getCoordinates()[i + 1];
                     System.out.println("update max coordinate to: " + childNode.getCoordinates()[i + 1]);
                 }
             }
         }
+        node.updateCoordinate(newCoordinates);
     }
 
     private RTreeNode[] splitNodeShuffle(RTreeNode node) {
+
+        System.out.println("Node to split: " + node.id);
+
+        RTreeNode newNode = new RTreeNode(createNewCoordinateArray(), node.isLeaf(), minimumChildren, maximumChildren, node.getParent(), getId());
 
         ArrayList<RTreeNode> elementsToSplit = node.getChildren();
         Collections.shuffle(elementsToSplit);
@@ -204,21 +209,20 @@ public class RTree {
         for (int i = 0; i < elementsToSplit.size(); i++) {
             if (i % 2 == 0) {
                 childrenForOldNode.add(elementsToSplit.get(i));
+                elementsToSplit.get(i).setParent(node);
             } else {
                 childrenForNewNode.add(elementsToSplit.get(i));
+                elementsToSplit.get(i).setParent(newNode);
             }
         }
 
         node.removeChildren();
         node.addChildren(childrenForOldNode);
-
-        RTreeNode newNode = new RTreeNode(createNewCoordinateArray(), node.isLeaf(), minimumChildren, maximumChildren, node.getParent(), getId());
         newNode.addChildren(childrenForNewNode);
 
         System.out.println("");
-        System.out.println(Arrays.toString(createNewCoordinateArray()));
-        System.out.println("in split first coordinates: " + Arrays.toString(node.getCoordinates()));
-        System.out.println("in split second coordinates: " + Arrays.toString(newNode.getCoordinates()));
+        System.out.println("In split first children: " + node.getChildren().size());
+        System.out.println("In split second children: " + newNode.getChildren().size());
         System.out.println("");
 
         return new RTreeNode[]{node, newNode};
@@ -268,6 +272,52 @@ public class RTree {
 
     public void printTree() {
         int level = 0;
+        HashMap<Integer, ArrayList<RTreeNode>> result = new HashMap<>();
+        result = getPrintTree(root, level, result);
+
+        /*for (RTreeNode r: root.getChildren()) {
+            System.out.println(r.id + " " + Arrays.toString(r.getCoordinates()));
+        }*/
+
+        while (result.get(level) != null) {
+            System.out.println("");
+            System.out.println("Level: " + level);
+            for (RTreeNode r : result.get(level)) {
+                if (r.getParent() == null) {
+                    System.out.println("Node: " + r.id + " Coordinates: " + Arrays.toString(r.getCoordinates()) + " Parent: " + null + " leaf: " + r.isLeaf());
+                } else {
+                    System.out.println("Node: " + r.id + " Coordinates: " + Arrays.toString(r.getCoordinates()) + " Parent: " + r.getParent().id + " leaf: " + r.isLeaf());
+                }
+            }
+            level++;
+        }
+        System.out.println("");
+    }
+
+    public HashMap<Integer, ArrayList<RTreeNode>> getPrintTree(RTreeNode theRoot, int level, HashMap<Integer, ArrayList<RTreeNode>> result) {
+        if (theRoot != null) {
+
+            if (result.get(level) == null) {
+                ArrayList<RTreeNode> newAL = new ArrayList<>();
+                newAL.add(theRoot);
+                result.put(level, newAL);
+            } else {
+                ArrayList<RTreeNode> current = result.get(level);
+                current.add(theRoot);
+                result.put(level, current);
+            }
+            level += 1;
+            if (true) {
+                for (RTreeNode child : theRoot.getChildren()) {
+                    getPrintTree(child, level, result);
+                }
+            }
+        }
+        return result;
+    }
+
+    /*public void printTree() {
+        int level = 0;
         printTree(root, level);
         System.out.println("");
     }
@@ -286,5 +336,5 @@ public class RTree {
                 printTree(child, level);
             }
         }
-    }
+    }*/
 }

@@ -22,6 +22,7 @@ public class RTreeNode {
         this.parent = parent;
         children = new ArrayList<>();
         this.id = id;
+        System.out.println("Created new node with id: " + id);
     }
 
     public boolean isLeaf() {
@@ -36,8 +37,8 @@ public class RTreeNode {
         return coordinates;
     }
 
-    public void updateCoordinate(int index, float newCoordinate) {
-        coordinates[index] = newCoordinate;
+    public void updateCoordinate(float[] newCoordinates) {
+        coordinates = newCoordinates;
     }
 
     public ArrayList<RTreeNode> getChildren() {
@@ -49,7 +50,7 @@ public class RTreeNode {
     }
 
     public boolean overflow() {
-        System.out.println("current number of children " + children.size() + " the max children is: " + maximumChildren);
+        System.out.println("Check overflow: Current number of children " + children.size() + " max children is: " + maximumChildren);
         return children.size() > maximumChildren;
     }
 
@@ -58,13 +59,15 @@ public class RTreeNode {
     }
 
     public void addNodeHolderEntry(NodeHolder n) {
+        System.out.println("Added nodeHolderEntry to: " + id);
         entries.add(n);
     }
 
     public void addChild(RTreeNode r) {
         children.add(r);
-        System.out.println("currently " + children.size() + " added child(ren)");
-        r.addParent(this); // TODO: 3/22/21 do i need this 
+        System.out.println("Added child: " + r.id + " to " + id);
+        System.out.println("Currently " + children.size() + " added child(ren)");
+        r.setParent(this); // TODO: 3/22/21 do i need this
     }
 
     public void addChildren(ArrayList<RTreeNode> children) {
@@ -75,7 +78,8 @@ public class RTreeNode {
         children.clear();
     }
 
-    private void addParent(RTreeNode rTreeNode) {
+    public void setParent(RTreeNode rTreeNode) {
+        System.out.println(id + "s new parent is: " + rTreeNode.id);
         parent = rTreeNode;
     }
 
