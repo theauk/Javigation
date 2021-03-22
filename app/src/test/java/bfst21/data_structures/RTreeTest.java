@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
+import static java.lang.Float.NaN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RTreeTest {
@@ -17,6 +18,7 @@ class RTreeTest {
 
     @BeforeEach
     void setUp() {
+        System.out.println(NaN < 2);
         rTree = new RTree(1, 2, 4);
 
         w1 = new Way(1);
@@ -48,10 +50,10 @@ class RTreeTest {
     @Test
     void searchTest() {
 
-        RTreeNode r1 = new RTreeNode(w1.getCoordinates(), false, 0, 1, null);
-        RTreeNode r2 = new RTreeNode(w2.getCoordinates(), false, 0, 1, r1);
+        RTreeNode r1 = new RTreeNode(w1.getCoordinates(), false, 0, 1, null, 0);
+        RTreeNode r2 = new RTreeNode(w2.getCoordinates(), false, 0, 1, r1, 1);
         r1.addChild(r2);
-        RTreeNode r3 = new RTreeNode(w3.getCoordinates(), true, 0, 1, r2);
+        RTreeNode r3 = new RTreeNode(w3.getCoordinates(), true, 0, 1, r2, 2);
         r2.addChild(r3);
 
         rTree.setRoot(r1);
@@ -76,19 +78,19 @@ class RTreeTest {
         System.out.println("root cor: " + Arrays.toString(rTree.getRoot().getCoordinates()));
 
         System.out.println("");
-        System.out.println("second");
+        System.out.println("--SECOND--");
         rTree.insert(w2);
         System.out.println("root cor: " + Arrays.toString(rTree.getRoot().getCoordinates()));
         System.out.println(rTree.getRoot().getChildren().size());
 
         System.out.println("");
-        System.out.println("third");
+        System.out.println("--THIRD--");
         rTree.insert(w3);
         System.out.println("root cor: " + Arrays.toString(rTree.getRoot().getCoordinates()));
         System.out.println(rTree.getRoot().getChildren().size());
 
         System.out.println("");
-        System.out.println("fourth");
+        System.out.println("--FOURTH--");
         rTree.insert(w4);
 
         float[] rootCoordinates = rTree.getRoot().getCoordinates();
@@ -107,5 +109,6 @@ class RTreeTest {
                 System.out.println("entry: " + Arrays.toString(h.getCoordinates()));
             }
         }
+        rTree.printTree();
     }
 }

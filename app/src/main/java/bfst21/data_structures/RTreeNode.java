@@ -11,8 +11,9 @@ public class RTreeNode {
     private ArrayList<NodeHolder> entries;
     private int minimumEntrySize, maximumChildren;
     private RTreeNode parent;
+    public int id;
 
-    public RTreeNode(float[] coordinates, boolean leaf, int minimumChildren, int maximumChildren, RTreeNode parent) {
+    public RTreeNode(float[] coordinates, boolean leaf, int minimumChildren, int maximumChildren, RTreeNode parent, int id) { // TODO: 3/22/21 delete id
         this.coordinates = coordinates;
         this.leaf = leaf;
         this.maximumChildren = maximumChildren;
@@ -20,6 +21,7 @@ public class RTreeNode {
         this.entries = new ArrayList<>();
         this.parent = parent;
         children = new ArrayList<>();
+        this.id = id;
     }
 
     public boolean isLeaf() {
@@ -47,7 +49,7 @@ public class RTreeNode {
     }
 
     public boolean overflow() {
-        System.out.println(children.size() + " " + maximumChildren);
+        System.out.println("current number of children " + children.size() + " the max children is: " + maximumChildren);
         return children.size() > maximumChildren;
     }
 
@@ -61,8 +63,8 @@ public class RTreeNode {
 
     public void addChild(RTreeNode r) {
         children.add(r);
-        System.out.println("in add child " + children.size());
-        r.addParent(this);
+        System.out.println("currently " + children.size() + " added child(ren)");
+        r.addParent(this); // TODO: 3/22/21 do i need this 
     }
 
     public void addChildren(ArrayList<RTreeNode> children) {
