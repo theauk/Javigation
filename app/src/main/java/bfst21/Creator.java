@@ -3,6 +3,7 @@ package bfst21;
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
+import bfst21.Osm_Elements.Specifik_Elements.KDTreeNode;
 import bfst21.data_structures.BinarySearchTree;
 
 import javax.xml.stream.XMLInputFactory;
@@ -26,7 +27,7 @@ public class Creator {
     private List<Element> roads;
     private List<Element> coastLines;
 
-    List<Node> nodesInRoads = new ArrayList<>();
+    List<KDTreeNode> nodesInRoads = new ArrayList<>();
     boolean iscoastline, isRoad;
     boolean isRelation;
 
@@ -105,7 +106,12 @@ public class Creator {
                     switch (reader.getLocalName()) {
                         case "way":
                             if (iscoastline) coastLines.add(way);
-                            if (isRoad) roads.add(way);
+                            if (isRoad) { 
+                                roads.add(way);
+                                for(Node n : way.getNodes()){
+                                    nodesInRoads.add(new KDTreeNode(n));
+                                }
+                            }
                             break;
                     }
                     break;
@@ -114,6 +120,7 @@ public class Creator {
 
         map.addData(coastLines);
         map.addData(roads);
+        map.addRoads(nodesInRoads);
     }
 
     private void allBooleansFalse() {

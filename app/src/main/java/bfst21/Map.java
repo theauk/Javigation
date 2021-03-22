@@ -1,12 +1,16 @@
 package bfst21;
 
 import bfst21.Osm_Elements.Element;
+import bfst21.Osm_Elements.Node;
+import bfst21.Osm_Elements.Specifik_Elements.KDTreeNode;
+import bfst21.data_structures.Node2DTree;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Map
 {
+    private Node2DTree roads;
     private List<Element> mapData; //All data
     private float minX, minY, maxX, maxY;
 
@@ -26,6 +30,10 @@ public class Map
         USE BINARY TREE
          */
         return null;
+    }
+
+    public void addRoads(List<KDTreeNode> nodes){
+        roads = new Node2DTree(nodes);
     }
 
     public List<Element> getMapData()

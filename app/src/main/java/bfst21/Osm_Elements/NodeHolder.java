@@ -68,4 +68,8 @@ public abstract class NodeHolder extends Element implements Spatializable {
         return new float[]{xMin, xMax, yMin, yMax};
     }
 
+    public List<Node> getNodes(){
+        return nodes;
+    }
+
 }
