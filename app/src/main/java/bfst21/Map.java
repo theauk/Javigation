@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Map
 {
-    private Node2DTree roads;
+    private Node2DTree roadKdTree;
     private List<Element> mapData; //All data
     private float minX, minY, maxX, maxY;
 
@@ -33,7 +33,15 @@ public class Map
     }
 
     public void addRoads(List<KDTreeNode> nodes){
-        roads = new Node2DTree(nodes);
+        roadKdTree = new Node2DTree(nodes);
+    }
+
+    public String getNearestRoad(float x, float y){
+        String name = "";
+        KDTreeNode node = roadKdTree.getNearestNode(x, y);
+        //TODO name = node.getWay.getName?? eller
+        //name = node.getRoadWay.getRoadName??
+        return name;
     }
 
     public List<Element> getMapData()
