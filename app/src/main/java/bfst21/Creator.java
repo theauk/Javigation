@@ -7,6 +7,7 @@ import bfst21.Osm_Elements.Specifik_Elements.AddressNode;
 import bfst21.Osm_Elements.Specifik_Elements.TravelWay;
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.BinarySearchTree;
+import org.checkerframework.checker.units.qual.A;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -31,12 +32,14 @@ public class Creator {
     private List<TravelWay> travelWays;
     private TravelWay roadway;
     private List<Element> relations;
+    private ArrayList<AddressNode> addressNodes;
 
     List<Node> nodesInRoads = new ArrayList<>();
     boolean iscoastline, isRoad;
     boolean iscycleAble, isbuilding;
     boolean isRelation;
     boolean isFerryRoute;
+    boolean isAddress;
 
     public Creator(Map map, InputStream input) throws XMLStreamException
     {
@@ -44,6 +47,7 @@ public class Creator {
         roads = new ArrayList<>();
         coastLines = new ArrayList<>();
         travelWays = new ArrayList<>();
+        addressNodes = new ArrayList<>();
 
         create(input);
     }
@@ -56,7 +60,7 @@ public class Creator {
         HashMap<Long, Node> idToNode = new HashMap<>();
        //BinarySearchTree<Long, Way> idToWay = new BinarySearchTree<>();
         HashMap<Long, Way> idToWay = new HashMap<>();
-        BinarySearchTree<Long, AddressNode> idToAddressNode = new BinarySearchTree<>();
+        //BinarySearchTree<Long, AddressNode> idToAddressNode = new BinarySearchTree<>();
 
         Way way = null;
         Node node = null;
@@ -81,6 +85,7 @@ public class Creator {
                             map.setMinY(Float.parseFloat(reader.getAttributeValue(null, "maxlat")) / -0.56f);
                             break;
                         case "node":
+                            isAddress = false;
                             var id = Long.parseLong(reader.getAttributeValue(null, "id"));
                             var lon = Float.parseFloat(reader.getAttributeValue(null, "lon"));
                             var lat = Float.parseFloat(reader.getAttributeValue(null, "lat"));
@@ -135,6 +140,7 @@ public class Creator {
                                 // methods when encountering addressNodes in the .osm file.
                                 case "addr:city":
                                     addressNode = new AddressNode(node,v);
+                                    isAddress = true;
                                     break;
 
                                 case "addr:housenumber":
@@ -192,11 +198,14 @@ public class Creator {
                             }
                             if(iscycleAble) travelWay.setCycleway(cycle);
                             break;
+
+                        case "node":
+                            if (isAddress) addressNodes.add(addressNode);
+                            break;
                     }
                     break;
             }
         }
-
         map.addData(coastLines);
         map.addData(roads);
     }
