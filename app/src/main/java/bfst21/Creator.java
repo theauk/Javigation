@@ -2,10 +2,14 @@ package bfst21;
 
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
+import bfst21.Osm_Elements.Relation;
+import bfst21.Osm_Elements.Specifik_Elements.AddressNode;
+import bfst21.Osm_Elements.Specifik_Elements.TravelWay;
 import bfst21.Osm_Elements.Way;
 import bfst21.Osm_Elements.Specifik_Elements.KDTreeNode;
 import bfst21.data_structures.AlternateBinarySearchTree;
 import bfst21.data_structures.BinarySearchTree;
+import org.checkerframework.checker.units.qual.A;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -13,6 +17,7 @@ import javax.xml.stream.XMLStreamReader;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
@@ -21,22 +26,30 @@ import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 /*
 Creates Objects such as Nodes, Ways and Relations from the .osm file given from the Loader.
  */
-
 public class Creator {
 
     private Map map;
     private List<Element> roads;
     private List<Element> coastLines;
+    private List<TravelWay> travelWays;
+    private TravelWay roadway;
+    private List<Element> relations;
+    private ArrayList<AddressNode> addressNodes;
 
     List<KDTreeNode> nodesInRoads = new ArrayList<>();
     boolean iscoastline, isRoad;
+    boolean iscycleAble, isbuilding;
     boolean isRelation;
+    boolean isFerryRoute;
+    boolean isAddress;
 
     public Creator(Map map, InputStream input) throws XMLStreamException
     {
         this.map = map;
         roads = new ArrayList<>();
         coastLines = new ArrayList<>();
+        travelWays = new ArrayList<>();
+        addressNodes = new ArrayList<>();
 
         create(input);
     }
@@ -45,9 +58,20 @@ public class Creator {
     {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new BufferedInputStream(input));
 
-        AlternateBinarySearchTree<Long, Node> idToNode = new AlternateBinarySearchTree<>();
+        //BinarySearchTree<Long, Node> idToNode = new BinarySearchTree<>();
+        HashMap<Long, Node> idToNode = new HashMap<>();
+       //BinarySearchTree<Long, Way> idToWay = new BinarySearchTree<>();
+        HashMap<Long, Way> idToWay = new HashMap<>();
+        //BinarySearchTree<Long, AddressNode> idToAddressNode = new BinarySearchTree<>();
+
         Way way = null;
         Node node = null;
+        TravelWay travelWay = null;
+        String cycle = null; // the cycleproperties of the road comes before "highway" in the .osm files
+        Relation relation = null;
+        var member = new ArrayList<Long>();
+
+        AddressNode addressNode = null;
 
         while(reader.hasNext())
         {
@@ -62,10 +86,8 @@ public class Creator {
                             map.setMaxY(Float.parseFloat(reader.getAttributeValue(null, "minlat")) / -0.56f);
                             map.setMinY(Float.parseFloat(reader.getAttributeValue(null, "maxlat")) / -0.56f);
                             break;
-                        case "relation":
-                            // adding memebers like Node and Way into the list
-                            break;
                         case "node":
+                            isAddress = false;
                             var id = Long.parseLong(reader.getAttributeValue(null, "id"));
                             var lon = Float.parseFloat(reader.getAttributeValue(null, "lon"));
                             var lat = Float.parseFloat(reader.getAttributeValue(null, "lat"));
@@ -76,6 +98,12 @@ public class Creator {
                             way = new Way(Long.parseLong(reader.getAttributeValue(null, "id")));
                             allBooleansFalse();
                             break;
+                        case "relation":
+                            member = new ArrayList<>();
+                            relations = new ArrayList<>();
+                            isRelation = true;
+                            break;
+
                         case "tag":
                             var k = reader.getAttributeValue(null, "k");
                             var v = reader.getAttributeValue(null, "v");
@@ -85,9 +113,67 @@ public class Creator {
                                     break;
 
                                 case "highway":
+                                        travelWay = new TravelWay(way,v);
                                     isRoad = true;
                                     break;
+                                case "maxspeed":
+                                    if (travelWay != null) {
+                                        travelWay.setMaxspeed(Integer.parseInt(v));
+                                    }
+                                    break;
+                                case "name":
+                                    if (travelWay != null) {
+                                        travelWay.setName(v);
+                                    }
+                                    if (relation != null) {
+                                        relation.setName(v);
+                                    }
+                                    break;
+                                case "oneway":
+                                    if(v.equals("yes")) travelWay.setOnewayRoad(true);
+
+                                case "cycleway": // should this not be always cycleable unless it's trunk (motortrafikvej) or primary highway.
+                                    if (!v.equals("no")) {
+                                         cycle = v;
+                                        iscycleAble = true;
+                                    }
+                                    break;
+
+                                // methods when encountering addressNodes in the .osm file.
+                                case "addr:city":
+                                    addressNode = new AddressNode(node,v);
+                                    isAddress = true;
+                                    break;
+
+                                case "addr:housenumber":
+                                    if (addressNode != null) {
+                                        addressNode.setHousenumber((v));
+                                    }
+                                    break;
+
+                                case "addr:postcode":
+                                    if (addressNode != null) {
+                                        addressNode.setPostcode(Integer.parseInt(v));
+                                    }
+                                    break;
+
+                                case "addr:street":
+                                    if (addressNode != null) {
+                                        addressNode.setStreet(v);
+                                    }
+
+                                case "building":
+                                    if (v.equals("yes")) isbuilding = true;
+                                    break;
+
+                                case "route":
+                                    if(v.equals("ferry")) isFerryRoute = true;
+                                    if (relation != null) {
+                                        relation.setRoute(v);
+                                    }
+                                    break;
                             }
+
                             break;
 
                         case "nd":
@@ -97,8 +183,8 @@ public class Creator {
 
                         case "member":
                             if(isRelation){
-                                //var refWay = Long.parseLong(reader.getAttributeValue(null,"ref"));
-                                //member.add(refWay);
+                                var refWay = Long.parseLong(reader.getAttributeValue(null,"ref"));
+                                member.add(refWay); // i think this takes both ways and nodes (their refnumber).
                             }
                             break;
                     }
@@ -106,19 +192,22 @@ public class Creator {
                 case END_ELEMENT:
                     switch (reader.getLocalName()) {
                         case "way":
+                            idToWay.put(way.getId(), way);
                             if (iscoastline) coastLines.add(way);
-                            if (isRoad) { 
+                            if (isRoad){
                                 roads.add(way);
-                                for(Node n : way.getNodes()){
-                                    nodesInRoads.add(new KDTreeNode(n));
-                                }
+                                travelWays.add(travelWay);
                             }
+                            if(iscycleAble) travelWay.setCycleway(cycle);
+                            break;
+
+                        case "node":
+                            if (isAddress) addressNodes.add(addressNode);
                             break;
                     }
                     break;
             }
         }
-
         map.addData(coastLines);
         map.addData(roads);
         map.addRoads(nodesInRoads);
@@ -127,6 +216,11 @@ public class Creator {
     private void allBooleansFalse() {
         iscoastline = false;
         isRoad = false;
+        iscycleAble = false;
+        isbuilding = false;
+    }
+    private void AllBooleansRelationsFalse(){
+        isFerryRoute = false;
     }
 }
 

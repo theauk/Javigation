@@ -8,6 +8,7 @@ public abstract class Element implements Spatializable {
     protected float xMax;
     protected float yMin;
     protected float yMax;
+    private String type;
 
     public Element(long id) {
         this.id = id;
