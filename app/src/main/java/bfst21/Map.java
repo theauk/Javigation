@@ -40,7 +40,8 @@ public class Map
         //TODO more specific task
         KDTreeNode node = roadKdTree.getNearestNode(x, y);
         
-        return node.getNode().getName();
+        //return node.getNode().getName();
+        return  "";
     }
 
     public List<Element> getMapData()
