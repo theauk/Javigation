@@ -109,7 +109,7 @@ class RTreeTest {
         System.out.println("--FOURTH--");
         rTree.insert(w4);
 
-        /*System.out.println("");
+        System.out.println("");
         System.out.println("--FIFTH--");
         rTree.insert(w5);
 

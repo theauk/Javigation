@@ -231,17 +231,11 @@ public class RTree {
     }
 
     private RTreeNode[] splitNodeQuadraticCost(RTreeNode node) {
-        ArrayList<RTreeNode> elementsToSplit = node.getChildren();
+        ArrayList<RTreeNode> elementsToSplit = new ArrayList<>(node.getChildren());
         int[] seeds = pickSeeds(elementsToSplit);
 
-        RTreeNode elementForNewNode1 = elementsToSplit.get(seeds[0]);
-        RTreeNode elementForNewNode2 = elementsToSplit.get(seeds[1]);
-
-        RTreeNode newNode1 = new RTreeNode(createNewCoordinateArray(), node.isLeaf(), minimumChildren, maximumChildren, node.getParent(), getId());
-        newNode1.addChild(elementForNewNode1);
-
-        RTreeNode newNode2 = new RTreeNode(createNewCoordinateArray(), node.isLeaf(), minimumChildren, maximumChildren, node.getParent(), getId());
-        newNode2.addChild(elementForNewNode2);
+        RTreeNode elementForNode = elementsToSplit.get(seeds[0]);
+        RTreeNode elementForNewNode = elementsToSplit.get(seeds[1]);
 
         if (seeds[0] < seeds[1]) {
             elementsToSplit.remove(seeds[1]);
@@ -251,25 +245,31 @@ public class RTree {
             elementsToSplit.remove(seeds[1]);
         }
 
+        node.removeChildren();
+        node.addChild(elementForNode);
+        node.updateCoordinate(createNewCoordinateArray());
+
+        RTreeNode newNode = new RTreeNode(createNewCoordinateArray(), node.isLeaf(), minimumChildren, maximumChildren, node.getParent(), getId());
+        newNode.addChild(elementForNewNode);
+
         if (elementsToSplit.size() == 0) {
-            return new RTreeNode[]{newNode1, newNode2};
-        } else if (tooFewEntries(newNode1.getChildren().size(), elementsToSplit.size())) {
-            newNode1.addChildren(elementsToSplit);
-        } else if (tooFewEntries(newNode2.getChildren().size(), elementsToSplit.size())) {
-            newNode2.addChildren(elementsToSplit);
+            return new RTreeNode[]{node, newNode};
+        } else if (tooFewEntries(node.getChildren().size(), elementsToSplit.size())) {
+            node.addChildren(elementsToSplit);
+        } else if (tooFewEntries(newNode.getChildren().size(), elementsToSplit.size())) {
+            newNode.addChildren(elementsToSplit);
         } else {
             while (elementsToSplit.size() > 0) {
-                RTreeNode[] nextAssignment = pickNext(elementsToSplit, newNode1, newNode2);
+                RTreeNode[] nextAssignment = pickNext(elementsToSplit, node, newNode);
                 nextAssignment[1].addChild(nextAssignment[0]);
             }
         }
 
         if (node.getParent() != null) {
-            node.getParent().addChild(newNode1);
-            node.getParent().addChild(newNode2); // TODO: 3/24/21 Need to delete node from its parent 
+            node.getParent().addChild(newNode);
         }
 
-        return new RTreeNode[]{newNode1, newNode2};
+        return new RTreeNode[]{node, newNode};
     }
 
     private RTreeNode[] pickNext(ArrayList<RTreeNode> elementsToSplit, RTreeNode node1, RTreeNode node2) {
