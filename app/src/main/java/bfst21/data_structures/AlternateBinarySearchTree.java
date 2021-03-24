@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-
+//TODO Adapted from Troels ???
 public class AlternateBinarySearchTree<Key extends Comparable<Key>, Value> {
     List<BSTNode> BSTNodes = new ArrayList<>();
     boolean sorted = true;

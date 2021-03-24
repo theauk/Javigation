@@ -30,7 +30,10 @@ public class Node2DTree{
    
 
     public Node2DTree(List<KDTreeNode> nodes){
-        buildTree(nodes);
+        if(nodes != null){
+            buildTree(nodes);
+        }
+        
     }
 
 
