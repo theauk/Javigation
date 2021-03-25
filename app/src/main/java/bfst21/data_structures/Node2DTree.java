@@ -2,68 +2,99 @@ package bfst21.data_structures;
 
 
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import bfst21.Osm_Elements.Node;
-import bfst21.Osm_Elements.Specifik_Elements.KDTreeNode;
+import bfst21.Osm_Elements.Element;
+
+
 import javafx.geometry.Point2D;
 
-public class Node2DTree{
+public class Node2DTree<Value extends Element>{
     private KDTreeNode root;
+    private List<KDTreeNode> list;
+    private boolean isSorted;
 
     private final Comparator<KDTreeNode> comparatorX = new Comparator<KDTreeNode>() {
         @Override
         public int compare(KDTreeNode p1, KDTreeNode p2) {
-            return Double.compare(p1.getNode().getxMax(), p2.getNode().getxMax());
+            return Double.compare(p1.node.getxMax(), p2.node.getxMax());
         }
     };
 
     private final Comparator<KDTreeNode> comparatorY = new Comparator<KDTreeNode>() {
         @Override
         public int compare(KDTreeNode p1, KDTreeNode p2) {
-            return Double.compare(p1.getNode().getyMax(), p2.getNode().getyMax());
+            return Double.compare(p1.node.getyMax(), p2.node.getyMax());
         }
     };
-    public Node2DTree(List<KDTreeNode> nodes){
-        if(nodes != null){
-            buildTree(nodes);
+
+    public void addALl(List<Value> nodes){
+        if(list == null){
+            list = new ArrayList<>();
+        }
+        for (Value node: nodes ){
+            add(node);
         }
         
     }
 
+    private void add(Value node){
+        list.add(new KDTreeNode(node));
+        isSorted = false;
+    }
 
-    private void buildTree(List<KDTreeNode> nodes){
-        nodes.sort(comparatorX);
+
+
+    private class KDTreeNode {
+        
+        private Value node;
+        private KDTreeNode leftChild;
+        private KDTreeNode rightChild;
+        private Boolean onXAxis;
+        
+    
+        public KDTreeNode(Value node) {
+            this.node = node;
+        }
+    }
+
+
+    private void buildTree(){
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        list.sort(comparatorX);
         int lo = 0;
-        int hi = nodes.size();
+        int hi = list.size();
         int mid = (lo + hi) / 2;
 
-        root = nodes.get(mid);
-        root.setIsOnXAxis(true);        
-        buildTree(true, nodes.subList(lo, mid), root);
-        buildTree(false, nodes.subList(mid+1, hi), root);
+        root = list.get(mid);
+        root.onXAxis = true;        
+        buildTree(true, list.subList(lo, mid), root);
+        buildTree(false, list.subList(mid+1, hi), root);
 
     }
 
-    //TODO split point, lige nu bygger den træet helt ud, men burde der være et slut punkt, med en liste?
+    
     private void buildTree(boolean isLeft,List<KDTreeNode> nodes, KDTreeNode parent){
         if (nodes == null || nodes.isEmpty()) {
             return;
         }
 
-        nodes.sort(parent.IsOnXAxis() ? comparatorX : comparatorY);
+        nodes.sort(parent.onXAxis ? comparatorX  : comparatorY );
         int lo = 0;
         int hi = nodes.size();
         int mid = (lo + hi) / 2;
 
         KDTreeNode child = nodes.get(mid);
-        child.setIsOnXAxis(!parent.IsOnXAxis());
+        child.onXAxis = !parent.onXAxis;
         
         if(isLeft){
-            parent.setLeftChild(child);
+            parent.leftChild = child;
         } else{
-            parent.setRightChild(child);
+            parent.rightChild=child;
         }
 
         buildTree(true, nodes.subList(0, mid), child);
@@ -73,16 +104,21 @@ public class Node2DTree{
 
 
 
-     public KDTreeNode getNearestNode(float x, float y){
+     public Value getNearestNode(float x, float y){
+        if(!isSorted){
+            buildTree();
+            isSorted = true;
+        }
         double shortestDistance = Double.MAX_VALUE;
 
-        KDTreeNode nearestNode = getNearestNode(root, x, y, shortestDistance, null, root.IsOnXAxis());
+        KDTreeNode nearestNode = getNearestNode(root, x, y, shortestDistance, null, root.onXAxis);
 
-        return nearestNode;
+        return nearestNode.node;
         
     }
     
     private KDTreeNode getNearestNode(KDTreeNode nextNode, float x, float y, double shortestDistance, KDTreeNode nearestNode, Boolean xAxis){
+        
         if (nextNode == null){
             return nearestNode;
         }
@@ -96,15 +132,15 @@ public class Node2DTree{
 
 
         //checks if we should search the left or right side of the tree first, to save time/space.
-        double compare = xAxis ? Math. abs(x - nextNode.getNode().getxMax()) : Math. abs(y - nextNode.getNode().getyMax());
+        double compare = xAxis ? Math. abs(x - nextNode.node.getxMax()) : Math. abs(y - nextNode.node.getyMax());
 
-        KDTreeNode node1 = compare < 0 ? nextNode.getLeftChild() : nextNode.getRightChild();
-        KDTreeNode node2 = compare < 0 ? nextNode.getRightChild() : nextNode.getLeftChild();
+        KDTreeNode node1 = compare < 0 ? nextNode.leftChild : nextNode.rightChild;
+        KDTreeNode node2 = compare < 0 ? nextNode.rightChild : nextNode.leftChild;
 
         nearestNode = getNearestNode(node1, x, y, shortestDistance, nearestNode, !xAxis);
 
 
-        if(shortestDistance > Math. abs((xAxis ? x - nextNode.getNode().getxMax() : y - nextNode.getNode().getyMax()))){
+        if(shortestDistance > Math. abs((xAxis ? x - nextNode.node.getxMax() : y - nextNode.node.getyMax()))){
             nearestNode = getNearestNode(node2, x, y, shortestDistance, nearestNode, !xAxis);
         }
         
@@ -114,7 +150,7 @@ public class Node2DTree{
 
     private double getDistance(KDTreeNode from, float x, float y){
         Point2D p = new Point2D(x, y);
-       double result = p.distance(from.getNode().getxMax(), from.getNode().getyMax());
+       double result = p.distance(from.node.getxMax(), from.node.getyMax());
         return result;
     }
     

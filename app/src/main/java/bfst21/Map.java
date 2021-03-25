@@ -2,7 +2,7 @@ package bfst21;
 
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
-import bfst21.Osm_Elements.Specifik_Elements.KDTreeNode;
+
 import bfst21.data_structures.Node2DTree;
 
 import java.util.ArrayList;
@@ -10,13 +10,14 @@ import java.util.List;
 
 public class Map
 {
-    private Node2DTree roadKdTree;
+    private Node2DTree<Node> roadNodes;
     private List<Element> mapData; //All data
     private float minX, minY, maxX, maxY;
 
     public Map()
     {
         mapData = new ArrayList<>();
+        roadNodes = new Node2DTree<>();
     }
 
     public void addData(List<Element> toAdd)
@@ -32,16 +33,20 @@ public class Map
         return null;
     }
 
-    public void addRoads(List<KDTreeNode> nodes){
-        roadKdTree = new Node2DTree(nodes);
+    public void addRoads(List<Node> nodes){
+        
+        roadNodes.addALl(nodes);
     }
 
     public String getNearestRoad(float x, float y){
-        //TODO more specific task
-        KDTreeNode node = roadKdTree.getNearestNode(x, y);
+        String names = "";
+        Node node = roadNodes.getNearestNode(x, y);
+        System.out.println(node.getxMax() + " y: " + node.getyMax());
+        for(String s: node.getName()){
+            names += s + " ";
+        }
         
-        //return node.getNode().getName();
-        return  "";
+        return names;
     }
 
     public List<Element> getMapData()
