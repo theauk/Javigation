@@ -12,7 +12,7 @@ public class AddressNode{
     public AddressNode(Node node, String city) {
         this.node = node;
         this.city = city;
-        //TODO Auto-generated constructor stub
+        
     }
 
     public void setHousenumber(String housenumber) {

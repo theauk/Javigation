@@ -202,14 +202,18 @@ public class Controller
         } catch (NonInvertibleTransformException e) {
             e.printStackTrace();
         }
+        
 
-        double x = Math.round(coords.getX() * 10) / 10.0;
-        double y = Math.round(coords.getY() * 10) / 10.0;
+        double x = Math.round(coords.getX() * 10000000) / 10000000.0;
+        double y = Math.round(coords.getY() * 10000000) / 10000000.0;
         coordsLabel.setText("CanvasCoords: " + x + ", " + y);
 
-        x = Math.round(geoCoords.getX() * 10000000) / 10000000.0;
-        y = Math.round(geoCoords.getY() * 10000000) / 10000000.0;
-        geoCoordsLabel.setText("GeoCoords: " + x + ", " + y);
+        //x = Math.round(geoCoords.getX() * 10000000) / 10000000.0;
+        //y = Math.round(geoCoords.getY() * 10000000) / 10000000.0;
+        geoCoordsLabel.setText("Road(s): " + map.getNearestRoad((float)coords.getX(), (float)coords.getY()));
+        //TODO Fjern
+        //System.out.println(map.getNearestRoad((float)12.5970225, (float)-99.4069));
+        //System.out.println();
     }
 
     private FileChooser showFileChooser()

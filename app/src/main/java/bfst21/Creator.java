@@ -6,10 +6,10 @@ import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Specifik_Elements.AddressNode;
 import bfst21.Osm_Elements.Specifik_Elements.TravelWay;
 import bfst21.Osm_Elements.Way;
-import bfst21.Osm_Elements.Specifik_Elements.KDTreeNode;
+
 import bfst21.data_structures.AlternateBinarySearchTree;
-import bfst21.data_structures.BinarySearchTree;
-import org.checkerframework.checker.units.qual.A;
+
+
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -17,7 +17,7 @@ import javax.xml.stream.XMLStreamReader;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
+
 import java.util.List;
 
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
@@ -36,7 +36,7 @@ public class Creator {
     private List<Element> relations;
     private ArrayList<AddressNode> addressNodes;
 
-    List<KDTreeNode> nodesInRoads = new ArrayList<>();
+    List<Node> nodesInRoads = new ArrayList<>();
     boolean iscoastline, isRoad;
     boolean iscycleAble, isbuilding;
     boolean isRelation;
@@ -58,11 +58,11 @@ public class Creator {
     {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new BufferedInputStream(input));
 
-        //BinarySearchTree<Long, Node> idToNode = new BinarySearchTree<>();
-        HashMap<Long, Node> idToNode = new HashMap<>();
-       //BinarySearchTree<Long, Way> idToWay = new BinarySearchTree<>();
-        HashMap<Long, Way> idToWay = new HashMap<>();
-        //BinarySearchTree<Long, AddressNode> idToAddressNode = new BinarySearchTree<>();
+        AlternateBinarySearchTree<Long, Node> idToNode = new AlternateBinarySearchTree<>();
+        
+        AlternateBinarySearchTree<Long, Way> idToWay = new AlternateBinarySearchTree<>();
+        
+        AlternateBinarySearchTree<Long, AddressNode> idToAddressNode = new AlternateBinarySearchTree<>();
 
         Way way = null;
         Node node = null;
@@ -197,6 +197,15 @@ public class Creator {
                             if (isRoad){
                                 roads.add(way);
                                 travelWays.add(travelWay);
+                                for(Node n: way.getNodes()){
+                                    if(n.getName() == null){
+                                        break;
+                                    } else {
+                                        nodesInRoads.add(n);
+                                    }
+                                }
+                                
+
                             }
                             if(iscycleAble) travelWay.setCycleway(cycle);
                             break;
@@ -211,6 +220,8 @@ public class Creator {
         map.addData(coastLines);
         map.addData(roads);
         map.addRoads(nodesInRoads);
+        
+
     }
 
     private void allBooleansFalse() {

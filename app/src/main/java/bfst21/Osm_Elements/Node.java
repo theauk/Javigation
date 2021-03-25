@@ -23,10 +23,14 @@ public class Node extends Element {
     }
 
     public void addRoadname(String name){
+        //TODO half assed fix
         if(roadNames == null){
             roadNames = new ArrayList<>();
         }
-        roadNames.add(name);
+        if(!roadNames.contains(name)){
+            roadNames.add(name);
+        }
+        
     }
 
     public List<String> getName(){

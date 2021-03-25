@@ -29,6 +29,7 @@ public class TravelWay {
 
     public void setName(String name) {
         this.name = name;
+        //TODO way is null??
         if(way != null){
             for(Node n : way.getNodes()){
                 n.addRoadname(name);
