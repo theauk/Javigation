@@ -4,7 +4,6 @@ import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.BinarySearchTree;
-import bfst21.data_structures.RTree;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -23,16 +22,14 @@ Creates Objects such as Nodes, Ways and Relations from the .osm file given from 
 // TODO: 19-03-2021 BST instead of HashMap :3
 public class Creator {
 
+    List<Node> nodesInRoads = new ArrayList<>();
+    boolean iscoastline, isRoad;
+    boolean isRelation;
     private MapData mapData;
     private List<Element> roads;
     private List<Element> coastLines;
 
-    List<Node> nodesInRoads = new ArrayList<>();
-    boolean iscoastline, isRoad;
-    boolean isRelation;
-
-    public Creator(MapData mapData, InputStream input) throws XMLStreamException
-    {
+    public Creator(MapData mapData, InputStream input) throws XMLStreamException {
         this.mapData = mapData;
         roads = new ArrayList<>();
         coastLines = new ArrayList<>();
@@ -40,21 +37,17 @@ public class Creator {
         create(input);
     }
 
-    public void create(InputStream input) throws XMLStreamException
-    {
+    public void create(InputStream input) throws XMLStreamException {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new BufferedInputStream(input));
 
         BinarySearchTree<Long, Node> idToNode = new BinarySearchTree<>();
         Way way = null;
         Node node = null;
 
-        while(reader.hasNext())
-        {
-            switch (reader.next())
-            {
+        while (reader.hasNext()) {
+            switch (reader.next()) {
                 case START_ELEMENT:
-                    switch (reader.getLocalName())
-                    {
+                    switch (reader.getLocalName()) {
                         case "bounds":
                             mapData.setMinX(Float.parseFloat(reader.getAttributeValue(null, "minlon")));
                             mapData.setMaxX(Float.parseFloat(reader.getAttributeValue(null, "maxlon")));
@@ -78,9 +71,9 @@ public class Creator {
                         case "tag":
                             var k = reader.getAttributeValue(null, "k");
                             var v = reader.getAttributeValue(null, "v");
-                            switch(k){
+                            switch (k) {
                                 case "natural":
-                                    if(v.equals("coastline")) iscoastline = true;
+                                    if (v.equals("coastline")) iscoastline = true;
                                     break;
 
                                 case "highway":
@@ -95,7 +88,7 @@ public class Creator {
                             break;
 
                         case "member":
-                            if(isRelation){
+                            if (isRelation) {
                                 //var refWay = Long.parseLong(reader.getAttributeValue(null,"ref"));
                                 //member.add(refWay);
                             }

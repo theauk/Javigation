@@ -1,48 +1,41 @@
 package bfst21;
 
 import bfst21.Osm_Elements.Element;
-import bfst21.Osm_Elements.NodeHolder;
 import bfst21.data_structures.RTree;
 import bfst21.view.CanvasBounds;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapData
-{
+public class MapData {
     private List<Element> mapData; //All data
     private RTree rTree;
-    private List<NodeHolder> mapSegment; //Only content within bounds
+    private List<Element> mapSegment; //Only content within bounds
     private float minX, minY, maxX, maxY;
 
-    public MapData()
-    {
+    public MapData() {
         mapData = new ArrayList<>();
         mapSegment = new ArrayList<>();
+        rTree = new RTree(1, 30, 4);
     }
 
-    public void addData(List<Element> toAdd)
-    {
+    public void addData(List<Element> toAdd) {
         mapData.addAll(toAdd);
     }
 
-    public void searchInData(CanvasBounds bounds)
-    {
+    public void searchInData(CanvasBounds bounds) {
         mapSegment = rTree.search(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY());
     }
 
-    public List<Element> getMapData()
-    {
+    public List<Element> getMapData() {
         return mapData;
     }
 
-    public List<NodeHolder> getMapSegment()
-    {
+    public List<Element> getMapSegment() {
         return mapSegment;
     }
 
-    public void setRTree(RTree rTree)
-    {
+    public void setRTree(RTree rTree) {
         this.rTree = rTree;
     }
 
