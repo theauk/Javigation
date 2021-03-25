@@ -117,10 +117,10 @@ class RTreeTest {
         System.out.println("--SIXTH--");
         rTree.insert(w6);
 
-        //rTree.insert(w7);
+        rTree.insert(w7);
 
 
-        /*System.out.println("");
+        System.out.println("");
         System.out.println("--SIXTH II--");
         rTree.insert(w6);
 
@@ -129,7 +129,7 @@ class RTreeTest {
         rTree.insert(w6);
 
         rTree.insert(w6);
-        rTree.insert(w6);*/
+        rTree.insert(w6);
 
         /*float[] rootCoordinates = rTree.getRoot().getCoordinates();
         assertEquals(1.0, rootCoordinates[0]);
