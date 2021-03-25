@@ -32,6 +32,8 @@ public class MapCanvas extends Canvas
             repaint();
         });
 
+        mapData.searchInData(bounds);
+
         repaint();
     }
 

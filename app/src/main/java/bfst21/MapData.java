@@ -18,6 +18,7 @@ public class MapData
     public MapData()
     {
         mapData = new ArrayList<>();
+        mapSegment = new ArrayList<>();
     }
 
     public void addData(List<Element> toAdd)
