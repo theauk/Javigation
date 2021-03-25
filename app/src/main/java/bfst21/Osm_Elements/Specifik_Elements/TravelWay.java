@@ -1,5 +1,6 @@
 package bfst21.Osm_Elements.Specifik_Elements;
 
+import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
 
 /**
@@ -17,6 +18,8 @@ public class TravelWay {
     public TravelWay(Way way, String type){
         this.way = way;
         this.type = type;
+        
+        
     }
 
 
@@ -26,6 +29,11 @@ public class TravelWay {
 
     public void setName(String name) {
         this.name = name;
+        if(way != null){
+            for(Node n : way.getNodes()){
+                n.addRoadname(name);
+            }
+        }
     }
 
     public void setCycleway(String cycleway) {
