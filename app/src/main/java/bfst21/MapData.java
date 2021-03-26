@@ -24,7 +24,8 @@ public class MapData {
     }
 
     public void addData(List<Element> toAdd) {
-        mapData.addAll(toAdd);
+        //mapData.addAll(toAdd);
+        rTree.insertAll(toAdd);
     }
 
     public void searchInData(CanvasBounds bounds) {
@@ -32,7 +33,6 @@ public class MapData {
     }
 
     public void addRoads(List<Node> nodes) {
-
         roadNodes.addALl(nodes);
     }
 

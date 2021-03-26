@@ -143,7 +143,7 @@ public class Creator {
 
                                 case "addr:postcode":
                                     if (addressNode != null) {
-                                        addressNode.setPostcode(Integer.parseInt(v));
+                                        addressNode.setPostcode(Integer.parseInt(v.trim()));
                                     }
                                     break;
 
