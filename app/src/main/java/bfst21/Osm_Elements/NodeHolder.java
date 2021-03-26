@@ -40,7 +40,7 @@ public abstract class NodeHolder extends Element {
         }
     }
 
-    public List<Node> getNodes(){
+    public List<Node> getNodes() {
         return nodes;
     }
 

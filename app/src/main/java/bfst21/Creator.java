@@ -6,10 +6,7 @@ import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Specifik_Elements.AddressNode;
 import bfst21.Osm_Elements.Specifik_Elements.TravelWay;
 import bfst21.Osm_Elements.Way;
-
 import bfst21.data_structures.AlternateBinarySearchTree;
-
-
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -17,7 +14,6 @@ import javax.xml.stream.XMLStreamReader;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
-
 import java.util.List;
 
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
@@ -28,20 +24,19 @@ Creates Objects such as Nodes, Ways and Relations from the .osm file given from 
  */
 public class Creator {
 
-    private Map map;
-    private List<Element> roads;
-    private List<Element> coastLines;
-    private List<TravelWay> travelWays;
-    private TravelWay roadway;
-    private List<Element> relations;
-    private ArrayList<AddressNode> addressNodes;
-
     List<Node> nodesInRoads = new ArrayList<>();
     boolean iscoastline, isRoad;
     boolean iscycleAble, isbuilding;
     boolean isRelation;
     boolean isFerryRoute;
     boolean isAddress;
+    private MapData mapData;
+    private List<Element> roads;
+    private List<Element> coastLines;
+    private List<TravelWay> travelWays;
+    private TravelWay travelWay;
+    private List<Element> relations;
+    private ArrayList<AddressNode> addressNodes;
 
     public Creator(MapData mapData, InputStream input) throws XMLStreamException {
         this.mapData = mapData;
@@ -81,9 +76,6 @@ public class Creator {
                             mapData.setMaxY(Float.parseFloat(reader.getAttributeValue(null, "minlat")) / -0.56f);
                             mapData.setMinY(Float.parseFloat(reader.getAttributeValue(null, "maxlat")) / -0.56f);
                             break;
-                        case "relation":
-                            // adding memebers like Node and Way into the list
-                            break;
                         case "node":
                             isAddress = false;
                             var id = Long.parseLong(reader.getAttributeValue(null, "id"));
@@ -102,7 +94,6 @@ public class Creator {
                             relations = new ArrayList<>();
                             isRelation = true;
                             break;
-
                         case "tag":
                             var k = reader.getAttributeValue(null, "k");
                             var v = reader.getAttributeValue(null, "v");
@@ -112,7 +103,7 @@ public class Creator {
                                     break;
 
                                 case "highway":
-                                    travelWay = new TravelWay(way,v);
+                                    travelWay = new TravelWay(way, v);
                                     isRoad = true;
                                     break;
                                 case "maxspeed":
@@ -129,18 +120,18 @@ public class Creator {
                                     }
                                     break;
                                 case "oneway":
-                                    if(v.equals("yes")) travelWay.setOnewayRoad(true);
+                                    if (v.equals("yes")) travelWay.setOnewayRoad(true);
 
                                 case "cycleway": // should this not be always cycleable unless it's trunk (motortrafikvej) or primary highway.
                                     if (!v.equals("no")) {
-                                         cycle = v;
+                                        cycle = v;
                                         iscycleAble = true;
                                     }
                                     break;
 
                                 // methods when encountering addressNodes in the .osm file.
                                 case "addr:city":
-                                    addressNode = new AddressNode(node,v);
+                                    addressNode = new AddressNode(node, v);
                                     isAddress = true;
                                     break;
 
@@ -166,7 +157,7 @@ public class Creator {
                                     break;
 
                                 case "route":
-                                    if(v.equals("ferry")) isFerryRoute = true;
+                                    if (v.equals("ferry")) isFerryRoute = true;
                                     if (relation != null) {
                                         relation.setRoute(v);
                                     }
@@ -192,19 +183,19 @@ public class Creator {
                         case "way":
                             idToWay.put(way.getId(), way);
                             if (iscoastline) coastLines.add(way);
-                            if (isRoad){
+                            if (isRoad) {
                                 roads.add(way);
                                 travelWays.add(travelWay);
 
                                 int n = way.getNodes().size();
-                                Node nodeRoad = way.getNodes().get(n/2);
-                                if(nodeRoad.getName() != null){
+                                Node nodeRoad = way.getNodes().get(n / 2);
+                                if (nodeRoad.getName() != null) {
                                     nodesInRoads.add(nodeRoad);
                                 }
 
 
                             }
-                            if(iscycleAble) travelWay.setCycleway(cycle);
+                            if (iscycleAble) travelWay.setCycleway(cycle);
                             break;
 
                         case "node":
@@ -214,11 +205,9 @@ public class Creator {
                     break;
             }
         }
-        map.addData(coastLines);
-        map.addData(roads);
-        map.addRoads(nodesInRoads);
-
-
+        mapData.addData(coastLines);
+        mapData.addData(roads);
+        mapData.addRoads(nodesInRoads);
     }
 
     private void allBooleansFalse() {
@@ -227,7 +216,8 @@ public class Creator {
         iscycleAble = false;
         isbuilding = false;
     }
-    private void AllBooleansRelationsFalse(){
+
+    private void AllBooleansRelationsFalse() {
         isFerryRoute = false;
     }
 }

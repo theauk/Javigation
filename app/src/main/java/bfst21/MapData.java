@@ -1,11 +1,10 @@
 package bfst21;
 
 import bfst21.Osm_Elements.Element;
+import bfst21.Osm_Elements.Node;
+import bfst21.data_structures.Node2DTree;
 import bfst21.data_structures.RTree;
 import bfst21.view.CanvasBounds;
-import bfst21.Osm_Elements.Node;
-
-import bfst21.data_structures.Node2DTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,15 +31,15 @@ public class MapData {
         mapSegment = rTree.search(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY());
     }
 
-    public void addRoads(List<Node> nodes){
+    public void addRoads(List<Node> nodes) {
 
         roadNodes.addALl(nodes);
     }
 
-    public String getNearestRoad(float x, float y){
+    public String getNearestRoad(float x, float y) {
         String names = "";
         Node node = roadNodes.getNearestNode(x, y);
-        for(String s: node.getName()){
+        for (String s : node.getName()) {
             names += s + " ";
         }
 

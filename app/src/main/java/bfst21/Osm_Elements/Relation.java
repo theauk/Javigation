@@ -1,7 +1,6 @@
 package bfst21.Osm_Elements;
 
 import javafx.scene.canvas.GraphicsContext;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 
