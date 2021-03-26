@@ -11,20 +11,20 @@ import java.util.List;
 
 public class MapData {
     private Node2DTree<Node> roadNodes;
-    private List<Element> mapData; //All data
+
     private RTree rTree;
     private List<Element> mapSegment; //Only content within bounds
     private float minX, minY, maxX, maxY;
 
     public MapData() {
-        mapData = new ArrayList<>();
+
         mapSegment = new ArrayList<>();
         rTree = new RTree(1, 30, 4);
         roadNodes = new Node2DTree<>();
     }
 
     public void addData(List<Element> toAdd) {
-        //mapData.addAll(toAdd);
+
         rTree.insertAll(toAdd);
     }
 
@@ -32,31 +32,28 @@ public class MapData {
         mapSegment = rTree.search(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY());
     }
 
-    public void addRoads(List<Node> nodes) {
+    public void addRoadsNodes(List<Node> nodes) {
         roadNodes.addALl(nodes);
     }
 
     public String getNearestRoad(float x, float y) {
         String names = "";
         Node node = roadNodes.getNearestNode(x, y);
-        for (String s : node.getName()) {
-            names += s + " ";
-        }
+        // TODO: 26-03-2021 when all nodes in kd tree are sure to have name this check is unessecary
+        try {
+            for (String s : node.getName()) {
+                names += s + " ";
+            }
+        } catch (Exception e){}
 
         return names;
-    }
-
-    public List<Element> getMapData() {
-        return mapData;
     }
 
     public List<Element> getMapSegment() {
         return mapSegment;
     }
 
-    public void setRTree(RTree rTree) {
-        this.rTree = rTree;
-    }
+
 
     public float getMinX() {
         return minX;

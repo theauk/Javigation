@@ -24,7 +24,6 @@ Creates Objects such as Nodes, Ways and Relations from the .osm file given from 
  */
 public class Creator {
 
-    List<Node> nodesInRoads = new ArrayList<>();
     boolean iscoastline, isRoad;
     boolean iscycleAble, isbuilding;
     boolean isRelation;
@@ -186,12 +185,11 @@ public class Creator {
                             if (isRoad) {
                                 roads.add(way);
                                 travelWays.add(travelWay);
-
-                                int n = way.getNodes().size();
-                                Node nodeRoad = way.getNodes().get(n / 2);
-                                if (nodeRoad.getName() != null) {
-                                    nodesInRoads.add(nodeRoad);
+                                // TODO: 26-03-2021 when all ways tagged as travelway are sure to have names this check is unessecary
+                                if(way.getNodes().get(0).getName() != null){
+                                    mapData.addRoadsNodes(way.getNodes());
                                 }
+
 
 
                             }
@@ -207,7 +205,7 @@ public class Creator {
         }
         mapData.addData(coastLines);
         mapData.addData(roads);
-        mapData.addRoads(nodesInRoads);
+
     }
 
     private void allBooleansFalse() {

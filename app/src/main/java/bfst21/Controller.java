@@ -238,9 +238,10 @@ public class Controller {
             double y = round(coords.getY(), 1);
             coordsLabel.setText("CanvasCoords: " + x + ", " + y);
 
-            x = round(geoCoords.getX(), 7);
-            y = round(geoCoords.getY(), 7);
-            geoCoordsLabel.setText("GeoCoords: " + x + ", " + y);
+            // TODO: 26-03-2021 Visning af roadnavne skal være mere hensigtsmæssigt
+            //x = round(geoCoords.getX(), 7);
+            //y = round(geoCoords.getY(), 7);
+            geoCoordsLabel.setText(mapData.getNearestRoad((float)coords.getX(), (float) coords.getY()));
         } catch (NonInvertibleTransformException e) {
             e.printStackTrace();
         }

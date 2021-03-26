@@ -36,6 +36,7 @@ public class Node2DTree<Value extends Element> {
     }
 
     public void add(Value node) {
+
         list.add(new KDTreeNode(node));
         isSorted = false;
     }
