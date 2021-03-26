@@ -75,7 +75,7 @@ public class KDTree<Value extends Element>{
         root.onXAxis = true;
         buildTree(false, list.subList(mid+1,hi), root);
         buildTree(true, list.subList(0, mid), root);
-
+        isSorted = true;
 
 
     }
@@ -117,6 +117,7 @@ public class KDTree<Value extends Element>{
         if ((nodesCopy.size() / 2) + 1 < nodesCopy.size()){
             buildTree(false, nodesCopy.subList(nodesCopy.size() / 2 + 1, nodesCopy.size()), child);
         }
+
     }
 
     private List<KDTreeNode> removeDuplicates(List<KDTreeNode> nodes, KDTreeNode parent, int mid){
@@ -137,8 +138,7 @@ public class KDTree<Value extends Element>{
     public Value getNearestNode(float x, float y){
         if(!isSorted){
             buildTree();
-            isSorted = true;
-        }
+            }
         //TODO  tjek for null??
         if(root == null){
             return null;
@@ -149,35 +149,37 @@ public class KDTree<Value extends Element>{
         
     }
     
-    private KDTreeNode getNearestNode(KDTreeNode nextNode, float x, float y, double shortestDistance, KDTreeNode nearestNode, Boolean xAxis){
-        
-        if (nextNode == null){
+    private KDTreeNode getNearestNode(KDTreeNode currentNode, float x, float y, double shortestDistance, KDTreeNode nearestNode, Boolean xAxis){
+        if (currentNode == null){
             return nearestNode;
         }
         
-        
-        double newDistance = getDistance(nextNode, x, y);
+        double newDistance = getDistance(currentNode, x, y);
         if(newDistance<shortestDistance){
             shortestDistance = newDistance;
-            nearestNode = nextNode;
+            nearestNode = currentNode;
         }
-
-
+        
         //checks if we should search the left or right side of the tree first, to save time/space.
-        double compare = xAxis ? Math. abs(x - nextNode.node.getxMax()) : Math. abs(y - nextNode.node.getyMax());
+        double compare = xAxis ? Math. abs(x - currentNode.node.getxMax()) : Math. abs(y - currentNode.node.getyMax());
 
-        KDTreeNode node1 = compare < 0 ? nextNode.leftChild : nextNode.rightChild;
-        KDTreeNode node2 = compare < 0 ? nextNode.rightChild : nextNode.leftChild;
+        KDTreeNode node1 = compare < 0 ? currentNode.leftChild : currentNode.rightChild;
+        KDTreeNode node2 = compare < 0 ? currentNode.rightChild : currentNode.leftChild;
 
         nearestNode = getNearestNode(node1, x, y, shortestDistance, nearestNode, !xAxis);
-
-
-        if(shortestDistance > Math. abs((xAxis ? x - nextNode.node.getxMax() : y - nextNode.node.getyMax()))){
+        
+        // Checks if its worth checking on the other side of tree.
+        if(possibleCloserNode(shortestDistance, currentNode, x, y)){
             nearestNode = getNearestNode(node2, x, y, shortestDistance, nearestNode, !xAxis);
         }
         
         return nearestNode;
         
+    }
+
+    private boolean possibleCloserNode(Double shortestDistance, KDTreeNode currentNode, float x, float y){
+        double possibleNewDistance= Math.abs(currentNode.onXAxis ? x - currentNode.node.getxMax() : y - currentNode.node.getyMax());
+        return shortestDistance > Math.abs(possibleNewDistance);
     }
 
     private double getDistance(KDTreeNode from, float x, float y){
@@ -186,7 +188,7 @@ public class KDTree<Value extends Element>{
         return result;
     }
 
-
+    // TODO: 26-03-2021 remove both print methods when no longer needed. 
    public void printTree(){
         if(root == null){
             buildTree();

@@ -25,9 +25,8 @@ public class KDTreeTest {
 
     @Test
     void searchGetNearestNodeTest() {
-        float lon = (float)12.5823799;
-        float lat = (float)-55.6685247/56f;
-        assertEquals(4, tree.getNearestNode(lat,lon).getId());
+        Node node = new Node(5, (float)12.5823800, (float)55.6685260);
+        assertEquals(4, tree.getNearestNode(node.getxMax(),node.getyMax()).getId());
     }
 
      @AfterAll
