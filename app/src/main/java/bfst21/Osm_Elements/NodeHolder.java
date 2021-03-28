@@ -11,9 +11,13 @@ public abstract class NodeHolder extends Element {
         super(id);
     }
 
+    // TODO: 28-03-2021 Due to relations being bigger than input, some nodes are null. 
     public void addNode(Node node) {
-        nodes.add(node);
-        checkMaxAndMin(node);
+        if(node != null){
+            nodes.add(node);
+            checkMaxAndMin(node);
+        }
+        
 
     }
 

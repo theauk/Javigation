@@ -3,9 +3,11 @@ package bfst21;
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Specifik_Elements.AddressNode;
+import bfst21.Osm_Elements.Specifik_Elements.TravelWay;
 import bfst21.data_structures.AddressTriesTree;
 import bfst21.data_structures.Node2DTree;
 import bfst21.data_structures.RTree;
+import bfst21.data_structures.RoadGraph;
 import bfst21.view.CanvasBounds;
 
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ public class MapData {
     private List<Element> mapSegment; //Only content within bounds
     private float minX, minY, maxX, maxY;
     private AddressTriesTree addressTree;
+    private RoadGraph roadGraph;
 
     public MapData() {
 
@@ -24,10 +27,16 @@ public class MapData {
         rTree = new RTree(1, 30, 4);
         roadNodesTree = new Node2DTree<>();
         addressTree = new AddressTriesTree();
+        roadGraph = new RoadGraph();
+    }
+
+    public void addRoad(TravelWay way){
+        roadGraph.add(way);
+        roadNodesTree.addALl(way.getNodes());
+        addDatum(way);
     }
 
     public void addData(List<Element> toAdd) {
-
         rTree.insertAll(toAdd);
     }
     public void addDatum(Element toAdd){
@@ -38,9 +47,6 @@ public class MapData {
         mapSegment = rTree.search(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY());
     }
 
-    public void addRoadNodes(List<Node> nodes) {
-        roadNodesTree.addALl(nodes);
-    }
 
     public String getNearestRoad(float x, float y) {
         String names = "";

@@ -8,11 +8,11 @@ public class AddressNode extends Node {
     private int postcode;
     private String street;
 
-    public AddressNode(Node node, String city) {
+    public AddressNode(Node node) {
         super(node.getId(), node.getxMax(), node.getyMax(), true);
-        this.city = city;
-
     }
+
+
 
     public String getHousenumber() {
         return housenumber;
