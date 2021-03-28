@@ -17,6 +17,14 @@ public class Node extends Element {
 
     }
 
+    public Node(float lon, float lat) { // TODO: 3/28/21 for Rtree debug mode where the y should not be converted
+        super(0);
+        this.xMin = lon;
+        this.xMax = lon;
+        this.yMin = lat;
+        this.yMax = lat;
+    }
+
     @Override
     public void draw(GraphicsContext gc) {
 

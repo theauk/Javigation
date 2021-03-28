@@ -1,7 +1,9 @@
 package bfst21.data_structures;
 
 import bfst21.Osm_Elements.Element;
+import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
+import bfst21.Osm_Elements.Way;
 
 import java.util.*;
 
@@ -9,7 +11,7 @@ public class RTree {
     private int minimumChildren, maximumChildren, numberOfCoordinates;
     private RTreeNode root;
     private int idCount; // TODO: 3/22/21 delete
-    private boolean debug;
+    private boolean debug = true;
 
     public RTree(int minimumChildren, int maximumChildren, int numberOfCoordinates) {
         this.minimumChildren = minimumChildren;
@@ -17,7 +19,6 @@ public class RTree {
         this.numberOfCoordinates = numberOfCoordinates;
         root = null;
         idCount = 0;
-        debug = true;
     }
 
     public RTreeNode getRoot() {
@@ -42,7 +43,13 @@ public class RTree {
         if (root != null) {
             float[] searchCoordinates = new float[]{xMin, xMax, yMin, yMax};
             ArrayList<Element> results = new ArrayList<>();
-            search(searchCoordinates, root, results);
+            if (debug) {
+                searchCoordinates = new float[]{xMin+0.01f, xMax+(-0.01f), yMin+0.01f, yMax+(-0.01f)};
+                results.add(createDebugBoundsRectangle(searchCoordinates));
+                searchDebug(searchCoordinates, root, results);
+            } else {
+                search(searchCoordinates, root, results);
+            }
             return results;
         } else {
             //throw new RuntimeException("No elements in the RTree"); 
@@ -69,8 +76,83 @@ public class RTree {
         }
     }
 
+    private void searchDebug(float[] searchCoordinates, RTreeNode node, ArrayList<Element> results) { // TODO: 3/28/21 Laver kun firkanter på ting der intersector med bounds alt andet tegnes
+
+        if (node.isLeaf()) {
+            for (RTreeNode r : node.getChildren()) {
+                for (Element e : r.getElementEntries()) {
+                    if (intersects(searchCoordinates, e.getCoordinates())) {
+                        results.add(createDebugRelation(e.getCoordinates()));
+                        results.add(e);
+                    }
+                }
+            }
+        } else {
+            for (RTreeNode r : node.getChildren()) {
+                if (intersects(searchCoordinates, r.getCoordinates())) {
+                    //results.add(createDebugRelation(r.getCoordinates()));
+                    searchDebug(searchCoordinates, r, results);
+                }
+            }
+        }
+    }
+
+    private Relation createDebugBoundsRectangle(float[] searchCoordinates) {
+        Relation r = new Relation(0);
+
+        Way w1 = new Way(0);
+        w1.addNode(new Node(searchCoordinates[0], searchCoordinates[2]));
+        w1.addNode(new Node(searchCoordinates[0], searchCoordinates[3]));
+        r.addWay(w1);
+
+        Way w2 = new Way(0);
+        w2.addNode(new Node(searchCoordinates[0], searchCoordinates[2]));
+        w2.addNode(new Node(searchCoordinates[1], searchCoordinates[2]));
+        r.addWay(w2);
+
+        Way w3 = new Way(0);
+        w3.addNode(new Node(searchCoordinates[1], searchCoordinates[2]));
+        w3.addNode(new Node(searchCoordinates[1], searchCoordinates[3]));
+        r.addWay(w3);
+
+        Way w4 = new Way(0);
+        w4.addNode(new Node(searchCoordinates[0], searchCoordinates[3]));
+        w4.addNode(new Node(searchCoordinates[1], searchCoordinates[3]));
+        r.addWay(w4);
+
+        return r;
+    }
+
     private Relation createDebugRelation(float[] coordinates) {
         Relation r = new Relation(0);
+
+        Way w1 = new Way(0);
+        Node n1 = new Node(coordinates[0], coordinates[2]);
+        n1.setType("rTreeDebug");
+        w1.addNode(n1);
+        w1.addNode(new Node(coordinates[1], coordinates[2]));
+        w1.setType("rTreeDebug");
+        r.addWay(w1);
+
+        Way w2 = new Way(0);
+        w2.addNode(new Node(coordinates[0], coordinates[2]));
+        w2.addNode(new Node(coordinates[0], coordinates[3]));
+        w2.setType("rTreeDebug");
+        r.addWay(w2);
+
+        Way w3 = new Way(0);
+        w3.addNode(new Node(coordinates[1], coordinates[2]));
+        w3.addNode(new Node(coordinates[1], coordinates[3]));
+        w3.setType("rTreeDebug");
+        r.addWay(w3);
+
+        Way w4 = new Way(0);
+        w4.addNode(new Node(coordinates[0], coordinates[3]));
+        w4.addNode(new Node(coordinates[1], coordinates[3]));
+        w4.setType("rTreeDebug");
+        r.addWay(w4);
+
+        r.setType("rTreeDebug");
 
         return r;
     }
