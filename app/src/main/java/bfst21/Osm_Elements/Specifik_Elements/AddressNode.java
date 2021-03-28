@@ -2,15 +2,14 @@ package bfst21.Osm_Elements.Specifik_Elements;
 
 import bfst21.Osm_Elements.Node;
 
-public class AddressNode {
-    private Node node;
+public class AddressNode extends Node {
     private String housenumber;
     private String city;
     private int postcode;
     private String street;
 
     public AddressNode(Node node, String city) {
-        this.node = node;
+        super(node.getId(), node.getxMax(), node.getyMax(), true);
         this.city = city;
 
     }
@@ -47,7 +46,4 @@ public class AddressNode {
         this.street = street;
     }
 
-    public Node getNode() {
-        return node;
-    }
 }

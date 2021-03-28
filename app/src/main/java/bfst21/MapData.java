@@ -2,6 +2,8 @@ package bfst21;
 
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
+import bfst21.Osm_Elements.Specifik_Elements.AddressNode;
+import bfst21.data_structures.AddressTriesTree;
 import bfst21.data_structures.Node2DTree;
 import bfst21.data_structures.RTree;
 import bfst21.view.CanvasBounds;
@@ -10,35 +12,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapData {
-    private Node2DTree<Node> roadNodes;
-
+    private Node2DTree<Node> roadNodesTree;
     private RTree rTree;
     private List<Element> mapSegment; //Only content within bounds
     private float minX, minY, maxX, maxY;
+    private AddressTriesTree addressTree;
 
     public MapData() {
 
         mapSegment = new ArrayList<>();
         rTree = new RTree(1, 30, 4);
-        roadNodes = new Node2DTree<>();
+        roadNodesTree = new Node2DTree<>();
+        addressTree = new AddressTriesTree();
     }
 
     public void addData(List<Element> toAdd) {
 
         rTree.insertAll(toAdd);
     }
+    public void addDatum(Element toAdd){
+        rTree.insert(toAdd);
+    }
 
     public void searchInData(CanvasBounds bounds) {
         mapSegment = rTree.search(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY());
     }
 
-    public void addRoadsNodes(List<Node> nodes) {
-        roadNodes.addALl(nodes);
+    public void addRoadNodes(List<Node> nodes) {
+        roadNodesTree.addALl(nodes);
     }
 
     public String getNearestRoad(float x, float y) {
         String names = "";
-        Node node = roadNodes.getNearestNode(x, y);
+        Node node = roadNodesTree.getNearestNode(x, y);
         // TODO: 26-03-2021 when all nodes in kd tree are sure to have name this check is unessecary
         try {
             for (String s : node.getName()) {
@@ -51,6 +57,15 @@ public class MapData {
 
     public List<Element> getMapSegment() {
         return mapSegment;
+    }
+
+    public void addAddress(AddressNode node){
+        addressTree.put(node);
+
+    }
+
+    public AddressNode getAddressNode(String address){
+        return addressTree.getAddressNode(address);
     }
 
 

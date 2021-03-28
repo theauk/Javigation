@@ -44,6 +44,7 @@ public class Creator {
         travelWays = new ArrayList<>();
         addressNodes = new ArrayList<>();
 
+
         create(input);
     }
 
@@ -59,9 +60,9 @@ public class Creator {
         Way way = null;
         Node node = null;
         TravelWay travelWay = null;
-        String cycle = null; // the cycleproperties of the road comes before "highway" in the .osm files
         Relation relation = null;
         var member = new ArrayList<Long>();
+        boolean wayTypeIsSet = false;
 
         AddressNode addressNode = null;
 
@@ -97,13 +98,21 @@ public class Creator {
                             var k = reader.getAttributeValue(null, "k");
                             var v = reader.getAttributeValue(null, "v");
                             switch (k) {
+
                                 case "natural":
-                                    if (v.equals("coastline")) iscoastline = true;
+                                    if (v.equals("coastline"))
+                                        way.setType(v);
+                                        wayTypeIsSet = true;
                                     break;
 
+                                case "building":
+                                    if (v.equals("yes")) way.setType("building");
+                                    break;
+
+                                //############ Travel ways #################
                                 case "highway":
-                                    travelWay = new TravelWay(way, v);
-                                    isRoad = true;
+                                    isRoad = checkHighWayType(travelWay, v, way);
+
                                     break;
                                 case "maxspeed":
                                     if (travelWay != null) {
@@ -119,19 +128,19 @@ public class Creator {
                                     }
                                     break;
                                 case "oneway":
-                                    if (v.equals("yes")) travelWay.setOnewayRoad(true);
+                                    if (v.equals("yes")) travelWay.setOnewayRoad();
 
                                 case "cycleway": // should this not be always cycleable unless it's trunk (motortrafikvej) or primary highway.
                                     if (!v.equals("no")) {
-                                        cycle = v;
-                                        iscycleAble = true;
+                                        travelWay.setNotCycleable();
                                     }
                                     break;
 
-                                // methods when encountering addressNodes in the .osm file.
+                                //############ Address Nodes ################
                                 case "addr:city":
                                     addressNode = new AddressNode(node, v);
                                     isAddress = true;
+                                    node = null;
                                     break;
 
                                 case "addr:housenumber":
@@ -151,16 +160,6 @@ public class Creator {
                                         addressNode.setStreet(v);
                                     }
 
-                                case "building":
-                                    if (v.equals("yes")) isbuilding = true;
-                                    break;
-
-                                case "route":
-                                    if (v.equals("ferry")) isFerryRoute = true;
-                                    if (relation != null) {
-                                        relation.setRoute(v);
-                                    }
-                                    break;
                             }
                             break;
 
@@ -187,17 +186,19 @@ public class Creator {
                                 travelWays.add(travelWay);
                                 // TODO: 26-03-2021 when all ways tagged as travelway are sure to have names this check is unessecary
                                 if(way.getNodes().get(0).getName() != null){
-                                    mapData.addRoadsNodes(way.getNodes());
+                                    mapData.addRoadNodes(way.getNodes());
                                 }
 
 
 
                             }
-                            if (iscycleAble) travelWay.setCycleway(cycle);
+
                             break;
 
                         case "node":
-                            if (isAddress) addressNodes.add(addressNode);
+                            if (isAddress) mapData.addAddress(addressNode);
+                            isAddress = false;
+                            address = null;
                             break;
                     }
                     break;
@@ -206,6 +207,16 @@ public class Creator {
         mapData.addData(coastLines);
         mapData.addData(roads);
 
+    }
+
+    private boolean checkHighWayType(TravelWay tWay, String v, Way way) {
+        isRoad = false;
+        if(way == null){
+            return isRoad;
+        }
+
+
+        return isRoad;
     }
 
     private void allBooleansFalse() {

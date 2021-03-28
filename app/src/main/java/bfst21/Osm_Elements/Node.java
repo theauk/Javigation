@@ -17,6 +17,16 @@ public class Node extends Element {
 
     }
 
+    public Node(long id, float lon, float lat, boolean nodeFromNode){
+        super(id);
+        if(nodeFromNode){
+            this.xMin = lon;
+            this.xMax = lon;
+            this.yMin = lat;
+            this.yMax = lat;
+        }
+    }
+
     @Override
     public void draw(GraphicsContext gc) {
 
