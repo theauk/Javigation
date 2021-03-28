@@ -1,6 +1,7 @@
 package bfst21.data_structures;
 
 import bfst21.Osm_Elements.Element;
+import bfst21.Osm_Elements.Relation;
 
 import java.util.*;
 
@@ -8,6 +9,7 @@ public class RTree {
     private int minimumChildren, maximumChildren, numberOfCoordinates;
     private RTreeNode root;
     private int idCount; // TODO: 3/22/21 delete
+    private boolean debug;
 
     public RTree(int minimumChildren, int maximumChildren, int numberOfCoordinates) {
         this.minimumChildren = minimumChildren;
@@ -15,6 +17,7 @@ public class RTree {
         this.numberOfCoordinates = numberOfCoordinates;
         root = null;
         idCount = 0;
+        debug = true;
     }
 
     public RTreeNode getRoot() {
@@ -36,14 +39,14 @@ public class RTree {
     }
 
     public ArrayList<Element> search(float xMin, float xMax, float yMin, float yMax) {
-        if(root != null) {
+        if (root != null) {
             float[] searchCoordinates = new float[]{xMin, xMax, yMin, yMax};
             ArrayList<Element> results = new ArrayList<>();
             search(searchCoordinates, root, results);
             return results;
         } else {
-            //throw new RuntimeException("No elements in the RTree");
-            System.out.println("No elements in the rtree");
+            //throw new RuntimeException("No elements in the RTree"); 
+            System.out.println("No elements in the rtree"); // TODO: 3/26/21 fix this in view so that the search is not called before file has been loaded 
             return new ArrayList<>();
         }
     }
@@ -66,8 +69,14 @@ public class RTree {
         }
     }
 
+    private Relation createDebugRelation(float[] coordinates) {
+        Relation r = new Relation(0);
+
+        return r;
+    }
+
     public void insertAll(List<Element> elements) {
-        for (Element e: elements) {
+        for (Element e : elements) {
             insert(e);
         }
     }
@@ -187,7 +196,7 @@ public class RTree {
 
     private RTreeNode[] splitNodeQuadraticCost(RTreeNode node) {
         ArrayList<RTreeNode> elementsToSplit = new ArrayList<>(node.getChildren());
-        int[] seeds = pickSeeds(elementsToSplit);
+        int[] seeds = pickSeedsQuadratic(elementsToSplit);
 
         RTreeNode elementForNode = elementsToSplit.get(seeds[0]);
         RTreeNode elementForNewNode = elementsToSplit.get(seeds[1]);
@@ -271,13 +280,33 @@ public class RTree {
     }
 
     /*private RTreeNode splitNodeLinearCost(ArrayList<RTreeNode> elementsToSplit) {
-        RTreeNode[] bestPair = new RTreeNode[2];
-        float bestSeparation = Float.NEGATIVE_INFINITY;
-        for (int i = 0; i < numberOfCoordinates/2; i++) {
-            RTreeNode nodeMaxLowerBound = null;
-            RTreeNode nodeMinLowerBound = null;
-            for (RTreeNode n: elementsToSplit) {
-                
+        RTreeNode[] furthestPair = new RTreeNode[2];
+
+        float furthestSeparation = Float.NEGATIVE_INFINITY;
+        RTreeNode leftmostRightSideNode = null;
+
+        RTreeNode rightmostLeftSideNode = null;
+
+
+        for (int i = 0; i < numberOfCoordinates / 2; i++) {
+            for (int j = 0; j < elementsToSplit.size() - 1; j++) {
+                for (int k = j + 1; k < elementsToSplit.size(); k++) {
+                    float leftmostRightSide = Math.max(elementsToSplit.get(j).getCoordinates()[i], elementsToSplit.get(k).getCoordinates()[i]);
+                    float rightmostLeftSide = Math.min(elementsToSplit.get(j).getCoordinates()[i + 1], elementsToSplit.get(k).getCoordinates()[i + 1]);
+                    float width = max
+                }
+            }
+
+
+            for (RTreeNode n : elementsToSplit) {
+                if (n.getCoordinates()[i] > rightmost) {
+                    rightmost = n.getCoordinates()[i];
+                    rightmostLeftSideNode = n;
+                }
+                if (n.getCoordinates()[i + 1] < leftmost) {
+                    leftmost = n.getCoordinates()[i + 1];
+                    leftmostRightSideNode = n;
+                }
             }
         }
     }*/
@@ -300,7 +329,7 @@ public class RTree {
         return getArea(newCoordinates);
     }
 
-    private int[] pickSeeds(ArrayList<RTreeNode> elementsToSplit) {
+    private int[] pickSeedsQuadratic(ArrayList<RTreeNode> elementsToSplit) {
         int[] mostWastefulNodesIndices = new int[2];
         float largestArea = Float.NEGATIVE_INFINITY;
 
