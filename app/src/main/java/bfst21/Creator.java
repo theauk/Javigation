@@ -68,7 +68,6 @@ public class Creator {
 
                         case "way":
                             var idWay = Long.parseLong(reader.getAttributeValue(null, "id"));
-                            travelWay = null;
                             way = new Way(idWay);
                             idToWay.put(idWay, way);
                             break;
@@ -82,7 +81,7 @@ public class Creator {
                             var v = reader.getAttributeValue(null, "v");
 
                                 if(k.equals("highway")){
-                                    if(checkHighWayType(way, v)) travelWay = new TravelWay(way,v);
+                                    if(checkHighWayType(way, v)) travelWay = new TravelWay(way,v,k);
                                     way = null;
                                 }
 
@@ -131,12 +130,16 @@ public class Creator {
                         case "way":
                             if(way != null){
                                 idToWay.put(way.getId(), way);
-                                mapData.addDatum(way);
+                                if(way.hasType()){
+                                    mapData.addData(way);
+                                }
                                 way = null;
                             }
                             if(travelWay != null){
                                 idToWay.put(travelWay.getId(), travelWay);
-                                mapData.addRoad(travelWay);
+                                if(travelWay.hasType()){
+                                    mapData.addRoad(travelWay);
+                                }
                                 travelWay = null;
                             }
                             break;

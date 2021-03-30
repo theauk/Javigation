@@ -17,10 +17,11 @@ public class TravelWay extends Way{
     private boolean isCycleable;
     private boolean isWalkable;
 
-    public TravelWay(Way way, String roadType) {
+    public TravelWay(Way way, String roadType, String superType) {
         super(way.getId());
         super.addAllNodes(way.getNodes());
-        roadType = roadType;
+        super.setType(superType);
+        this.roadType = roadType;
         setBooleans(roadType);
     }
 

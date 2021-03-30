@@ -33,11 +33,11 @@ public class Node extends Element {
     }
 
     public void addRoadname(String name) {
-        //TODO half assed fix
         if (roadNames == null) {
             roadNames = new ArrayList<>();
         }
         if (!roadNames.contains(name)) {
+            // TODO: 30-03-2021 det her kan godt være en tidsluger
             roadNames.add(name);
         }
 

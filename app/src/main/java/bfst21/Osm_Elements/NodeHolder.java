@@ -21,7 +21,6 @@ public abstract class NodeHolder extends Element {
 
     }
 
-    // TODO: 28-03-2021 kan det her effektiviseres?
     public void addAllNodes(List<Node> nodes){
         for(Node n: nodes){
             addNode(n);

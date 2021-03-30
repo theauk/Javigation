@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import bfst21.Exceptions.KDTreeEmptyException;
 import bfst21.Osm_Elements.Element;
 
 
@@ -62,9 +63,9 @@ public class KDTree<Value extends Element>{
     }
 
 
-    private void buildTree(){
+    private void buildTree() throws KDTreeEmptyException {
         if (list == null || list.isEmpty()) {
-            return;
+            throw new KDTreeEmptyException("No nodes in the tree");
         }
         list.sort(comparatorX);
         int lo = 0;
@@ -135,14 +136,11 @@ public class KDTree<Value extends Element>{
 
 
 
-    public Value getNearestNode(float x, float y){
+    public Value getNearestNode(float x, float y) throws KDTreeEmptyException {
         if(!isSorted){
             buildTree();
             }
-        //TODO  tjek for null??
-        if(root == null){
-            return null;
-        }
+
         double shortestDistance = Double.MAX_VALUE;
         KDTreeNode nearestNode = getNearestNode(root, x, y, shortestDistance, null, root.onXAxis);
         return nearestNode.node;
@@ -169,7 +167,8 @@ public class KDTree<Value extends Element>{
         nearestNode = getNearestNode(node1, x, y, shortestDistance, nearestNode, !xAxis);
         
         // Checks if its worth checking on the other side of tree.
-        if(possibleCloserNode(shortestDistance, currentNode, x, y)){
+       if(possibleCloserNode(shortestDistance, currentNode, x, y)){
+
             nearestNode = getNearestNode(node2, x, y, shortestDistance, nearestNode, !xAxis);
         }
         
@@ -189,7 +188,7 @@ public class KDTree<Value extends Element>{
     }
 
     // TODO: 26-03-2021 remove both print methods when no longer needed. 
-   public void printTree(){
+   public void printTree() throws KDTreeEmptyException {
         if(root == null){
             buildTree();
         }

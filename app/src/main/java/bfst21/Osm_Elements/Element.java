@@ -26,6 +26,11 @@ public abstract class Element implements Spatializable {
         return type;
     }
 
+    public boolean hasType(){
+        return type !=null;
+
+    }
+
     public abstract void draw(GraphicsContext gc);
 
     public float getxMin() {
