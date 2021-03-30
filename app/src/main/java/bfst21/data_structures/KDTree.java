@@ -90,7 +90,7 @@ public class KDTree<Value extends Element>{
 
         if(isParentAndNextMidSame(nodes, parent)){
             nodesCopy = new ArrayList<>();
-            nodes = removeDuplicates(nodes, parent,(0 + nodes.size()) / 2);
+            nodes = removeDuplicates(nodes, parent,(nodes.size()) / 2);
             nodesCopy.addAll(nodes);
         } else{
             nodesCopy = nodes;

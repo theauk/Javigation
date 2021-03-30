@@ -34,9 +34,9 @@ public class MapData {
     public void addRoad(TravelWay way){
         roadGraph.add(way);
 
-            if(way.getName() != null){
+            if(way.getName()!= null){
                 roadNodesTree.addALl(way.getNodes());
-        }
+            }
         addData(way);
     }
 

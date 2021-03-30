@@ -41,9 +41,6 @@ public class TravelWay extends Way{
                 setNotDriveable();
                 setNotWalkable();
             }
-
-
-
     }
 
     public void setNotCycleable() {
@@ -94,5 +91,4 @@ public class TravelWay extends Way{
         }
         gc.stroke();
     }
-
 }

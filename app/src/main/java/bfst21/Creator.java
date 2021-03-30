@@ -37,7 +37,6 @@ public class Creator {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new BufferedInputStream(input));
 
         AlternateBinarySearchTree<Long, Node> idToNode = new AlternateBinarySearchTree<>();
-
         AlternateBinarySearchTree<Long, Way> idToWay = new AlternateBinarySearchTree<>();
 
         Way way = null;
@@ -137,9 +136,7 @@ public class Creator {
                             }
                             if(travelWay != null){
                                 idToWay.put(travelWay.getId(), travelWay);
-                                if(travelWay.hasType()){
-                                    mapData.addRoad(travelWay);
-                                }
+                                mapData.addRoad(travelWay);
                                 travelWay = null;
                             }
                             break;
@@ -157,12 +154,15 @@ public class Creator {
                                 //mapData.add(relation)
                             }
                             relation = null;
-
                     }
                     break;
             }
         }
+
+        idToWay = null;
+
     }
+
 
     private void checkRelation(String k, String v, Relation relation){
         switch (k){
@@ -223,73 +223,37 @@ public class Creator {
                 break;
 
             case "addr:postcode":
-                if (addressNode != null) {
-                    addressNode.setPostcode(Integer.parseInt(v.trim()));
-                }
+                addressNode.setPostcode(Integer.parseInt(v.trim()));
                 break;
 
             case "addr:street":
-                if (addressNode != null) {
-                    addressNode.setStreet(v);
-                }
+                addressNode.setStreet(v);
                 break;
         }
 
     }
 
     private boolean checkHighWayType(Way way,String v) {
-        if(way == null){
-            return false;
-        }
+        if(way == null) return false;
         return highWayTypeHelper(v);
 
 
     }
 
     private boolean highWayTypeHelper(String v){
-        if(v.equals("motoway")){
-            return true;
-        }
-        if(v.equals("trunk")){
-            return true;
-        }
-        if(v.equals("primary")){
-            return true;
-        }
-        if(v.equals("secondary")){
-            return true;
-        }
-        if(v.equals("tertiary")){
-            return true;
-        }
-        if(v.equals("unclassified")){
-            return true;
-        }
-        if(v.equals("residential")){
-            return true;
-        }
-        if(v.contains("link")){
-            return true;
-        }
-        if(v.equals("living_street")){
-            return true;
-        }
-        if(v.equals("pedestrian")){
-            return true;
-        }
-        if(v.equals("road")){
-            return true;
-        }
-        if(v.equals("footway")){
-            return true;
-        }
-        if(v.equals("cycleway")){
-            return true;
-        }
-
-
-
-
+        if(v.equals("motorway"))return true;
+        if(v.equals("trunk"))return true;
+        if(v.equals("primary"))return true;
+        if(v.equals("secondary"))return true;
+        if(v.equals("tertiary"))return true;
+        if(v.equals("unclassified"))return true;
+        if(v.equals("residential"))return true;
+        if(v.contains("link"))return true;
+        if(v.equals("living_street"))return true;
+        if(v.equals("pedestrian"))return true;
+        if(v.equals("road"))return true;
+        if(v.equals("footway"))return true;
+        if(v.equals("cycleway"))  return true;
 
         return false;
     }
