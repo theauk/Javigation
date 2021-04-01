@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class View
 {
-    public View(MapData mapData, Stage stage) throws IOException
+    public View(Stage stage) throws IOException
     {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/view.fxml"));
         Scene scene = fxmlLoader.load();
@@ -19,6 +19,6 @@ public class View
 
         Controller controller = fxmlLoader.getController();
         stage.show();
-        controller.init(mapData);
+        controller.init();
     }
 }

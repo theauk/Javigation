@@ -140,7 +140,7 @@ public class Creator extends Task<Void> {
                                 if (way != null) {
                                     idToWay.put(way.getId(), way);
                                     if (way.hasType()) {
-                                        mapData.addData(way);
+                                        mapData.addDataRTree(way);
                                     }
                                     way = null;
                                 }

@@ -32,14 +32,10 @@ public class MapData {
 
     public void addRoad(TravelWay way) {
         roadGraph.add(way);
-        addData(way);
+        addDataRTree(way);
     }
 
-    public void addData(List<Element> toAdd) {
-        rTree.insertAll(toAdd);
-    }
-
-    public void addData(Element toAdd) {
+    public void addDataRTree(Element toAdd) {
         rTree.insert(toAdd);
     }
 

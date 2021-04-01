@@ -3,7 +3,6 @@ package bfst21;
 import bfst21.view.CanvasBounds;
 import bfst21.view.MapCanvas;
 import bfst21.view.Theme;
-import javafx.animation.FadeTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
@@ -16,7 +15,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.FileChooser;
-import javafx.util.Duration;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,14 +54,11 @@ public class Controller {
     @FXML private ToggleGroup themeGroup;
     @FXML private RadioMenuItem rTreeDebug;
 
-    public void init(MapData mapData) {
-        this.mapData = mapData;
+    public void init() {
         loader = new Loader();
-
         loadThemes();
-        initView();
-
         openFile();
+        initView();
     }
 
     private void initView() {
@@ -227,9 +222,8 @@ public class Controller {
     private void openFile() {
         File file = showFileChooser().showOpenDialog(scene.getWindow());
 
-        if(file != null) loadFile(file.getAbsolutePath(), file.length());
-        else
-        {
+        if (file != null) loadFile(file.getAbsolutePath(), file.length());
+        else {
             File binaryFile = new File(getClass().getResource("/small.osm").getPath());
             loadFile(binaryFile.getPath(), binaryFile.length()); //USE BINARY FILE
         }
@@ -241,18 +235,17 @@ public class Controller {
     }
 
     @FXML
-    private void cancelLoad()
-    {
-        if(creator != null) creator.cancel();
+    private void cancelLoad() {
+        if (creator != null) creator.cancel();
     }
 
     private void loadFile(String path, long fileSize) {
         try {
+            mapData = new MapData(); // TODO: 4/1/21 Determine if it should be "wiped" each time. Or we want something like mapData.setupTrees() where the trees are initialized. Then we can reuse MapData and it should work in Canvas
             creator = new Creator(mapData, loader.load(path), fileSize);
             creator.setOnRunning(e -> {
                 centerPane.setCursor(Cursor.WAIT);
                 statusLabel.textProperty().bind(creator.messageProperty());
-
                 loadingBar.progressProperty().bind(creator.progressProperty());
                 disableGui(true);
                 loaderPane.setVisible(true);
@@ -263,7 +256,7 @@ public class Controller {
                 loadingBar.progressProperty().unbind();
                 disableGui(false);
                 loaderPane.setVisible(false);
-                mapCanvas.startup();
+                mapCanvas.loadFile(mapData);
             });
             creator.setOnCancelled(e -> {
                 centerPane.setCursor(Cursor.DEFAULT);
@@ -310,10 +303,10 @@ public class Controller {
             //geoCoordsLabel.setText("(" + geoCoords.getX() + ", " + geoCoords.getY() + ")");
             double x = round(geoCoords.getX(), 5);
             double y = round(geoCoords.getY(), 5);
-            y = -y/0.56f;
+            y = -y / 0.56f;
             coordsLabel.setText("CanvasCoords: " + x + ", " + y);
             //geoCoordsLabel.setText("GeoCoords : " + x + ", "+ y);
-            geoCoordsLabel.setText(mapData.getNearestRoad((float)x, (float) y));
+            geoCoordsLabel.setText(mapData.getNearestRoad((float) x, (float) y));
         } catch (NonInvertibleTransformException e) {
             e.printStackTrace();
         }

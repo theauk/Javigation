@@ -14,7 +14,6 @@ public class MapCanvas extends Canvas {
     private Affine trans;
     private CanvasBounds bounds;
     private Theme theme;
-    private boolean rTreeDebug;
 
     public void init(MapData mapData, Theme theme) {
         this.mapData = mapData;
@@ -31,8 +30,6 @@ public class MapCanvas extends Canvas {
             setBounds();
             repaint();
         });
-
-        mapData.searchInData(bounds);
 
         repaint();
     }
@@ -82,6 +79,11 @@ public class MapCanvas extends Canvas {
         mapData.searchInData(bounds);
     }
 
+    public void loadFile(MapData mapData) {
+        this.mapData = mapData;
+        reset();
+    }
+
     public CanvasBounds getBounds() {
         return bounds;
     }
@@ -116,6 +118,7 @@ public class MapCanvas extends Canvas {
     }
 
     public void startup() {
+        mapData.searchInData(bounds);
         pan(-mapData.getMinX(), -mapData.getMinY());
         zoom((getWidth() - 200) / (mapData.getMaxX() - mapData.getMinX()), new Point2D(-0.009127, -0.010532));
     }
