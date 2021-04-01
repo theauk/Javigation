@@ -114,8 +114,9 @@ public class MapCanvas extends Canvas {
         this.theme = theme;
         repaint();
     }
-    public void startup(){
-        pan(-mapData.getMinX(),-mapData.getMinY());
-        zoom((getWidth()-200)/(mapData.getMaxX()- mapData.getMinX()), new Point2D(-0.009127,-0.010532));
+
+    public void startup() {
+        pan(-mapData.getMinX(), -mapData.getMinY());
+        zoom((getWidth() - 200) / (mapData.getMaxX() - mapData.getMinX()), new Point2D(-0.009127, -0.010532));
     }
 }

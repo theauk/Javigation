@@ -1,6 +1,5 @@
 package bfst21;
 
-import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Specifik_Elements.AddressNode;
@@ -15,8 +14,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
@@ -31,7 +28,6 @@ public class Creator extends Task<Void> {
 
     public Creator(MapData mapData, InputStream inputStream, long fileSize) {
         this.mapData = mapData;
-
         progressInputStream = new ProgressInputStream(inputStream);
         progressInputStream.addInputStreamListener(totalBytes -> updateProgress(totalBytes, fileSize));
 
@@ -92,12 +88,12 @@ public class Creator extends Task<Void> {
                                 var v = reader.getAttributeValue(null, "v");
 
                                 if (k.equals("highway")) {
-                                    if (checkHighWayType(way, v)) travelWay = new TravelWay(way,v);
+                                    if (checkHighWayType(way, v)) travelWay = new TravelWay(way, v);
                                     way = null;
                                 }
 
                                 if (k.equals("addr:city")) {
-                                    if(node !=null) {
+                                    if (node != null) {
                                         addressNode = new AddressNode(node);
                                         node = null;
                                     }
@@ -173,11 +169,9 @@ public class Creator extends Task<Void> {
                 }
             }
         }
-
         idToWay = null;
         updateMessage("");
         reader.close();
-
     }
 
 
@@ -193,7 +187,6 @@ public class Creator extends Task<Void> {
                 relation.setName(v);
                 break;
         }
-
     }
 
     private void checkTravelWay(String k, String v, TravelWay travelWay) {
@@ -220,15 +213,13 @@ public class Creator extends Task<Void> {
                 break;
 
             case "building":
-                    way.setType(k);
+                way.setType(k);
                 break;
 
             case "leisure":
                 if (v.equals("park")) way.setType(v);
                 break;
-
         }
-
     }
 
     private void checkAddressNode(String k, String v, AddressNode addressNode) {
@@ -238,18 +229,15 @@ public class Creator extends Task<Void> {
             case "addr:postcode" -> addressNode.setPostcode(Integer.parseInt(v.trim()));
             case "addr:street" -> addressNode.setStreet(v);
         }
-
     }
 
     private boolean checkHighWayType(Way way, String v) {
         if (way == null) return false;
         return highWayTypeHelper(v);
-
-
     }
 
     private boolean highWayTypeHelper(String v) {
-        if (v.equals("motorway"))  return true;
+        if (v.equals("motorway")) return true;
         if (v.equals("trunk")) return true;
         if (v.equals("primary")) return true;
         if (v.equals("secondary")) return true;

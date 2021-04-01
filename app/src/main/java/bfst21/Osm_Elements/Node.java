@@ -2,9 +2,6 @@ package bfst21.Osm_Elements;
 
 import javafx.scene.canvas.GraphicsContext;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Node extends Element {
 
     public Node(long id, float lon, float lat) {
@@ -16,9 +13,9 @@ public class Node extends Element {
 
     }
 
-    public Node(long id, float lon, float lat, boolean nodeFromNode){
+    public Node(long id, float lon, float lat, boolean nodeFromNode) {
         super(id);
-        if(nodeFromNode){
+        if (nodeFromNode) {
             this.xMin = lon;
             this.xMax = lon;
             this.yMin = lat;
