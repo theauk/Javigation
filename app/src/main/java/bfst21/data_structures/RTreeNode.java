@@ -5,7 +5,6 @@ import bfst21.Osm_Elements.Element;
 import java.util.ArrayList;
 
 public class RTreeNode {
-    public int id;
     private float[] coordinates;
     private ArrayList<RTreeNode> children;
     private boolean leaf;
@@ -13,7 +12,7 @@ public class RTreeNode {
     private int minimumEntrySize, maximumChildren;
     private RTreeNode parent;
 
-    public RTreeNode(float[] coordinates, boolean leaf, int minimumChildren, int maximumChildren, RTreeNode parent, int id) { // TODO: 3/22/21 delete id
+    public RTreeNode(float[] coordinates, boolean leaf, int minimumChildren, int maximumChildren, RTreeNode parent) {
         this.coordinates = coordinates;
         this.leaf = leaf;
         this.maximumChildren = maximumChildren;
@@ -21,7 +20,6 @@ public class RTreeNode {
         this.entries = new ArrayList<>();
         this.parent = parent;
         children = new ArrayList<>();
-        this.id = id;
     }
 
     public boolean isLeaf() {

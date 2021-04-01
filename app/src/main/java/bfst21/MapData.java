@@ -15,21 +15,29 @@ public class MapData {
     private RTree rTree;
     private List<Element> mapSegment; //Only content within bounds
     private float minX, minY, maxX, maxY;
+    private boolean rTreeDebug;
 
     public MapData() {
-
         mapSegment = new ArrayList<>();
         rTree = new RTree(1, 30, 4);
         roadNodes = new Node2DTree<>();
     }
 
     public void addData(List<Element> toAdd) {
-
+        long startTime = System.nanoTime();
         rTree.insertAll(toAdd);
+        long endTime = System.nanoTime();
+        long time = endTime - startTime;
+        double timeSeconds = (double) time / 1000000000;
+        System.out.println("Time: " + timeSeconds);
     }
 
     public void searchInData(CanvasBounds bounds) {
-        mapSegment = rTree.search(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY());
+        mapSegment = rTree.search(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY(), rTreeDebug);
+    }
+
+    public void setRTreeDebug(boolean selected) {
+        rTreeDebug = selected;
     }
 
     public void addRoadsNodes(List<Node> nodes) {

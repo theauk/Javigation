@@ -107,7 +107,11 @@ public class Creator {
                                     break;
                                 case "maxspeed":
                                     if (travelWay != null) {
-                                        travelWay.setMaxspeed(Integer.parseInt(v));
+                                        try {
+                                            travelWay.setMaxspeed(Double.parseDouble(v));
+                                        } catch (NumberFormatException e) {
+                                            System.out.println(v);
+                                        }
                                     }
                                     break;
                                 case "name":

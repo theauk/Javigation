@@ -54,6 +54,8 @@ public class Controller {
     private RadioMenuItem defaultThemeItem;
     @FXML
     private ToggleGroup themeGroup;
+    @FXML
+    private RadioMenuItem rTreeDebug;
 
     public void init(MapData mapData) {
         this.mapData = mapData;
@@ -241,7 +243,7 @@ public class Controller {
             // TODO: 26-03-2021 Visning af roadnavne skal være mere hensigtsmæssigt
             //x = round(geoCoords.getX(), 7);
             //y = round(geoCoords.getY(), 7);
-            geoCoordsLabel.setText(mapData.getNearestRoad((float)coords.getX(), (float) coords.getY()));
+            geoCoordsLabel.setText(mapData.getNearestRoad((float) coords.getX(), (float) coords.getY()));
         } catch (NonInvertibleTransformException e) {
             e.printStackTrace();
         }
@@ -264,5 +266,10 @@ public class Controller {
         fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Open Street Map File", "*.osm", "*.zip"));
 
         return fileChooser;
+    }
+
+    @FXML
+    private void setRTreeDebug() {
+        mapData.setRTreeDebug(rTreeDebug.isSelected()); // TODO: 3/31/21 which class should it go via? 
     }
 }
