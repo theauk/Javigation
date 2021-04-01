@@ -29,7 +29,6 @@ public class Relation extends NodeHolder {
         
     }
 
-
     public void setName(String name) {
         this.name = name;
     }
@@ -45,6 +44,14 @@ public class Relation extends NodeHolder {
     @Override
     public void draw(GraphicsContext gc) {
         // TODO: 28-03-2021 make draw method
+        gc.beginPath();
 
+        for(Way way : ways) { // TODO: 3/28/21 for rtree debug
+            gc.moveTo(way.nodes.get(0).getxMin(), way.nodes.get(0).getyMin());
+            for (Node node : way.nodes) {
+                gc.lineTo(node.getxMin(), node.getyMin());
+            }
+            gc.stroke();
+        }
     }
 }

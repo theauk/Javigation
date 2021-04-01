@@ -21,9 +21,9 @@ public class MapData {
     private float minX, minY, maxX, maxY;
     private AddressTriesTree addressTree;
     private RoadGraph roadGraph;
+    private boolean rTreeDebug;
 
     public MapData() {
-
         mapSegment = new ArrayList<>();
         rTree = new RTree(1, 30, 4);
         roadNodesTree = new KDTree<>();
@@ -44,9 +44,12 @@ public class MapData {
     }
 
     public void searchInData(CanvasBounds bounds) {
-        mapSegment = rTree.search(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY());
+        mapSegment = rTree.search(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY(), rTreeDebug);
     }
 
+    public void setRTreeDebug(boolean selected) {
+        rTreeDebug = selected;
+    }
 
     public String getNearestRoad(float x, float y) {
         String names = "";

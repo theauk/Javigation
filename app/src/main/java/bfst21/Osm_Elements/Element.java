@@ -52,4 +52,12 @@ public abstract class Element implements Spatializable {
     public float[] getCoordinates() {
         return new float[]{xMin, xMax, yMin, yMax};
     }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
 }

@@ -59,7 +59,6 @@ public class TravelWay extends Way{
         onewayRoad = true;
     }
 
-
     public double getMaxspeed() {
         return maxspeed;
     }
