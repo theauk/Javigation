@@ -1,12 +1,11 @@
 package bfst21;
 
-import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Specifik_Elements.AddressNode;
 import bfst21.Osm_Elements.Specifik_Elements.TravelWay;
 import bfst21.Osm_Elements.Way;
-import bfst21.data_structures.AlternateBinarySearchTree;
+import bfst21.data_structures.BinarySearchTree;
 import bfst21.file_reading.ProgressInputStream;
 import javafx.concurrent.Task;
 
@@ -15,13 +14,12 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+
 
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 
-/*
+/**
 Creates Objects such as Nodes, Ways and Relations from the .osm file given from the Loader.
  */
 public class Creator extends Task<Void> {
@@ -46,8 +44,8 @@ public class Creator extends Task<Void> {
     public void create() throws XMLStreamException {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new BufferedInputStream(progressInputStream));
 
-        AlternateBinarySearchTree<Long, Node> idToNode = new AlternateBinarySearchTree<>();
-        AlternateBinarySearchTree<Long, Way> idToWay = new AlternateBinarySearchTree<>();
+        BinarySearchTree<Long, Node> idToNode = new BinarySearchTree<>();
+        BinarySearchTree<Long, Way> idToWay = new BinarySearchTree<>();
 
         Way way = null;
         Node node = null;

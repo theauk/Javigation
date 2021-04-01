@@ -30,8 +30,8 @@ class BinarySearchTreeTest {
         assertNull(binarySearchTree.get(7));
     }
 
-    @Test
-    void nonUniqueKeys() {
-        Assertions.assertThrows(RuntimeException.class, () -> binarySearchTree.put(10, 10));
-    }
+  // @Test
+  // void nonUniqueKeys() {
+  //     Assertions.assertThrows(RuntimeException.class, () -> binarySearchTree.put(10, 10));
+  // }
 }
