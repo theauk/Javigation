@@ -145,14 +145,14 @@ public class Controller {
                 CanvasBounds cb = mapCanvas.getBounds();
                 //System.out.println("Point 1: (" + cb.getMinX() + ", " + (-cb.getMinY() * 0.56f) + ")");
                 //System.out.println("Point 2: (" + cb.getMaxX() + ", " + (-cb.getMinY() * 0.56f) + ")");
-                printDistance(new Point2D((-cb.getMinY() * 0.56f), cb.getMinX()), new Point2D((-cb.getMinY() * 0.56f), cb.getMaxX()));
+                printDistance(new Point2D((cb.getMinY() * -0.56f), cb.getMinX()), new Point2D((cb.getMinY() * -0.56f), cb.getMaxX()));
             } else if (amount < 0 && zoomLevel != MIN_ZOOM_LEVEL) {
                 zoomLevel--;
                 mapCanvas.zoom(factor, center);
                 CanvasBounds cb = mapCanvas.getBounds();
                 //System.out.println("Point 1: (" + cb.getMinX() + ", " + (-cb.getMinY() * 0.56f) + ")");
                 //System.out.println("Point 2: (" + cb.getMaxX() + ", " + (-cb.getMinY() * 0.56f) + ")");
-                printDistance(new Point2D((-cb.getMinY() * 0.56f), cb.getMinX()), new Point2D((-cb.getMinY() * 0.56f), cb.getMaxX()));
+                printDistance(new Point2D((cb.getMinY() * -0.56f), cb.getMinX()), new Point2D((cb.getMinY() * -0.56f), cb.getMaxX()));
             }
 
             setBoundsLabel();

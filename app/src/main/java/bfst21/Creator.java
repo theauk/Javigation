@@ -92,29 +92,36 @@ public class Creator extends Task<Void> {
                                 if (k.equals("highway")) {
                                     if (checkHighWayType(way, v)) travelWay = new TravelWay(way,v);
                                     way = null;
+                                    break;
                                 }
 
-                                if (k.equals("addr:city")) {
-                                    if(node !=null) {
+                                if(node != null){
+                                    if (k.equals("addr:city")) {
                                         addressNode = new AddressNode(node);
                                         node = null;
                                     }
+                                    break;
                                 }
+
 
                                 if (addressNode != null) {
                                     checkAddressNode(k, v, addressNode);
+                                    break;
                                 }
 
                                 if (relation != null) {
                                     checkRelation(k, v, relation);
+                                    break;
                                 }
 
                                 if (travelWay != null) {
                                     checkTravelWay(k, v, travelWay);
+                                    break;
                                 }
 
                                 if (way != null) {
                                     checkWay(k, v, way);
+                                    break;
                                 }
                                 break;
                             case "nd":
@@ -167,6 +174,7 @@ public class Creator extends Task<Void> {
                                 }
                                 relation = null;
                         }
+
                         break;
                 }
             }
@@ -203,7 +211,13 @@ public class Creator extends Task<Void> {
                 if (!v.equals("no")) travelWay.setNotCycleable();
                 break;
             case "maxspeed":
-                travelWay.setMaxspeed(Integer.parseInt(v));
+                if(v.equals("signals")){
+                    travelWay.defaultMaxSpeed();
+                    // TODO: 02-04-2021 this the right thing ? 
+                } else{
+                    travelWay.setMaxspeed(Integer.parseInt(v));
+                }
+
                 break;
             case "name":
                 travelWay.setName(v);
