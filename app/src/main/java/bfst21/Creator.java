@@ -212,12 +212,11 @@ public class Creator extends Task<Void> {
                 if (!v.equals("no")) travelWay.setNotCycleable();
                 break;
             case "maxspeed":
-                if(v.equals("signals")){
-                    travelWay.defaultMaxSpeed();
-                    // TODO: 02-04-2021 this the right thing ?
-                } else{
+               try{
                     travelWay.setMaxspeed(Integer.parseInt(v));
-                }
+                } catch (NumberFormatException e){
+                   travelWay.defaultMaxSpeed();
+               }
 
                 break;
             case "name":

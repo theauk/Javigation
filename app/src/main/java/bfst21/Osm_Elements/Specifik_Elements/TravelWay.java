@@ -70,6 +70,7 @@ public class TravelWay extends Way {
     }
 
     public void defaultMaxSpeed(){
+        // TODO: 03-04-2021  should probably be type based 
         maxspeed = 80;
     }
 
