@@ -14,6 +14,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.util.HashSet;
 
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
@@ -24,13 +25,23 @@ Creates Objects such as Nodes, Ways and Relations from the .osm file given from 
 public class Creator extends Task<Void> {
     private MapData mapData;
     private ProgressInputStream progressInputStream;
+    private HashSet<String> nodesNotCreateKeys;
+    private HashSet<String> nodesNotCreateValues;
 
+    private int totalNodes, nodesNotCreateCount, notKeys, notValues; // TODO: 4/2/21  delete
 
     public Creator(MapData mapData, InputStream inputStream, long fileSize) {
         this.mapData = mapData;
         progressInputStream = new ProgressInputStream(inputStream);
         progressInputStream.addInputStreamListener(totalBytes -> updateProgress(totalBytes, fileSize));
+        nodesNotCreateKeys = new HashSet<>();
+        nodesNotCreateValues= new HashSet<>();
+        setupNodesNotCreate();
 
+        totalNodes = 0;
+        nodesNotCreateCount = 0;
+        notKeys = 0;
+        notValues = 0;
     }
 
     @Override
@@ -70,6 +81,7 @@ public class Creator extends Task<Void> {
                                 var lon = Float.parseFloat(reader.getAttributeValue(null, "lon"));
                                 var lat = Float.parseFloat(reader.getAttributeValue(null, "lat"));
                                 node = new Node(idNode, lon, lat);
+                                totalNodes += 1;
                                 idToNode.put(idNode, node);
                                 break;
                             case "way":
@@ -85,6 +97,10 @@ public class Creator extends Task<Void> {
                             case "tag":
                                 var k = reader.getAttributeValue(null, "k");
                                 var v = reader.getAttributeValue(null, "v");
+
+                                if(node != null && checkNodesNotCreate(k, v)) {
+                                    nodesNotCreateCount += 1;
+                                }
 
                                 if (k.equals("highway")) {
                                     if (checkHighWayType(way, v)) travelWay = new TravelWay(way, v);
@@ -170,9 +186,96 @@ public class Creator extends Task<Void> {
         }
         idToWay = null;
         updateMessage("");
+        System.out.println("Total Nodes: " + totalNodes);
+        System.out.println("Nodes with Keys not create: " + notKeys);
+        System.out.println("Nodes with Values not create: " + notValues);
+        System.out.println("Total nodes not create: " + nodesNotCreateCount);
+        float per = (float) nodesNotCreateCount / (float) totalNodes * 100;
+        System.out.println("Percentage that can be skipped: " + per + " %");
         reader.close();
     }
 
+    private void setupNodesNotCreate() {
+        nodesNotCreateKeys.add("aerialway");
+        nodesNotCreateKeys.add("aeroway"); // TODO: 4/2/21 ?
+        nodesNotCreateKeys.add("amenity");
+        nodesNotCreateKeys.add("barrier"); // TODO: 4/2/21 ?
+        nodesNotCreateKeys.add("boundary"); // TODO: 4/2/21 ?
+        nodesNotCreateKeys.add("craft");
+        nodesNotCreateKeys.add("emergency");
+        nodesNotCreateKeys.add("geological"); // TODO: 4/2/21 ?
+        nodesNotCreateKeys.add("healthcare"); // TODO: 4/2/21 ?
+        nodesNotCreateKeys.add("historic"); // TODO: 4/2/21 ?
+        nodesNotCreateKeys.add("man_made"); // TODO: 4/2/21 ?
+        nodesNotCreateKeys.add("military");
+        nodesNotCreateKeys.add("office");
+        nodesNotCreateKeys.add("power");
+        nodesNotCreateKeys.add("shop");
+        nodesNotCreateKeys.add("sport");
+        nodesNotCreateKeys.add("telecom");
+        nodesNotCreateKeys.add("tourism"); // TODO: 4/2/21 ?
+
+        nodesNotCreateKeys.add("comment");
+        nodesNotCreateKeys.add("email");
+        nodesNotCreateKeys.add("fax");
+        nodesNotCreateKeys.add("fixme");
+        nodesNotCreateKeys.add("image");
+        nodesNotCreateKeys.add("note");
+        nodesNotCreateKeys.add("phone");
+        nodesNotCreateKeys.add("source_ref");
+        nodesNotCreateKeys.add("todo");
+        nodesNotCreateKeys.add("url");
+        nodesNotCreateKeys.add("website");
+        nodesNotCreateKeys.add("wikipedia");
+
+        nodesNotCreateValues.add("emergency_access_point");
+        nodesNotCreateValues.add("give_way");
+        nodesNotCreateValues.add("milestone");
+        nodesNotCreateValues.add("speed_camera");
+        nodesNotCreateValues.add("street_lamp");
+        nodesNotCreateValues.add("stop");
+        nodesNotCreateValues.add("traffic_signal");
+        nodesNotCreateValues.add("depot");
+
+        nodesNotCreateValues.add("adult_gaming_centre");
+        nodesNotCreateValues.add("amusement_arcade");
+        nodesNotCreateValues.add("bandstand");
+        nodesNotCreateValues.add("beach_resort");
+        nodesNotCreateValues.add("bird_hide");
+        nodesNotCreateValues.add("common");
+        nodesNotCreateValues.add("dance");
+        nodesNotCreateValues.add("disc_golf_course");
+        nodesNotCreateValues.add("escape_game");
+        nodesNotCreateValues.add("firepit");
+        nodesNotCreateValues.add("fishing");
+        nodesNotCreateValues.add("fitness_centre");
+        nodesNotCreateValues.add("fitness_station");
+        nodesNotCreateValues.add("hackerspace");
+        nodesNotCreateValues.add("miniature_golf");
+        nodesNotCreateValues.add("picnic_table");
+        nodesNotCreateValues.add("summer_camp");
+        nodesNotCreateValues.add("tree_row");
+        nodesNotCreateValues.add("tree");
+        nodesNotCreateValues.add("peak");
+
+        nodesNotCreateValues.add("canoe");
+        nodesNotCreateValues.add("detour");
+        nodesNotCreateValues.add("hiking");
+        nodesNotCreateValues.add("horse");
+        nodesNotCreateValues.add("inline_skates");
+        nodesNotCreateValues.add("mtb");
+        nodesNotCreateValues.add("piste");
+        nodesNotCreateValues.add("running");
+    }
+
+    private boolean checkNodesNotCreate(String k, String v) {
+        if (nodesNotCreateKeys.contains(k)) {
+            notKeys += 1;
+        } else if(nodesNotCreateValues.contains(v)) {
+            notValues += 1;
+        }
+        return nodesNotCreateKeys.contains(k) || nodesNotCreateValues.contains(v);
+    }
 
     private void checkRelation(String k, String v, Relation relation) {
         switch (k) {
