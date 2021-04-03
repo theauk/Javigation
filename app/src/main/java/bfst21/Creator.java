@@ -5,7 +5,7 @@ import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Specifik_Elements.AddressNode;
 import bfst21.Osm_Elements.Specifik_Elements.TravelWay;
 import bfst21.Osm_Elements.Way;
-import bfst21.data_structures.AlternateBinarySearchTree;
+import bfst21.data_structures.BinarySearchTree;
 import bfst21.file_reading.ProgressInputStream;
 import javafx.concurrent.Task;
 
@@ -16,10 +16,11 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.util.HashSet;
 
+
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 
-/*
+/**
 Creates Objects such as Nodes, Ways and Relations from the .osm file given from the Loader.
  */
 public class Creator extends Task<Void> {
@@ -53,15 +54,14 @@ public class Creator extends Task<Void> {
     public void create() throws XMLStreamException {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new BufferedInputStream(progressInputStream));
 
-        AlternateBinarySearchTree<Long, Node> idToNode = new AlternateBinarySearchTree<>();
-        AlternateBinarySearchTree<Long, Way> idToWay = new AlternateBinarySearchTree<>();
+        BinarySearchTree<Node> idToNode = new BinarySearchTree<>();
+        BinarySearchTree<Way> idToWay = new BinarySearchTree<>();
 
         Way way = null;
         Node node = null;
         Relation relation = null;
         TravelWay travelWay = null;
         AddressNode addressNode = null;
-
 
         while (reader.hasNext()) {
             if (isCancelled()) return;   //Abort task
@@ -88,7 +88,7 @@ public class Creator extends Task<Void> {
                                 updateMessage("Loading: Ways");
                                 var idWay = Long.parseLong(reader.getAttributeValue(null, "id"));
                                 way = new Way(idWay);
-                                idToWay.put(idWay, way);
+                                idToWay.put(way);
                                 break;
                             case "relation":
                                 updateMessage("Loading: Relations");
@@ -105,34 +105,43 @@ public class Creator extends Task<Void> {
                                 if (k.equals("highway")) {
                                     if (checkHighWayType(way, v)) travelWay = new TravelWay(way, v);
                                     way = null;
+                                    break;
                                 }
 
-                                if (k.equals("addr:city")) {
-                                    if (node != null) {
+                                if(node != null){
+                                    if (k.equals("addr:city")) {
                                         addressNode = new AddressNode(node);
                                         node = null;
                                     }
+                                    break;
                                 }
+
 
                                 if (addressNode != null) {
                                     checkAddressNode(k, v, addressNode);
+                                    break;
                                 }
 
                                 if (relation != null) {
                                     checkRelation(k, v, relation);
+                                    break;
                                 }
 
                                 if (travelWay != null) {
                                     checkTravelWay(k, v, travelWay);
+                                    break;
                                 }
 
                                 if (way != null) {
                                     checkWay(k, v, way);
+                                    break;
                                 }
                                 break;
                             case "nd":
-                                var refNode = Long.parseLong(reader.getAttributeValue(null, "ref"));
-                                way.addNode(idToNode.get(refNode));
+                                if(way != null) {
+                                    var refNode = Long.parseLong(reader.getAttributeValue(null, "ref"));
+                                    way.addNode(idToNode.get(refNode));
+                                }
                                 break;
 
                             case "member":
@@ -153,14 +162,14 @@ public class Creator extends Task<Void> {
                         switch (reader.getLocalName()) {
                             case "way":
                                 if (way != null) {
-                                    idToWay.put(way.getId(), way);
+                                    idToWay.put(way);
                                     if (way.hasType()) {
                                         mapData.addDataRTree(way);
                                     }
                                     way = null;
                                 }
                                 if (travelWay != null) {
-                                    idToWay.put(travelWay.getId(), travelWay);
+                                    idToWay.put(travelWay);
                                     mapData.addRoad(travelWay);
                                     travelWay = null;
                                 }
@@ -170,8 +179,13 @@ public class Creator extends Task<Void> {
                                 if (addressNode != null) {
                                     mapData.addAddress(addressNode);
                                     addressNode = null;
+
+                                } else if(node != null) {
+
+                                    idToNode.put(node);
+                                    node = null;
                                 }
-                                node = null;
+
                                 break;
 
                             case "relation":
@@ -300,7 +314,13 @@ public class Creator extends Task<Void> {
                 if (!v.equals("no")) travelWay.setNotCycleable();
                 break;
             case "maxspeed":
-                travelWay.setMaxspeed(Integer.parseInt(v));
+                if(v.equals("signals")){
+                    travelWay.defaultMaxSpeed();
+                    // TODO: 02-04-2021 this the right thing ?
+                } else{
+                    travelWay.setMaxspeed(Integer.parseInt(v));
+                }
+
                 break;
             case "name":
                 travelWay.setName(v);
@@ -315,7 +335,7 @@ public class Creator extends Task<Void> {
                 break;
 
             case "building":
-                way.setType(k);
+                if(v.equals("yes")) way.setType(v);
                 break;
 
             case "leisure":
@@ -356,4 +376,3 @@ public class Creator extends Task<Void> {
         else return false;
     }
 }
-
