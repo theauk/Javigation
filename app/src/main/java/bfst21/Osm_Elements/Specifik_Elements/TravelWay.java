@@ -19,7 +19,7 @@ public class TravelWay extends Way {
         super(way.getId());
         super.addAllNodes(way.getNodes());
         super.setType(roadType);
-
+        maxspeed = 50; // default????
         setBooleans(roadType);
     }
 
@@ -28,7 +28,7 @@ public class TravelWay extends Way {
         isCycleable = true;
         isDriveable = true;
         onewayRoad = false;
-        if (type.equals("motorway") || type.equals("trunk")) {
+        if (type.contains("motorway") || type.contains("trunk")) {
             setNotCycleable();
             setNotWalkable();
         }

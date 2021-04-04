@@ -89,8 +89,8 @@ public class Creator extends Task<Void> {
                                 var v = reader.getAttributeValue(null, "v");
 
                                 if (k.equals("highway")) {
-                                    if (checkHighWayType(way, v)) travelWay = new TravelWay(way, v);
-                                    way = null;
+                                    travelWay = checkHighWayType(way,k,v);
+                                    if(travelWay != null)  way = null;
                                     break;
                                 }
 
@@ -217,8 +217,12 @@ public class Creator extends Task<Void> {
                 } catch (NumberFormatException e){
                    travelWay.defaultMaxSpeed();
                }
+               break;
 
+            case "source:maxspeed":
+                if(v.equals("DK:urban")) travelWay.setMaxspeed(50);
                 break;
+
             case "name":
                 travelWay.setName(v);
                 break;
@@ -250,26 +254,76 @@ public class Creator extends Task<Void> {
         }
     }
 
-    private boolean checkHighWayType(Way way, String v) {
-        if (way == null) return false;
-        return highWayTypeHelper(v);
-    }
+    private TravelWay checkHighWayType(Way way, String k, String v) {
+        if (way == null) return null;
+        TravelWay tw;
 
-    private boolean highWayTypeHelper(String v) {
-        if (v.equals("motorway")) return true;
-        if (v.equals("trunk")) return true;
-        if (v.equals("primary")) return true;
-        if (v.equals("secondary")) return true;
-        if (v.equals("tertiary")) return true;
-        if (v.equals("unclassified")) return true;
-        if (v.equals("residential")) return true;
-        if (v.contains("link")) return true;
-        if (v.equals("living_street")) return true;
-        if (v.equals("pedestrian")) return true;
-        if (v.equals("road")) return true;
-        if (v.equals("footway")) return true;
-        if (v.equals("cycleway")) return true;
+        if(v.equals("motorway")){
+            tw = new TravelWay(way, v);
+            tw.setMaxspeed(130);
+            return tw;
+        }
 
-        else return false;
+        if(v.equals("living_street")){
+            tw = new TravelWay(way, v);
+            tw.setMaxspeed(15);
+            return tw;
+        }
+
+        if(v.equals("unclassified")){
+            tw = new TravelWay(way, v);
+            tw.setMaxspeed(50);
+            return tw;
+        }
+
+        if(v.equals("residential")){
+            tw = new TravelWay(way, v);
+            tw.setMaxspeed(50);
+            return tw;
+        }
+
+        if(v.contains("trunk")){
+            //motortrafikvej
+            tw = new TravelWay(way, v);
+            tw.setMaxspeed(80);
+            return tw;
+        }
+
+        if(v.equals("primary")){
+            tw = new TravelWay(way, v);
+            return tw;
+        }
+
+        if(v.contains("secondary")){
+            tw = new TravelWay(way, v);
+
+            return tw;
+        }
+
+        if(v.contains("link")){
+            tw = new TravelWay(way, v);
+            return tw;
+        }
+
+        if(v.contains("road")){
+            /* // TODO: 04-04-2021  should we make these?
+            Mappers and mapping software should treat it as an error when a way is tagged with highway=road.
+            Mapping software can issue warnings to make sure the mapper really does not know the road type.
+            The error is fixed by using the correct road classification.
+            -- from OSM Wiki
+             */
+        }
+
+        if(v.contains("tertiary")){
+            tw = new TravelWay(way, v);
+            return tw;
+        }
+
+        if(v.equals("pedestrian") || v.equals("footway") || v.equals("cycleway")){
+            tw = new TravelWay(way, v);
+            return tw;
+        }
+
+        else return null;
     }
 }
