@@ -29,7 +29,7 @@ public class MapData {
 
     public void setupTrees() {
         rTree = new RTree(1, 30, 4);
-        closetRoadTree = new KDTree<>();
+        closetRoadTree = new KDTree<>(0, 4);
         addressTree = new AddressTriesTree();
         roadGraph = new RoadGraph();
     }

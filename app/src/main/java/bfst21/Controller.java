@@ -326,8 +326,8 @@ public class Controller {
             //geoCoordsLabel.setText("GeoCoords : " + x + ", "+ y);
             float xNear = (float) geoCoords.getX(); // TODO: 4/3/21 Delete if less precision is okay
             float yNear = - (float)geoCoords.getY() / 0.56f;
-            //geoCoordsLabel.setText(mapData.getNearestRoad(xNear, yNear));
-            geoCoordsLabel.setText(mapData.getNearestRoad(12.59459f, -99.40632100535154f));
+            geoCoordsLabel.setText(mapData.getNearestRoad(xNear, yNear));
+            //geoCoordsLabel.setText(mapData.getNearestRoad(12.5945f, -99.40637457677f));
         } catch (NonInvertibleTransformException e) {
             e.printStackTrace();
         }
