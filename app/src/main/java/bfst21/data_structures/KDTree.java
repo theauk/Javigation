@@ -38,46 +38,6 @@ public class KDTree<Value extends Element> {
         }
     };
 
-
-
-
-    /*public void theaInsertAll(String name, List<Value> nodes) {
-        for(Value node : nodes) {
-            theaInsert(name, node);
-        }
-    }
-
-    public void theaInsert(String name, Value node) { // TODO: 4/3/21 need add all for way with nodes (add all nodes)
-        if(theaRoot == null) {
-            theaRoot = new KDTreeNode(name, node);
-            theaRoot.onXAxis = true; // TODO: 4/4/21 Get rid of axis stuff
-        } else {
-            theaInsert(name, node, theaRoot, 0, 4);
-        }
-    }
-
-    public KDTreeNode theaInsert(String name, Value node, KDTreeNode currentNode, int cutDim, int numCor) {
-        if (currentNode == null) {
-            currentNode = new KDTreeNode(name, node);
-            if(cutDim == 0) {
-                currentNode.onXAxis = true; // TODO: 4/4/21 Get rid of axis stuff
-            } else {
-                currentNode.onXAxis = false;
-            }
-        } else {
-            if (!Arrays.equals(node.getCoordinates(), currentNode.node.getCoordinates())) { // To avoid duplicates
-                if (node.getCoordinates()[cutDim] <= currentNode.node.getCoordinates()[cutDim]) {
-                    currentNode.leftChild = theaInsert(name, node, currentNode.leftChild, (cutDim + 2) % numCor, numCor);
-                } else if (node.getCoordinates()[cutDim] > currentNode.node.getCoordinates()[cutDim]) {
-                    currentNode.rightChild = theaInsert(name, node, currentNode.rightChild, (cutDim + 2) % numCor, numCor);
-                }
-            }
-        }
-        return currentNode;
-    }*/
-
-
-
     private Comparator<KDTreeNode> getComparatorFromDimension(int dim) {
         return dim == 0 ? comparatorX : comparatorY;
     }
@@ -106,7 +66,7 @@ public class KDTree<Value extends Element> {
         buildTree(list.subList(0, mid), 0);
     }*/
 
-    public void testBuild() { // TODO: 4/4/21 for debugging 
+    public void testBuild() { // TODO: 4/4/21 for debugging
         buildTree(list, startDim, null);
     }
 
@@ -124,75 +84,50 @@ public class KDTree<Value extends Element> {
 
         if (root == null) {
             root = medNode;
-        } else if (Arrays.equals(parent.node.getCoordinates(), medNode.node.getCoordinates())) { // to avoid duplicates
-            return null;
         }
 
-        medNode.leftChild = buildTree(nodes.subList(0, med), dim + numDim, medNode);
-        medNode.rightChild = buildTree(nodes.subList(med + 1, nodes.size()), dim + numDim, medNode);
-
+        if (parent != null && parent.node == medNode.node) {
+            nodes.remove(med);
+            buildTree(nodes, dim, parent);
+        } else {
+            System.out.println("First: ");
+            for(KDTreeNode n : nodes) {
+                System.out.print(n.node.getId() + " ");
+            }
+            System.out.println("");
+            medNode.leftChild = buildTree(nodes.subList(0, med), dim + numDim, medNode);
+            System.out.println("Second : ");
+            for(KDTreeNode n : nodes) {
+                System.out.print(n.node.getId() + " ");
+            }
+            System.out.println("");
+            medNode.rightChild = buildTree(nodes.subList(med + 1, nodes.size()), dim + numDim, medNode);
+        }
         return medNode;
-
-
-
-        /*List<KDTreeNode> nodesCopy;
-
-        if (isParentAndNextMidSame(nodes, parent)) {
-            removeDuplicates(nodes, (nodes.size()) / 2);
-            nodesCopy = new ArrayList<>(nodes);
-        } else {
-            nodesCopy = nodes;
-        }
-
-        if (nodesCopy.isEmpty()) {
-            return;
-        }
-
-        nodesCopy.sort(parent.onXAxis ? comparatorX : comparatorY);
-
-
-        KDTreeNode child = nodesCopy.get(nodesCopy.size() / 2);
-
-        child.onXAxis = !parent.onXAxis;
-
-        if (isLeft) {
-            parent.leftChild = child;
-        } else {
-            parent.rightChild = child;
-        }
-
-        buildTree(true, nodesCopy.subList(0, nodesCopy.size() / 2), child);
-        if ((nodesCopy.size() / 2) + 1 < nodesCopy.size()) {
-            buildTree(false, nodesCopy.subList(nodesCopy.size() / 2 + 1, nodesCopy.size()), child);
-        }*/
-
     }
-
-    /*private void removeDuplicates(List<KDTreeNode> nodes, int mid) {
-        removes += 1;
-        nodes.remove(mid);
-    }
-
-    private boolean isParentAndNextMidSame(List<KDTreeNode> nodes, KDTreeNode parent) {
-        int lo = 0;
-        int hi = nodes.size();
-        int mid = (lo + hi) / 2;
-        return (nodes.get(mid).node.getxMax() == parent.node.getxMax() && nodes.get(mid).node.getyMax() == parent.node.getyMax());
-    }*/
-
-
-
-
 
     public String getNearestNode(float x, float y) throws KDTreeEmptyException {
         if (!isSorted) {
             buildTree(list, startDim, null);
             isSorted = true;
         }
+
         double shortestDistance = Double.POSITIVE_INFINITY;
+        float[] point = new float[]{x, y};
         KDTreeNode nearestNode = getNearestNode(root, x, y, shortestDistance, null, true);
+        //KDTreeNode nearestNode = getNearestNode(point, root, shortestDistance, null, startDim);
         return nearestNode.name;
 
+    }
+
+    private boolean possibleCloserNode(Double shortestDistance, KDTreeNode currentNode, float x, float y) {
+        double possibleNewDistance = Math.abs(currentNode.onXAxis ? x - currentNode.node.getxMax() : y - currentNode.node.getyMax());
+        return shortestDistance > Math.abs(possibleNewDistance);
+    }
+
+    private double getDistance(KDTreeNode from, float[] cor) {
+        Point2D p = new Point2D(cor[0], cor[1]);
+        return p.distance(from.node.getxMax(), from.node.getyMax());
     }
 
     private KDTreeNode getNearestNode(KDTreeNode currentNode, float x, float y, double shortestDistance, KDTreeNode nearestNode, Boolean xAxis) {
@@ -200,17 +135,17 @@ public class KDTree<Value extends Element> {
             return nearestNode;
         }
 
-        double newDistance = getDistance(currentNode, x, y);
+        double newDistance = getDistance(currentNode, new float[]{x, y});
         if (newDistance < shortestDistance) {
             shortestDistance = newDistance;
             nearestNode = currentNode;
         }
 
         //checks if we should search the left or right side of the tree first, to save time/space.
-        double compare = xAxis ? Math.abs(x - currentNode.node.getxMax()) : Math.abs(y - currentNode.node.getyMax());
+        double compare = xAxis ? Math.abs(x) - Math.abs(currentNode.node.getxMax()) : Math.abs(y) - Math.abs(currentNode.node.getyMax());
 
-        KDTreeNode node1 = compare < 0 ? currentNode.leftChild : currentNode.rightChild; // TODO: 4/3/21 THEA: compare kan aldrig være negativ grundet Math.abs så her er det altid right child
-        KDTreeNode node2 = compare < 0 ? currentNode.rightChild : currentNode.leftChild; // TODO: 4/3/21 THEA: og her er det altid left child
+        KDTreeNode node1 = compare < 0 ? currentNode.leftChild : currentNode.rightChild;
+        KDTreeNode node2 = compare < 0 ? currentNode.rightChild : currentNode.leftChild;
 
         nearestNode = getNearestNode(node1, x, y, shortestDistance, nearestNode, !xAxis);
 
@@ -223,15 +158,9 @@ public class KDTree<Value extends Element> {
 
     }
 
-    private boolean possibleCloserNode(Double shortestDistance, KDTreeNode currentNode, float x, float y) {
-        double possibleNewDistance = Math.abs(currentNode.onXAxis ? x - currentNode.node.getxMax() : y - currentNode.node.getyMax());
-        return shortestDistance > Math.abs(possibleNewDistance);
-    }
 
-    private double getDistance(KDTreeNode from, float x, float y) {
-        Point2D p = new Point2D(x, y);
-        return p.distance(from.node.getxMax(), from.node.getyMax());
-    }
+
+
 
     // TODO: 26-03-2021 remove both print methods when no longer needed.
     public void printTree() {

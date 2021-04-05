@@ -254,8 +254,7 @@ public class Controller {
 
     private void loadFile(String path, long fileSize) {
         try {
-            //mapData = new MapData(); // TODO: 4/1/21 (1) Determine if it should be "wiped" each time.
-            mapData.setupTrees(); // TODO: 4/1/21 (2) Or we want something like mapData.setupTrees() where the trees are initialized. Then we can reuse MapData and it should work in Canvas
+            mapData = new MapData();
             creator = new Creator(mapData, loader.load(path), fileSize);
             creator.setOnRunning(e -> {
                 centerPane.setCursor(Cursor.WAIT);
@@ -270,8 +269,8 @@ public class Controller {
                 loadingBar.progressProperty().unbind();
                 disableGui(false);
                 loaderPane.setVisible(false);
-                //mapCanvas.loadFile(mapData); // TODO: 4/1/21 (1) delete if not (1)
-                mapCanvas.reset(); // TODO: 4/1/21 (2) It should call reset since reset also calls other necessary methods including startup();
+                mapCanvas.loadFile(mapData);
+                mapCanvas.reset();
             });
             creator.setOnCancelled(e -> {
                 centerPane.setCursor(Cursor.DEFAULT);
@@ -326,8 +325,8 @@ public class Controller {
             //geoCoordsLabel.setText("GeoCoords : " + x + ", "+ y);
             float xNear = (float) geoCoords.getX(); // TODO: 4/3/21 Delete if less precision is okay
             float yNear = - (float)geoCoords.getY() / 0.56f;
-            geoCoordsLabel.setText(mapData.getNearestRoad(xNear, yNear));
-            //geoCoordsLabel.setText(mapData.getNearestRoad(12.5945f, -99.40637457677f));
+            //geoCoordsLabel.setText(mapData.getNearestRoad(xNear, yNear));
+            geoCoordsLabel.setText(mapData.getNearestRoad(12.5945f, -99.40637457677f));
         } catch (NonInvertibleTransformException e) {
             e.printStackTrace();
         }

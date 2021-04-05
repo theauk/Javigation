@@ -25,9 +25,6 @@ public class MapData {
 
     public MapData() {
         mapSegment = new ArrayList<>();
-    }
-
-    public void setupTrees() {
         rTree = new RTree(1, 30, 4);
         closetRoadTree = new KDTree<>(0, 4);
         addressTree = new AddressTriesTree();
@@ -60,11 +57,11 @@ public class MapData {
 
     public String getNearestRoad(float x, float y) {
         String names = "";
-        try {
+        /*try {
             names = closetRoadTree.getNearestNode(x, y);
         } catch (KDTreeEmptyException e) {
             names = e.getMessage();
-        }
+        }*/
         return names;
     }
 

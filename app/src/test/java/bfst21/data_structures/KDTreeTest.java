@@ -40,14 +40,19 @@ public class KDTreeTest {
     @Test
     void newAddTest() {
         Node n1 = new Node(1, 1, 1);
-        Node n2 = new Node(2, 1, 1); // same check
+        Node n2 = new Node(2, 2, 2);
         Node n3 = new Node(3, 3, 3);
-        Node n4 = new Node(4, -1, -1);
+        Node n4 = new Node(4, -4, -4);
         Way w1 = new Way(1);
         w1.addNode(n1);
         w1.addNode(n2);
+        w1.addNode(n2);
+        w1.addNode(n2);
         w1.addNode(n3);
         w1.addNode(n4);
+        w1.addNode(n4);
+        w1.addNode(n4);
+
 
         tree.addAll("Navn", w1.getNodes());
         tree.testBuild();

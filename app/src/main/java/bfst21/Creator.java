@@ -96,10 +96,6 @@ public class Creator extends Task<Void> {
                                 var k = reader.getAttributeValue(null, "k");
                                 var v = reader.getAttributeValue(null, "v");
 
-                                if(k.equals("name") && v.equals("Ved Mønten")) {
-                                    System.out.println("v: Ved Mønten");
-                                }
-
                                 if (node != null && checkNodesNotCreate(k, v)) { // TODO: 4/3/21 delete
                                     nodesNotCreateCount += 1;
                                 }
