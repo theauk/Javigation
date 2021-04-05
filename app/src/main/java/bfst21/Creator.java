@@ -63,6 +63,7 @@ public class Creator extends Task<Void> {
                                 mapData.setMaxY(Float.parseFloat(reader.getAttributeValue(null, "minlat")) / -0.56f);
                                 mapData.setMinY(Float.parseFloat(reader.getAttributeValue(null, "maxlat")) / -0.56f);
                                 break;
+
                             case "node":
                                 updateMessage("Loading: Nodes");
                                 var idNode = Long.parseLong(reader.getAttributeValue(null, "id"));
@@ -70,23 +71,26 @@ public class Creator extends Task<Void> {
                                 var lat = Float.parseFloat(reader.getAttributeValue(null, "lat"));
                                 node = new Node(idNode, lon, lat);
                                 break;
+
                             case "way":
                                 updateMessage("Loading: Ways");
                                 var idWay = Long.parseLong(reader.getAttributeValue(null, "id"));
                                 way = new Way(idWay);
                                 idToWay.put(way);
                                 break;
+
                             case "relation":
                                 updateMessage("Loading: Relations");
                                 relation = new Relation(Long.parseLong(reader.getAttributeValue(null, "id")));
                                 break;
+
                             case "tag":
                                 var k = reader.getAttributeValue(null, "k");
                                 var v = reader.getAttributeValue(null, "v");
 
                                 if (k.equals("highway")) {
-                                    if (checkHighWayType(way, v)) travelWay = new TravelWay(way, v);
-                                    way = null;
+                                    travelWay = checkHighWayType(way,k,v);
+                                    if(travelWay != null)  way = null;
                                     break;
                                 }
 
@@ -180,6 +184,7 @@ public class Creator extends Task<Void> {
                 }
             }
         }
+        mapData.buildTree();
         idToWay = null;
         updateMessage("");
         reader.close();
@@ -208,14 +213,17 @@ public class Creator extends Task<Void> {
                 if (!v.equals("no")) travelWay.setNotCycleable();
                 break;
             case "maxspeed":
-                if(v.equals("signals")){
-                    travelWay.defaultMaxSpeed();
-                    // TODO: 02-04-2021 this the right thing ?
-                } else{
+               try{
                     travelWay.setMaxspeed(Integer.parseInt(v));
-                }
+                } catch (NumberFormatException e){
+                   travelWay.defaultMaxSpeed();
+               }
+               break;
 
+            case "source:maxspeed":
+                if(v.equals("DK:urban")) travelWay.setMaxspeed(50);
                 break;
+
             case "name":
                 travelWay.setName(v);
                 break;
@@ -247,26 +255,68 @@ public class Creator extends Task<Void> {
         }
     }
 
-    private boolean checkHighWayType(Way way, String v) {
-        if (way == null) return false;
-        return highWayTypeHelper(v);
-    }
+    private TravelWay checkHighWayType(Way way, String k, String v) {
+        if (way == null) return null;
+        TravelWay tw;
 
-    private boolean highWayTypeHelper(String v) {
-        if (v.equals("motorway")) return true;
-        if (v.equals("trunk")) return true;
-        if (v.equals("primary")) return true;
-        if (v.equals("secondary")) return true;
-        if (v.equals("tertiary")) return true;
-        if (v.equals("unclassified")) return true;
-        if (v.equals("residential")) return true;
-        if (v.contains("link")) return true;
-        if (v.equals("living_street")) return true;
-        if (v.equals("pedestrian")) return true;
-        if (v.equals("road")) return true;
-        if (v.equals("footway")) return true;
-        if (v.equals("cycleway")) return true;
+        if(v.equals("motorway")){
+            tw = new TravelWay(way, v);
+            tw.setMaxspeed(130);
+            return tw;
+        }
 
-        else return false;
+        if(v.equals("living_street")){
+            tw = new TravelWay(way, v);
+            tw.setMaxspeed(15);
+            return tw;
+        }
+
+        if(v.equals("unclassified")){
+            tw = new TravelWay(way, v);
+            tw.setMaxspeed(50);
+            return tw;
+        }
+
+        if(v.equals("residential")){
+            tw = new TravelWay(way, v);
+            tw.setMaxspeed(50);
+            return tw;
+        }
+
+        if(v.contains("trunk")){
+            //motortrafikvej
+            tw = new TravelWay(way, v);
+            tw.setMaxspeed(80);
+            return tw;
+        }
+
+        if(v.equals("primary")){
+            // TODO: 05-04-2021 Difficult to know if in city or out of city
+            tw = new TravelWay(way, v);
+            return tw;
+        }
+
+        if(v.contains("secondary")){
+            tw = new TravelWay(way, v);
+
+            return tw;
+        }
+
+        if(v.contains("link")){
+            tw = new TravelWay(way, v);
+            return tw;
+        }
+
+        if(v.contains("tertiary")){
+            tw = new TravelWay(way, v);
+            return tw;
+        }
+
+        if(v.equals("pedestrian") || v.equals("footway") || v.equals("cycleway")){
+            tw = new TravelWay(way, v);
+            return tw;
+        }
+
+        else return null;
     }
 }
