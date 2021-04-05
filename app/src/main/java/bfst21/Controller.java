@@ -18,6 +18,8 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,14 +56,12 @@ public class Controller {
     @FXML private ToggleGroup themeGroup;
     @FXML private RadioMenuItem rTreeDebug;
 
-    public void init(MapData mapData) {
-        this.mapData = mapData;
+    public void init() {
+        mapData = new MapData();
         loader = new Loader();
-
         loadThemes();
-        initView();
-
         openFile();
+        initView();
     }
 
     private void initView() {
@@ -225,11 +225,20 @@ public class Controller {
     private void openFile() {
         File file = showFileChooser().showOpenDialog(scene.getWindow());
 
-        if(file != null) loadFile(file.getAbsolutePath(), file.length());
-        else
-        {
+        if (file != null) loadFile(file.getAbsolutePath(), file.length());
+        else {
             File binaryFile = new File(getClass().getResource("/small.osm").getPath());
-            loadFile(binaryFile.getPath(), binaryFile.length()); //USE BINARY FILE
+            String path = binaryFile.getAbsolutePath();
+            path = handlePotentialSpacesInPath(path);
+            loadFile(path, binaryFile.length());
+        }
+    }
+
+    private String handlePotentialSpacesInPath(String path) {
+        try {
+            return URLDecoder.decode(path, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return path.replaceAll("%20", " ");
         }
     }
 
@@ -239,13 +248,13 @@ public class Controller {
     }
 
     @FXML
-    private void cancelLoad()
-    {
-        if(creator != null) creator.cancel();
+    private void cancelLoad() {
+        if (creator != null) creator.cancel();
     }
 
     private void loadFile(String path, long fileSize) {
         try {
+            mapData = new MapData();
             creator = new Creator(mapData, loader.load(path), fileSize);
             creator.setOnRunning(e -> {
                 centerPane.setCursor(Cursor.WAIT);
@@ -260,7 +269,8 @@ public class Controller {
                 loadingBar.progressProperty().unbind();
                 disableGui(false);
                 loaderPane.setVisible(false);
-                mapCanvas.startup();
+                mapCanvas.loadFile(mapData);
+                mapCanvas.reset();
             });
             creator.setOnCancelled(e -> {
                 centerPane.setCursor(Cursor.DEFAULT);
@@ -310,10 +320,12 @@ public class Controller {
             //geoCoordsLabel.setText("(" + geoCoords.getX() + ", " + geoCoords.getY() + ")");
             double x = round(geoCoords.getX(), 5);
             double y = round(geoCoords.getY(), 5);
-            y = -y/0.56f;
+            y = -y / 0.56f;
             coordsLabel.setText("CanvasCoords: " + x + ", " + y);
             //geoCoordsLabel.setText("GeoCoords : " + x + ", "+ y);
-            geoCoordsLabel.setText(mapData.getNearestRoad((float)x, (float) y));
+            float xNear = (float) geoCoords.getX(); // TODO: 4/3/21 Delete if less precision is okay
+            float yNear = - (float)geoCoords.getY() / 0.56f;
+            geoCoordsLabel.setText(mapData.getNearestRoad(xNear, yNear));
         } catch (NonInvertibleTransformException e) {
             e.printStackTrace();
         }
@@ -348,5 +360,6 @@ public class Controller {
     @FXML
     private void setRTreeDebug() {
         mapData.setRTreeDebug(rTreeDebug.isSelected()); // TODO: 3/31/21 which class should it go via?
+        mapCanvas.rTreeDebugMode();
     }
 }

@@ -27,14 +27,14 @@ public class MapData {
     public MapData() {
         mapSegment = new ArrayList<>();
         rTree = new RTree(1, 30, 4);
-        closetRoadTree = new KDTree<>();
+        closetRoadTree = new KDTree<>(0, 4);
         addressTree = new AddressTriesTree();
         roadGraph = new RoadGraph();
     }
 
     public void addRoad(TravelWay way) {
         roadGraph.add(way);
-        addData(way);
+        addDataRTree(way);
         if(way.getName() != null){
             closetRoadTree.addAll(way.getNodes());
         }
@@ -44,7 +44,7 @@ public class MapData {
         rTree.insertAll(toAdd);
     }
 
-    public void addData(Element toAdd) {
+    public void addDataRTree(Element toAdd) {
         rTree.insert(toAdd);
     }
 

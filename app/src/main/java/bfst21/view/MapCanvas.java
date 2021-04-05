@@ -13,7 +13,6 @@ public class MapCanvas extends Canvas {
     private Affine trans;
     private CanvasBounds bounds;
     private Theme theme;
-    private boolean rTreeDebug;
 
     public void init(MapData mapData, Theme theme) {
         this.mapData = mapData;
@@ -25,13 +24,13 @@ public class MapCanvas extends Canvas {
         widthProperty().addListener(((observable, oldValue, newValue) -> {
             setBounds();
             repaint();
+            pan((newValue.floatValue() - oldValue.floatValue())/2,0);
         }));
         heightProperty().addListener((observable, oldValue, newValue) -> {
             setBounds();
             repaint();
+            pan(0,(newValue.floatValue() - oldValue.floatValue())/2);
         });
-
-        mapData.searchInData(bounds);
 
         repaint();
     }
@@ -110,10 +109,14 @@ public class MapCanvas extends Canvas {
 
     public void reset() {
         trans = new Affine();
-        //pan(0, 0);
         startup();
         setBounds();
         mapData.searchInData(bounds);
+    }
+
+    public void loadFile(MapData mapData) { // TODO: 4/1/21 Delete if not creating new MapData on load
+        this.mapData = mapData;
+        reset();
     }
 
     public CanvasBounds getBounds() {
@@ -152,6 +155,11 @@ public class MapCanvas extends Canvas {
     public void startup() {
         pan(-mapData.getMinX(), -mapData.getMinY());
         zoom((getWidth() - 200) / (mapData.getMaxX() - mapData.getMinX()), new Point2D(-0.009127, -0.010532));
+    }
+
+    public void rTreeDebugMode() {
+        mapData.searchInData(bounds);
+        repaint();
     }
 
     private static class StrokeFactory

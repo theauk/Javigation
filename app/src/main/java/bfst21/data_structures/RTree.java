@@ -22,23 +22,27 @@ public class RTree {
         return new float[]{Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY};
     }
 
+    /*public String getNearestRoad(float x, float y) {
+
+    }*/
+
     public ArrayList<Element> search(float xMin, float xMax, float yMin, float yMax, boolean debug) {
         if (root != null) {
             float[] searchCoordinates = new float[]{xMin, xMax, yMin, yMax};
             ArrayList<Element> results = new ArrayList<>();
-            if (debug) { // TODO: 3/31/21 Delete when getting rid of debug mode
-                searchCoordinates = new float[]{xMin + 0.01f, xMax + (-0.01f), yMin + 0.01f, yMax + (-0.01f)};
+            if (debug) {
+                float change = xMin * 0.0005f;
+
+                searchCoordinates = new float[]{xMin + change, xMax + (-change), yMin + change, yMax + (-change)};
                 //searchCoordinates = new float[]{xMin*0.99f, xMax*0.99f, yMin*0.99f, yMax*0.99f};
-                results.add(createDebugBoundsRectangle(searchCoordinates));
+                results.addAll(createDebugBoundsRectangle(searchCoordinates));
                 searchDebug(searchCoordinates, root, results);
             } else {
                 search(searchCoordinates, root, results);
             }
             return results;
         } else {
-            //throw new RuntimeException("No elements in the RTree"); 
-            System.out.println("No elements in the rtree"); // TODO: 3/26/21 fix this in view so that the search is not called before file has been loaded 
-            return new ArrayList<>();
+            throw new RuntimeException("No elements in the RTree");
         }
     }
 
@@ -60,7 +64,7 @@ public class RTree {
         }
     }
 
-    private void searchDebug(float[] searchCoordinates, RTreeNode node, ArrayList<Element> results) { // TODO: 3/31/21 Delete when getting rid of debug mode
+    private void searchDebug(float[] searchCoordinates, RTreeNode node, ArrayList<Element> results) {
         if (node.isLeaf()) {
             for (RTreeNode r : node.getChildren()) {
                 for (Element e : r.getElementEntries()) {
@@ -73,30 +77,33 @@ public class RTree {
         } else {
             for (RTreeNode r : node.getChildren()) {
                 if (intersects(searchCoordinates, r.getCoordinates())) {
-                    //results.add(createDebugRelation(r.getCoordinates()));
+                    //results.add(createDebugRelation(r.getCoordinates())); // TODO: 4/5/21 Decide if the r-tree node' boxes also should be drawn (non-leaf nodes) 
                     searchDebug(searchCoordinates, r, results);
                 }
             }
         }
     }
 
-    private Way createDebugWay(float firstCoordinate, float secondCoordinate, float thirdCoordinate, float fourthCoordinate) { // TODO: 3/31/21 Delete when getting rid of debug mode
+    private Way createDebugWay(float firstCoordinate, float secondCoordinate, float thirdCoordinate, float fourthCoordinate) {
         Way w = new Way(0);
         w.addNode(new Node(firstCoordinate, secondCoordinate));
         w.addNode(new Node(thirdCoordinate, fourthCoordinate));
         return w;
     }
 
-    private Relation createDebugBoundsRectangle(float[] searchCoordinates) { // TODO: 3/31/21 Delete when getting rid of debug mode
-        Relation r = new Relation(0);
-        r.addWay(createDebugWay(searchCoordinates[0], searchCoordinates[2], searchCoordinates[0], searchCoordinates[3]));
-        r.addWay(createDebugWay(searchCoordinates[0], searchCoordinates[2], searchCoordinates[1], searchCoordinates[2]));
-        r.addWay(createDebugWay(searchCoordinates[1], searchCoordinates[2], searchCoordinates[1], searchCoordinates[3]));
-        r.addWay(createDebugWay(searchCoordinates[0], searchCoordinates[3], searchCoordinates[1], searchCoordinates[3]));
-        return r;
+    private ArrayList<Way> createDebugBoundsRectangle(float[] searchCoordinates) {
+        ArrayList<Way> ways = new ArrayList<>();
+        ways.add(createDebugWay(searchCoordinates[0], searchCoordinates[2], searchCoordinates[0], searchCoordinates[3]));
+        ways.add(createDebugWay(searchCoordinates[0], searchCoordinates[2], searchCoordinates[1], searchCoordinates[2]));
+        ways.add(createDebugWay(searchCoordinates[1], searchCoordinates[2], searchCoordinates[1], searchCoordinates[3]));
+        ways.add(createDebugWay(searchCoordinates[0], searchCoordinates[3], searchCoordinates[1], searchCoordinates[3]));
+        for(Way w : ways) {
+            w.setType("motorway");
+        }
+        return ways;
     }
 
-    private Relation createDebugRectangleRelation(float[] coordinates) { // TODO: 3/31/21 Delete when getting rid of debug mode
+    private Relation createDebugRectangleRelation(float[] coordinates) {
         Relation r = new Relation(0);
         r.addWay(createDebugWay(coordinates[0], coordinates[2], coordinates[1], coordinates[2]));
         r.addWay(createDebugWay(coordinates[0], coordinates[2], coordinates[0], coordinates[3]));
