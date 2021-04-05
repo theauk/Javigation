@@ -9,13 +9,17 @@ import java.util.*;
 
 public class RTree {
     private final int minimumChildren, maximumChildren, numberOfCoordinates;
+    ArrayList<ArrayList<Long>> splitInsertResults;
     private RTreeNode root;
+    private long size;
 
     public RTree(int minimumChildren, int maximumChildren, int numberOfCoordinates) {
         this.minimumChildren = minimumChildren;
         this.maximumChildren = maximumChildren;
         this.numberOfCoordinates = numberOfCoordinates;
         root = null;
+        size = 0;
+        splitInsertResults = new ArrayList<>();
     }
 
     public float[] createNewCoordinateArray() {
@@ -97,7 +101,7 @@ public class RTree {
         ways.add(createDebugWay(searchCoordinates[0], searchCoordinates[2], searchCoordinates[1], searchCoordinates[2]));
         ways.add(createDebugWay(searchCoordinates[1], searchCoordinates[2], searchCoordinates[1], searchCoordinates[3]));
         ways.add(createDebugWay(searchCoordinates[0], searchCoordinates[3], searchCoordinates[1], searchCoordinates[3]));
-        for(Way w : ways) {
+        for (Way w : ways) {
             w.setType("motorway");
         }
         return ways;
@@ -478,5 +482,19 @@ public class RTree {
             }
         }
         return result;
+    }
+
+    public void splitMethodInsertTest(Element element) {
+        size++;
+        ArrayList<Long> currentResult = new ArrayList<>();
+        currentResult.add(size);
+
+        long start = System.nanoTime();
+        insert(element);
+        long finish = System.nanoTime();
+        long timeElapsed = finish - start;
+        currentResult.add(timeElapsed);
+
+        splitInsertResults.add(currentResult);
     }
 }
