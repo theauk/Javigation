@@ -7,50 +7,45 @@ import java.util.ArrayList;
 public class Relation extends NodeHolder {
 
     private ArrayList<Way> ways;
-    private ArrayList<Node> nodes;
-    private ArrayList<Relation> relations;
     private String name;
-    private String route; // probably shouldn't be string - ex. it's so if the relation is a route for bicycle
-    private String type;
+    private String restriction; // probably shouldn't be string - ex. it's so if the relation is a route for bicycle
     // route have distances.
 
     public Relation(long id) {
         super(id);
         ways = new ArrayList<>();
-        nodes = new ArrayList<>();
-        relations = new ArrayList<>();
     }
 
     public ArrayList<Way> getWays() {
         return ways;
     }
 
+    // TODO: 28-03-2021 due to small input not all relations are "full" // some elements are missing, therefore we need to check for null 
     public void addWay(Way way) {
-        ways.add(way);
-    }
-
-    public ArrayList<Node> getNodes() {
-        return nodes;
-    }
-
-    public void addNode(Node node) {
-        nodes.add(node);
+        if (way != null) {
+            ways.add(way);
+        }
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public void setRoute(String route) {
-        this.route = route;
+    public void setRestriction(String restriction) {
+        this.restriction = restriction;
     }
 
     @Override
     public void draw(GraphicsContext gc) {
+        // TODO: 28-03-2021 make draw method
+        gc.beginPath();
 
+        for (Way way : ways) { // TODO: 3/28/21 for rtree debug
+            gc.moveTo(way.nodes.get(0).getxMin(), way.nodes.get(0).getyMin());
+            for (Node node : way.nodes) {
+                gc.lineTo(node.getxMin(), node.getyMin());
+            }
+            gc.stroke();
+        }
     }
 }

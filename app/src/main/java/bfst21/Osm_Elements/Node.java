@@ -2,11 +2,7 @@ package bfst21.Osm_Elements;
 
 import javafx.scene.canvas.GraphicsContext;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class Node extends Element {
-    List<String> roadNames;
+public class Node extends Element{
 
     public Node(long id, float lon, float lat) {
         super(id);
@@ -17,23 +13,26 @@ public class Node extends Element {
 
     }
 
+    public Node(long id, float lon, float lat, boolean nodeFromNode) {
+        super(id);
+        if (nodeFromNode) {
+            this.xMin = lon;
+            this.xMax = lon;
+            this.yMin = lat;
+            this.yMax = lat;
+        }
+    }
+
+    public Node(float lon, float lat) { // TODO: 3/28/21 for Rtree debug mode where the y should not be converted
+        super(0);
+        this.xMin = lon;
+        this.xMax = lon;
+        this.yMin = lat;
+        this.yMax = lat;
+    }
+
     @Override
     public void draw(GraphicsContext gc) {
 
-    }
-
-    public void addRoadname(String name) {
-        //TODO half assed fix
-        if (roadNames == null) {
-            roadNames = new ArrayList<>();
-        }
-        if (!roadNames.contains(name)) {
-            roadNames.add(name);
-        }
-
-    }
-
-    public List<String> getName() {
-        return roadNames;
     }
 }

@@ -1,52 +1,67 @@
 package bfst21.Osm_Elements.Specifik_Elements;
 
-import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
+import javafx.scene.canvas.GraphicsContext;
 
 /**
  * A TravelWay is walkable, cycleable and driveable.
  */
-public class TravelWay {
-    private final String type;
-    private Way way;
+public class TravelWay extends Way {
+
     private String name;
-    private int maxspeed;
+    private double maxspeed;
     private boolean onewayRoad;
-    private String cycleway;
-    private String footway;
+    private boolean isDriveable;
+    private boolean isCycleable;
+    private boolean isWalkable;
 
-    public TravelWay(Way way, String type) {
-        this.way = way;
-        this.type = type;
+    public TravelWay(Way way, String roadType) {
+        super(way.getId());
+        super.addAllNodes(way.getNodes());
+        super.setType(roadType);
 
-
+        setBooleans(roadType);
     }
 
-    public void setCycleway(String cycleway) {
-        this.cycleway = cycleway;
+    private void setBooleans(String type) {
+        isWalkable = true;
+        isCycleable = true;
+        isDriveable = true;
+        onewayRoad = false;
+        if (type.equals("motorway") || type.equals("trunk")) {
+            setNotCycleable();
+            setNotWalkable();
+        }
+        if (type.equals("pedestrian") || type.equals("footway") || type.equals("steps")) {
+            setNotDriveable();
+        }
+        if (type.equals("cycleway")) {
+            setNotDriveable();
+            setNotWalkable();
+        }
     }
 
-    public void setFootway(String footway) {
-        this.footway = footway;
+    public void setNotCycleable() {
+        this.isCycleable = false;
     }
 
-    public void setOnewayRoad(boolean onewayRoad) {
-        this.onewayRoad = onewayRoad;
+    public void setNotWalkable() {
+        this.isWalkable = false;
     }
 
-    public String getType() {
-        return type;
+    public void setNotDriveable() {
+        isDriveable = false;
     }
 
-    public Way getWay() {
-        return way;
+    public void setOnewayRoad() {
+        onewayRoad = true;
     }
 
-    public int getMaxspeed() {
+    public double getMaxspeed() {
         return maxspeed;
     }
 
-    public void setMaxspeed(int maxspeed) {
+    public void setMaxspeed(double maxspeed) {
         this.maxspeed = maxspeed;
     }
 
@@ -54,13 +69,22 @@ public class TravelWay {
         return name;
     }
 
+    public void defaultMaxSpeed(){
+        maxspeed = 80;
+    }
+
     public void setName(String name) {
         this.name = name;
-        //TODO way is null??
-        if (way != null) {
-            for (Node n : way.getNodes()) {
-                n.addRoadname(name);
-            }
+    }
+
+    @Override
+    public void draw(GraphicsContext gc) {
+        //TODO Should check for one way.....
+        gc.beginPath();
+        gc.moveTo(nodes.get(0).getxMin(), nodes.get(0).getyMin());
+        for (var node : nodes) {
+            gc.lineTo(node.getxMin(), node.getyMin());
         }
+        gc.stroke();
     }
 }
