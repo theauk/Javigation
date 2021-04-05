@@ -1,5 +1,6 @@
 package bfst21.Osm_Elements.Specifik_Elements;
 
+import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
 import javafx.scene.canvas.GraphicsContext;
 
@@ -21,6 +22,9 @@ public class TravelWay extends Way {
         super.setType(roadType);
         maxspeed = 50; // default????
         setBooleans(roadType);
+        for(Node n: nodes){
+            n.addReferenceToTravelWay(this);
+        }
     }
 
     private void setBooleans(String type) {

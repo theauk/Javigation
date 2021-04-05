@@ -290,6 +290,7 @@ public class Creator extends Task<Void> {
         }
 
         if(v.equals("primary")){
+            // TODO: 05-04-2021 Difficult to know if in city or out of city
             tw = new TravelWay(way, v);
             return tw;
         }
@@ -303,15 +304,6 @@ public class Creator extends Task<Void> {
         if(v.contains("link")){
             tw = new TravelWay(way, v);
             return tw;
-        }
-
-        if(v.contains("road")){
-            /* // TODO: 04-04-2021  should we make these?
-            Mappers and mapping software should treat it as an error when a way is tagged with highway=road.
-            Mapping software can issue warnings to make sure the mapper really does not know the road type.
-            The error is fixed by using the correct road classification.
-            -- from OSM Wiki
-             */
         }
 
         if(v.contains("tertiary")){

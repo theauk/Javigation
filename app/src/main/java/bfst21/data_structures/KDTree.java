@@ -213,7 +213,6 @@ public class KDTree<Value extends Element> {
     }
 
     private class KDTreeNode {
-        private String name;
         private Value node;
         private KDTreeNode leftChild;
         private KDTreeNode rightChild;
@@ -222,7 +221,6 @@ public class KDTree<Value extends Element> {
 
         public KDTreeNode(String name, Value node) {
             this.node = node;
-            this.name = name;
         }
     }
 }

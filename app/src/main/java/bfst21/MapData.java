@@ -12,6 +12,7 @@ import bfst21.data_structures.RoadGraph;
 import bfst21.view.CanvasBounds;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class MapData {
@@ -35,7 +36,7 @@ public class MapData {
         roadGraph.add(way);
         addData(way);
         if(way.getName() != null){
-            closetRoadTree.addAll(way.getName(), way.getNodes());
+            closetRoadTree.addAll(way.getNodes());
         }
     }
 
@@ -57,8 +58,18 @@ public class MapData {
 
     public String getNearestRoad(float x, float y) {
         String names = "";
+        HashSet<String> list = new HashSet<>();
         try {
-            names = closetRoadTree.getNearestNode(x, y);
+            Node node =  closetRoadTree.getNearestNode(x,y);
+            if(node.getReferencedTravelWays() != null){
+                for(TravelWay tw: node.getReferencedTravelWays()){
+                    list.add(tw.getName());
+                }
+                for (String s : list){
+                    names += s + ", ";
+                }
+            }
+
         } catch (KDTreeEmptyException e) {
             names = e.getMessage();
         }
