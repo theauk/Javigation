@@ -57,11 +57,11 @@ public class MapData {
 
     public String getNearestRoad(float x, float y) {
         String names = "";
-        /*try {
+        try {
             names = closetRoadTree.getNearestNode(x, y);
         } catch (KDTreeEmptyException e) {
             names = e.getMessage();
-        }*/
+        }
         return names;
     }
 

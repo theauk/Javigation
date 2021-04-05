@@ -86,23 +86,9 @@ public class KDTree<Value extends Element> {
             root = medNode;
         }
 
-        if (parent != null && parent.node == medNode.node) {
-            nodes.remove(med);
-            buildTree(nodes, dim, parent);
-        } else {
-            System.out.println("First: ");
-            for(KDTreeNode n : nodes) {
-                System.out.print(n.node.getId() + " ");
-            }
-            System.out.println("");
-            medNode.leftChild = buildTree(nodes.subList(0, med), dim + numDim, medNode);
-            System.out.println("Second : ");
-            for(KDTreeNode n : nodes) {
-                System.out.print(n.node.getId() + " ");
-            }
-            System.out.println("");
-            medNode.rightChild = buildTree(nodes.subList(med + 1, nodes.size()), dim + numDim, medNode);
-        }
+        medNode.leftChild = buildTree(nodes.subList(0, med), dim + numDim, medNode);
+        medNode.rightChild = buildTree(nodes.subList(med + 1, nodes.size()), dim + numDim, medNode);
+
         return medNode;
     }
 
@@ -114,8 +100,9 @@ public class KDTree<Value extends Element> {
 
         double shortestDistance = Double.POSITIVE_INFINITY;
         float[] point = new float[]{x, y};
-        KDTreeNode nearestNode = getNearestNode(root, x, y, shortestDistance, null, true);
+        //KDTreeNode nearestNode = getNearestNode(root, x, y, shortestDistance, null, true);
         //KDTreeNode nearestNode = getNearestNode(point, root, shortestDistance, null, startDim);
+        KDTreeNode nearestNode = getNearestNode(x, y, root, null, true);
         return nearestNode.name;
 
     }
@@ -126,11 +113,46 @@ public class KDTree<Value extends Element> {
     }
 
     private double getDistance(KDTreeNode from, float[] cor) {
-        Point2D p = new Point2D(cor[0], cor[1]);
-        return p.distance(from.node.getxMax(), from.node.getyMax());
+        if(from == null) {
+            return Double.POSITIVE_INFINITY;
+        } else {
+            Point2D p = new Point2D(cor[0], cor[1]);
+            return p.distance(from.node.getxMax(), from.node.getyMax());
+        }
     }
 
-    private KDTreeNode getNearestNode(KDTreeNode currentNode, float x, float y, double shortestDistance, KDTreeNode nearestNode, Boolean xAxis) {
+    private KDTreeNode getNearestNode(float x, float y, KDTreeNode currentNode, KDTreeNode nearestNode, boolean xAxis) {
+        KDTreeNode currentNearest = nearestNode;
+
+        if (currentNode == null) {
+            return currentNearest;
+        }
+
+        double minDistance = getDistance(currentNearest, new float[]{x, y});
+        double thisDistance = getDistance(currentNode, new float[]{x, y});
+
+        if (thisDistance < minDistance) {
+            currentNearest = currentNode;
+        }
+
+        boolean isCoordinateLessThan;
+        if(xAxis) {
+            isCoordinateLessThan = x < currentNode.node.getxMax();
+        } else {
+            isCoordinateLessThan = y < currentNode.node.getyMax();
+        }
+
+        if (isCoordinateLessThan) {
+            currentNearest = getNearestNode(x, y, currentNode.leftChild, currentNearest, !xAxis);
+            currentNearest = getNearestNode(x, y, currentNode.rightChild, currentNearest, !xAxis);
+        } else {
+            currentNearest = getNearestNode(x, y, currentNode.rightChild, currentNearest, !xAxis);
+            currentNearest = getNearestNode(x, y, currentNode.leftChild, currentNearest, !xAxis);
+        }
+        return currentNearest;
+    }
+
+    /*private KDTreeNode getNearestNode(KDTreeNode currentNode, float x, float y, double shortestDistance, KDTreeNode nearestNode, Boolean xAxis) {
         if (currentNode == null) {
             return nearestNode;
         }
@@ -156,7 +178,7 @@ public class KDTree<Value extends Element> {
         }
         return nearestNode;
 
-    }
+    }*/
 
 
 
