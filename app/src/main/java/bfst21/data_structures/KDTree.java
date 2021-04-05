@@ -1,31 +1,15 @@
 package bfst21.data_structures;
 
-
 import bfst21.Exceptions.KDTreeEmptyException;
 import bfst21.Osm_Elements.Element;
 import javafx.geometry.Point2D;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 
 public class KDTree<Value extends Element> {
-    private KDTreeNode root;
-    private List<KDTreeNode> list;
-    private boolean isSorted;
-    private int removes = 0;
-    public KDTreeNode theaRoot;
-    private int startDim;
-    private int numCor;
-    private int numDim;
-    private int duplicateCount = 0;
-
-    public KDTree(int startDim, int numCor) {
-        this.startDim = startDim;
-        this.numCor = numCor;
-        numDim = numCor / 2;
-        list = new ArrayList<>();
-        isSorted = false;
-    }
-
     private final Comparator<KDTreeNode> comparatorX = new Comparator<KDTreeNode>() {
         @Override
         public int compare(KDTreeNode p1, KDTreeNode p2) {
@@ -38,13 +22,27 @@ public class KDTree<Value extends Element> {
             return Double.compare(p1.node.getyMax(), p2.node.getyMax());
         }
     };
+    private KDTreeNode root;
+    private List<KDTreeNode> list;
+    private boolean isSorted;
+    private int startDim;
+    private int numCor;
+    private int numDim;
+
+    public KDTree(int startDim, int numCor) {
+        this.startDim = startDim;
+        this.numCor = numCor;
+        numDim = numCor / 2;
+        list = new ArrayList<>();
+        isSorted = false;
+    }
 
     private Comparator<KDTreeNode> getComparatorFromDimension(int dim) {
         return dim == 0 ? comparatorX : comparatorY;
     }
 
     public int getMedian(int low, int high) {
-        return (low + high) / 2; // TODO: 4/4/21 minus one? Otherwise it always takes an index higher?
+        return (low + high) / 2;
     }
 
     public void addAll(String name, List<Value> nodes) {
@@ -53,25 +51,7 @@ public class KDTree<Value extends Element> {
         }
     }
 
-    /*private void buildTree() throws KDTreeEmptyException {
-        if (list.isEmpty()) {
-            throw new KDTreeEmptyException("No nodes in the kd-tree");
-        }
-        list.sort(getComparatorFromDimension(startDim));
-        int lo = 0;
-        int hi = list.size();
-        int mid = getMedian(lo, hi);
-
-        root = list.get(mid);
-        buildTree(list.subList(mid + 1, hi), 0);
-        buildTree(list.subList(0, mid), 0);
-    }*/
-
-    public void testBuild() { // TODO: 4/4/21 for debugging
-        buildTree(list, startDim, null);
-    }
-
-    private KDTreeNode buildTree(List<KDTreeNode> nodes, int dim, KDTreeNode parent) {
+    private KDTreeNode buildTree(List<KDTreeNode> nodes, int dim) {
         if (nodes.isEmpty()) {
             return null;
         }
@@ -87,30 +67,19 @@ public class KDTree<Value extends Element> {
             root = medNode;
         }
 
-        if (medNode == parent) {
-            duplicateCount++; // TODO: 4/5/21 Why is it zero? 
-        }
-
-        medNode.leftChild = buildTree(nodes.subList(0, med), dim + numDim, medNode);
-        medNode.rightChild = buildTree(nodes.subList(med + 1, nodes.size()), dim + numDim, medNode);
+        medNode.leftChild = buildTree(nodes.subList(0, med), dim + numDim);
+        medNode.rightChild = buildTree(nodes.subList(med + 1, nodes.size()), dim + numDim);
 
         return medNode;
     }
 
     public String getNearestNode(float x, float y) throws KDTreeEmptyException {
         if (!isSorted) { // TODO: 4/5/21 should preferably be sorted before first search because this way it makes the program freeze momentarily
-            buildTree(list, startDim, null);
-            System.out.println("Duplicates: " + duplicateCount);
+            buildTree(list, startDim);
             isSorted = true;
         }
-
-        double shortestDistance = Double.POSITIVE_INFINITY;
-        float[] point = new float[]{x, y};
-        //KDTreeNode nearestNode = getNearestNode(root, x, y, shortestDistance, null, true);
-        //KDTreeNode nearestNode = getNearestNode(point, root, shortestDistance, null, startDim);
-        KDTreeNode nearestNode = getNearestNode(x, y, root, null, true);
+        KDTreeNode nearestNode = getNearestNode(x, y, root, null);
         return nearestNode.name;
-
     }
 
     private boolean possibleCloserNode(Double shortestDistance, KDTreeNode currentNode, float x, float y) {
@@ -119,7 +88,7 @@ public class KDTree<Value extends Element> {
     }
 
     private double getDistance(KDTreeNode from, float[] cor) {
-        if(from == null) {
+        if (from == null) {
             return Double.POSITIVE_INFINITY;
         } else {
             Point2D p = new Point2D(cor[0], cor[1]);
@@ -127,7 +96,7 @@ public class KDTree<Value extends Element> {
         }
     }
 
-    private KDTreeNode getNearestNode(float x, float y, KDTreeNode currentNode, KDTreeNode nearestNode, boolean xAxis) {
+    private KDTreeNode getNearestNode(float x, float y, KDTreeNode currentNode, KDTreeNode nearestNode) {
         KDTreeNode currentNearest = nearestNode;
 
         if (currentNode == null) {
@@ -142,53 +111,25 @@ public class KDTree<Value extends Element> {
         }
 
         boolean isCoordinateLessThan;
-        if(xAxis) {
+        if (currentNode.onXAxis) {
             isCoordinateLessThan = x < currentNode.node.getxMax();
         } else {
             isCoordinateLessThan = y < currentNode.node.getyMax();
         }
 
         if (isCoordinateLessThan) {
-            currentNearest = getNearestNode(x, y, currentNode.leftChild, currentNearest, !xAxis);
-            currentNearest = getNearestNode(x, y, currentNode.rightChild, currentNearest, !xAxis);
+            currentNearest = getNearestNode(x, y, currentNode.leftChild, currentNearest);
+            if (possibleCloserNode(getDistance(currentNearest, new float[]{x, y}), currentNode, x, y)) {
+                currentNearest = getNearestNode(x, y, currentNode.rightChild, currentNearest);
+            }
         } else {
-            currentNearest = getNearestNode(x, y, currentNode.rightChild, currentNearest, !xAxis);
-            currentNearest = getNearestNode(x, y, currentNode.leftChild, currentNearest, !xAxis);
+            currentNearest = getNearestNode(x, y, currentNode.rightChild, currentNearest);
+            if (possibleCloserNode(getDistance(currentNearest, new float[]{x, y}), currentNode, x, y)) {
+                currentNearest = getNearestNode(x, y, currentNode.leftChild, currentNearest);
+            }
         }
         return currentNearest;
     }
-
-    /*private KDTreeNode getNearestNode(KDTreeNode currentNode, float x, float y, double shortestDistance, KDTreeNode nearestNode, Boolean xAxis) {
-        if (currentNode == null) {
-            return nearestNode;
-        }
-
-        double newDistance = getDistance(currentNode, new float[]{x, y});
-        if (newDistance < shortestDistance) {
-            shortestDistance = newDistance;
-            nearestNode = currentNode;
-        }
-
-        //checks if we should search the left or right side of the tree first, to save time/space.
-        double compare = xAxis ? Math.abs(x) - Math.abs(currentNode.node.getxMax()) : Math.abs(y) - Math.abs(currentNode.node.getyMax());
-
-        KDTreeNode node1 = compare < 0 ? currentNode.leftChild : currentNode.rightChild;
-        KDTreeNode node2 = compare < 0 ? currentNode.rightChild : currentNode.leftChild;
-
-        nearestNode = getNearestNode(node1, x, y, shortestDistance, nearestNode, !xAxis);
-
-        // Checks if its worth checking on the other side of tree.
-        if (possibleCloserNode(shortestDistance, currentNode, x, y)) {
-
-            nearestNode = getNearestNode(node2, x, y, shortestDistance, nearestNode, !xAxis);
-        }
-        return nearestNode;
-
-    }*/
-
-
-
-
 
     // TODO: 26-03-2021 remove both print methods when no longer needed.
     public void printTree() {
@@ -205,7 +146,7 @@ public class KDTree<Value extends Element> {
                     System.out.println("Has left child, id: " + node.leftChild.node.getId() + " name: " + node.leftChild.name);
                 }
                 if (node.rightChild != null) {
-                    System.out.println("Has right child, id: " + node.rightChild.node.getId()+ " name: " + node.rightChild.name);
+                    System.out.println("Has right child, id: " + node.rightChild.node.getId() + " name: " + node.rightChild.name);
                 }
             }
             level++;
