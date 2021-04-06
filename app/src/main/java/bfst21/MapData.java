@@ -60,9 +60,7 @@ public class MapData {
                 for(Way way : node.getReferencedHighWays()){
                     if(way.getName()!=null)list.add(way.getName());
                 }
-                for (String s : list){
-                    names += s + ", ";
-                }
+                names = String.join(", ", list);
             }
 
         } catch (KDTreeEmptyException e) {
