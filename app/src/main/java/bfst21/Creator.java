@@ -2,8 +2,6 @@ package bfst21;
 
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
-import bfst21.Osm_Elements.Specifik_Elements.AddressNode;
-import bfst21.Osm_Elements.Specifik_Elements.TravelWay;
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.*;
 import bfst21.file_reading.ProgressInputStream;
@@ -48,7 +46,6 @@ public class Creator extends Task<Void> {
         Way way = null;
         Node node = null;
         Relation relation = null;
-        AddressNode addressNode = null;
 
         KDTree<Node> highWayRoadNodes = new KDTree<>(2,4);
         RTree rTree = new RTree(1, 30, 4);
@@ -93,15 +90,7 @@ public class Creator extends Task<Void> {
                                 var v = reader.getAttributeValue(null, "v");
 
                                 if(node != null){
-                                    if (k.equals("addr:city")) {
-                                        addressNode = new AddressNode(node);
-                                        node = null;
-                                    }
-                                    break;
-                                }
-
-                                if (addressNode != null) {
-                                    checkAddressNode(k, v, addressNode);
+                                    checkAddressNode(k,v,node);
                                     break;
                                 }
 
@@ -141,14 +130,13 @@ public class Creator extends Task<Void> {
                     case END_ELEMENT:
                         switch (reader.getLocalName()) {
                             case "node":
-                                if (addressNode != null) {
-                                    addressTree.put(addressNode);
-                                    addressNode = null;
-
-                                } else if(node != null) {
-
-                                    idToNode.put(node);
-                                    node = null;
+                                if (node != null) {
+                                    if(node.isAddress()){
+                                        addressTree.put(node);
+                                    } else{
+                                        idToNode.put(node);
+                                        node = null;
+                                    }
                                 }
                                 break;
 
@@ -184,23 +172,28 @@ public class Creator extends Task<Void> {
 
     private void checkRelation(String k, String v, Relation relation) {
         switch (k) {
-            case "type":
-                if (v.equals("restriction")) relation.setType(v);
-                break;
+
             case "restriction":
+                relation.setType(k);
                 relation.setRestriction(v);
                 break;
             case "name":
                 relation.setName(v);
                 break;
+            case "bridge":
+                relation.setType("bridge");
+                break;
+            case "type":
+                if(v.equals("multipolygon")) relation.isMultiPolygon();
+                break;
+            case "building":
+                relation.setType(k);
+                break;
+            case "natural":
+                if(v.equals("water")) relation.setType(v);
         }
     }
 
-    private void checkTravelWay(String k, String v, TravelWay travelWay) {
-        switch (k) {
-
-        }
-    }
 
     private void checkWay(String k, String v, Way way) {
         switch (k) {
@@ -218,6 +211,18 @@ public class Creator extends Task<Void> {
             case "highway":
                 checkHighWayType(way,v);
                 break;
+
+
+
+            case "name":
+                way.setName(v);
+                break;
+        }
+        checkHighWayAttributes(k,v,way);
+    }
+
+    private void checkHighWayAttributes(String k, String v, Way way) {
+        switch(k) {
             case "oneway":
                 if (v.equals("yes")) way.setOnewayRoad();
                 break;
@@ -226,25 +231,35 @@ public class Creator extends Task<Void> {
                 break;
 
             case "maxspeed":
-                try{
+                try {
                     way.setMaxspeed(Integer.parseInt(v));
-                } catch (NumberFormatException e){
+                } catch (NumberFormatException e) {
                 }
                 break;
 
             case "source:maxspeed":
-                if(v.equals("DK:urban")) way.setMaxspeed(50);
-                if(v.equals("DK:rural")) way.setMaxspeed(80);
-                if(v.equals("DK:motorway")) way.setMaxspeed(130);
+                if (v.equals("DK:urban")) way.setMaxspeed(50);
+                if (v.equals("DK:rural")) way.setMaxspeed(80);
+                if (v.equals("DK:motorway")) way.setMaxspeed(130);
                 break;
 
-            case "name":
-                way.setName(v);
+                case "junction":
+                    if(v.equals("roundabout")) way.setOnewayRoad();
+                    // TODO: 06-04-2021 rundkørsel, what to do about that.
+                    break;
+
+            case "bicycle_road":
+                way.setNotDriveable();
+                way.setNotWalkable();
                 break;
+
+            case "turn":
+                //The key turn can be used to specify the direction in which a way or a lane will lead.
+                // TODO: 06-04-2021 could be usefull? unsure
         }
     }
 
-    private void checkAddressNode(String k, String v, AddressNode addressNode) {
+    private void checkAddressNode(String k, String v, Node addressNode) {
         switch (k) {
             case "addr:city" -> addressNode.setCity(v);
             case "addr:housenumber" -> addressNode.setHousenumber((v));

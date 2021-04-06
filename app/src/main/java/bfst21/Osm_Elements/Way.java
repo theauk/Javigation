@@ -83,8 +83,6 @@ public class Way extends NodeHolder {
         this.name = name;
     }
 
-
-
     public boolean isHighWay(){
         return isHighway;
     }
@@ -98,5 +96,17 @@ public class Way extends NodeHolder {
             gc.lineTo(node.getxMin(), node.getyMin());
         }
         gc.stroke();
+    }
+
+    public boolean isWalkable(){
+        return isWalkable;
+    }
+
+    public boolean isCycleable(){
+        return isCycleable;
+    }
+
+    public boolean isOnewayRoad(){
+        return onewayRoad;
     }
 }

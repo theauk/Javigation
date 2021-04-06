@@ -3,7 +3,6 @@ package bfst21;
 import bfst21.Exceptions.KDTreeEmptyException;
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
-import bfst21.Osm_Elements.Specifik_Elements.AddressNode;
 
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.AddressTriesTree;
@@ -75,7 +74,7 @@ public class MapData {
 
 
 
-    public AddressNode getAddressNode(String address) {
+    public Node getAddressNode(String address) {
         return addressTree.getAddressNode(address);
     }
 

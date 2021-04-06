@@ -1,6 +1,6 @@
 package bfst21.data_structures;
 
-import bfst21.Osm_Elements.Specifik_Elements.TravelWay;
+import bfst21.Osm_Elements.Way;
 
 /**
  * Not yet implemnted
@@ -8,7 +8,7 @@ import bfst21.Osm_Elements.Specifik_Elements.TravelWay;
  */
 // TODO: 28-03-2021 Implement
 public class RoadGraph {
-    public void add(TravelWay way){
+    public void add(Way way){
 
     }
 
