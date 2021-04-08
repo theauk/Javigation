@@ -143,8 +143,8 @@ public class Creator extends Task<Void> {
                                         addressTree.put(node);
                                     } else{
                                         idToNode.put(node);
-                                        node = null;
                                     }
+                                    node = null;
                                 }
                                 break;
 
@@ -205,6 +205,8 @@ public class Creator extends Task<Void> {
                 break;
             case "natural":
                 if(v.equals("water")) relation.setType(v);
+                break;
+            // TODO: 07-04-2021 park green areas; 
         }
     }
 
