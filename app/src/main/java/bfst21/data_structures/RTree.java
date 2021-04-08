@@ -27,9 +27,9 @@ public class RTree {
     }*/
 
     public ArrayList<Element> search(float xMin, float xMax, float yMin, float yMax, boolean debug) {
+        ArrayList<Element> results = new ArrayList<>();
         if (root != null) {
             float[] searchCoordinates = new float[]{xMin, xMax, yMin, yMax};
-            ArrayList<Element> results = new ArrayList<>();
             if (debug) {
                 float change = xMin * 0.0005f;
 
@@ -40,10 +40,9 @@ public class RTree {
             } else {
                 search(searchCoordinates, root, results);
             }
-            return results;
-        } else {
-            throw new RuntimeException("No elements in the RTree");
         }
+
+        return results;
     }
 
     private void search(float[] searchCoordinates, RTreeNode node, ArrayList<Element> results) {
