@@ -14,7 +14,7 @@ plugins {
 
 javafx {
     version = "15.0.1"
-    modules = [ 'javafx.controls', 'javafx.fxml' ]
+    modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.base', 'javafx.graphics', 'javafx.swing', 'javafx.media']
 }
 
 repositories {
@@ -39,10 +39,25 @@ application {
 }
 compileJava.options.encoding = 'UTF-8'
 tasks.named('test') {
-    // Use junit platform for unit tests.
+    //Use junit platform for unit tests.
     useJUnitPlatform()
 }
 
 run {
     //args = ['src/main/resources/map.osm']
+}
+
+mainClassName = 'bfst21.Launcher'
+jar {
+    manifest {
+        attributes 'Main-Class': 'bfst21.Launcher'
+    }
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA' // TODO: 08-04-21 this is not needed to make a runnable jar file.
+    //TODO: 08-04-21 will look it up again.
 }
