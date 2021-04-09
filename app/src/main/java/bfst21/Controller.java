@@ -332,4 +332,8 @@ public class Controller {
         mapData.setRTreeDebug(rTreeDebug.isSelected()); // TODO: 3/31/21 which class should it go via?
         mapCanvas.rTreeDebugMode();
     }
+
+    private void testDijkstra(double x, double y) {
+        mapData.getNearestRoadNode((float) x, (float) -y / 0.56f);
+    }
 }

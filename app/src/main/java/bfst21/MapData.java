@@ -5,10 +5,7 @@ import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 
 import bfst21.Osm_Elements.Way;
-import bfst21.data_structures.AddressTriesTree;
-import bfst21.data_structures.KDTree;
-import bfst21.data_structures.RTree;
-import bfst21.data_structures.RoadGraph;
+import bfst21.data_structures.*;
 import bfst21.view.CanvasBounds;
 
 import java.util.ArrayList;
@@ -51,6 +48,8 @@ public class MapData {
     }
 
     public String getNearestRoad(float x, float y) {
+        System.out.println(x + " " + y);
+        getNearestRoadNode(x, y);
         String names = "";
         HashSet<String> list = new HashSet<>();
         try {
@@ -66,6 +65,16 @@ public class MapData {
             names = e.getMessage();
         }
         return names;
+    }
+
+    public void getNearestRoadNode(float x, float y) {
+        try {
+            Node node1 = closetRoadTree.getNearestNode(12.594574f, -99.40638f);
+            Node node2 = closetRoadTree.getNearestNode( 12.595245f, -99.40244f);
+            DijkstraSP d = new DijkstraSP(node1, node2, "v", "f");
+        } catch (KDTreeEmptyException e) {
+            e.printStackTrace();
+        }
     }
 
     public List<Element> getMapSegment() {

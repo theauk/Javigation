@@ -8,7 +8,7 @@ import java.util.List;
 public class Node extends Element {
 
     private List<Way> partOfWays;
-    private List<Node> adjacentNodes;
+    private ArrayList<Node> adjacentNodes;
     private boolean isAddress;
     private String housenumber;
     private String city;
@@ -100,6 +100,10 @@ public class Node extends Element {
             adjacentNodes = new ArrayList<>();
         }
         adjacentNodes.add(n);
+    }
+
+    public ArrayList<Node> getAdjacentNodes() {
+        return adjacentNodes;
     }
 
 }
