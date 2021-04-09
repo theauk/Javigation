@@ -68,7 +68,7 @@
                 </Pane>
 
                 <AnchorPane id="uiControl" visible="${showUIItem.selected}" pickOnBounds="false">
-                    <VBox spacing="5" alignment="CENTER" AnchorPane.rightAnchor="5" AnchorPane.bottomAnchor="20" pickOnBounds="false">
+                    <VBox alignment="CENTER" AnchorPane.rightAnchor="5" AnchorPane.bottomAnchor="20" pickOnBounds="false">
                         <Button fx:id="zoomInButton" text="+" onAction="#zoom"/>
                         <Slider fx:id="zoomSlider" pickOnBounds="false" orientation="VERTICAL">
                             <min>
@@ -83,10 +83,10 @@
 
                     <Label id="copyRight" text="&#169;2021 Group 10" AnchorPane.bottomAnchor="0" AnchorPane.rightAnchor="0" mouseTransparent="true">
                         <padding>
-                            <Insets right="5"/>
+                            <Insets right="5" left="5"/>
                         </padding>
                     </Label>
-                    <VBox id="informationPane" visible="${informationBoard.selected}" minWidth="270" minHeight="150" maxWidth="270" maxHeight="150" spacing="5" AnchorPane.topAnchor="5" AnchorPane.rightAnchor="5">
+                    <VBox id="informationPane" visible="${informationBoard.selected}" minWidth="270" minHeight="150" maxWidth="270" maxHeight="150" spacing="5" AnchorPane.topAnchor="5" AnchorPane.rightAnchor="5" mouseTransparent="true">
                         <padding>
                             <Insets top="5" bottom="5" left="5" right="5"/>
                         </padding>

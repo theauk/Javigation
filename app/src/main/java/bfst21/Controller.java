@@ -20,8 +20,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class Controller {
     private MapData mapData;
@@ -29,7 +32,6 @@ public class Controller {
     private Creator creator;
 
     private Map<String, String> themes;
-    private Point2D currentMouse;
     private Point2D lastMouse;
     private boolean viaZoomSlider = true;
 
@@ -74,8 +76,11 @@ public class Controller {
     }
 
     private void initView() {
-        mapCanvas.init(mapData, loader.loadTheme(themes.get("Default")));
+        themeGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> setTheme(((RadioMenuItem) newValue.getToggleGroup().getSelectedToggle()).getText()));
+    }
 
+    private void initUI() {
+        mapCanvas.init(mapData, loader.loadTheme(themes.get("Default")));
         mapCanvas.widthProperty().addListener((observable, oldValue, newValue) -> setBoundsLabels());
         mapCanvas.heightProperty().addListener((observable, oldValue, newValue) -> setBoundsLabels());
 
@@ -84,8 +89,6 @@ public class Controller {
         });
 
         scaleLabel.textProperty().bind(mapCanvas.getRatio());
-
-        themeGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> setTheme(((RadioMenuItem) newValue.getToggleGroup().getSelectedToggle()).getText()));
     }
 
     private void loadThemes() {
@@ -158,7 +161,6 @@ public class Controller {
             mapCanvas.pan(dx, dy);
         }
 
-        currentMouse = new Point2D(e.getX(), e.getY());
         onMousePressed(e);
     }
 
@@ -166,14 +168,12 @@ public class Controller {
     private void onMouseMoved(MouseEvent e) {
         mapCanvas.setCursor(Cursor.DEFAULT);
         setLabels(new Point2D(e.getX(), e.getY()));
-        currentMouse = new Point2D(e.getX(), e.getY());
     }
 
     @FXML
     private void onMousePressed(MouseEvent e) {
         lastMouse = new Point2D(e.getX(), e.getY());
-        currentMouse = new Point2D(e.getX(), e.getY());
-        setLabels(new Point2D(e.getX(), e.getY()));
+        setLabels(lastMouse);
     }
 
     @FXML
@@ -186,7 +186,7 @@ public class Controller {
         mapCanvas.reset();
         themeGroup.selectToggle(defaultThemeItem);
         //zoomSlider.setValue(zoomSlider.getMin());
-        setLabels(currentMouse);
+        setLabels(lastMouse);
     }
 
     @FXML
@@ -196,8 +196,7 @@ public class Controller {
         if (file != null) loadFile(file.getAbsolutePath(), file.length());
         else {
             File binaryFile = new File(getClass().getResource("/small.osm").getPath());
-            String path = binaryFile.getAbsolutePath();
-            path = handlePotentialSpacesInPath(path);
+            String path = handlePotentialSpacesInPath(binaryFile.getAbsolutePath());
             loadFile(path, binaryFile.length());
         }
     }
@@ -220,37 +219,10 @@ public class Controller {
         try {
             mapData = new MapData();
             creator = new Creator(mapData, loader.load(path), fileSize);
-            creator.setOnRunning(e -> {
-                centerPane.setCursor(Cursor.WAIT);
-                statusLabel.textProperty().bind(creator.messageProperty());
-                loadingBar.progressProperty().bind(creator.progressProperty());
-                disableGui(true);
-                loaderPane.setVisible(true);
-            });
-            creator.setOnSucceeded(e -> {
-                centerPane.setCursor(Cursor.DEFAULT);
-                statusLabel.textProperty().unbind();
-                loadingBar.progressProperty().unbind();
-                disableGui(false);
-                loaderPane.setVisible(false);
-                mapCanvas.setMapData(mapData);
-                //mapCanvas.reset();
-            });
-            creator.setOnCancelled(e -> {
-                centerPane.setCursor(Cursor.DEFAULT);
-                statusLabel.textProperty().unbind();
-                loadingBar.progressProperty().unbind();
-                statusLabel.setText("Cancelled.");
-                disableGui(false);
-            });
-            creator.setOnFailed(e -> {
-                centerPane.setCursor(Cursor.DEFAULT);
-                statusLabel.textProperty().unbind();
-                loadingBar.progressProperty().unbind();
-                statusLabel.setText("Failed.");
-                creator.exceptionProperty().get().printStackTrace();
-                disableGui(false);
-            });
+            creator.setOnRunning(e -> loadRunning());
+            creator.setOnSucceeded(e -> loadSuccess());
+            creator.setOnCancelled(e -> loadCancelled());
+            creator.setOnFailed(e -> loadFailed());
 
             Thread creatorThread = new Thread(creator, "Creator Thread");
             creatorThread.setDaemon(true);
@@ -258,6 +230,40 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void loadRunning() {
+        centerPane.setCursor(Cursor.WAIT);
+        statusLabel.textProperty().bind(creator.messageProperty());
+        loadingBar.progressProperty().bind(creator.progressProperty());
+        loaderPane.setVisible(true);
+        disableGui(true);
+    }
+
+    private void loadSuccess() {
+        cleanupLoad("");
+        loaderPane.setVisible(false);
+        initUI();
+        //mapCanvas.reset();
+    }
+
+    private void loadFailed() {
+        mapCanvas = new MapCanvas();
+        cleanupLoad("Failed.");
+        creator.exceptionProperty().get().printStackTrace();
+    }
+
+    private void loadCancelled() {
+        mapCanvas = new MapCanvas();
+        cleanupLoad("Cancelled.");
+    }
+
+    private void cleanupLoad(String status) {
+        centerPane.setCursor(Cursor.DEFAULT);
+        statusLabel.textProperty().unbind();
+        loadingBar.progressProperty().unbind();
+        statusLabel.setText(status);
+        disableGui(false);
     }
 
     private void setTheme(String themeName) {

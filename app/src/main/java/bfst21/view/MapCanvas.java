@@ -7,6 +7,7 @@ import javafx.beans.property.StringProperty;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 
@@ -49,15 +50,19 @@ public class MapCanvas extends Canvas {
             drawElement(gc, element);
         }
 
-        //gc.setStroke(Color.RED);
-        //gc.strokeLine(bounds.getMinX(), (bounds.getMaxY() + bounds.getMinY()) / 2, getWidth(), (bounds.getMaxY() + bounds.getMinY()) / 2);
-        //gc.strokeLine((bounds.getMinX() + bounds.getMaxX()) / 2, bounds.getMinY(), (bounds.getMinX() + bounds.getMaxX()) / 2, getHeight());
+        gc.setStroke(Color.RED);
+//        gc.strokeLine(mapData.getMinX(), mapData.getMinY(), mapData.getMaxX(), mapData.getMinY());
+//        gc.strokeLine(mapData.getMinX(), mapData.getMaxY(), mapData.getMaxX(), mapData.getMaxY());
+//        gc.strokeLine(mapData.getMinX(), mapData.getMinY(), mapData.getMinX(), mapData.getMaxY());
+//        gc.strokeLine(mapData.getMaxX(), mapData.getMinY(), mapData.getMaxX(), mapData.getMaxY());
+
+//        gc.strokeLine(bounds.getMinX(), (bounds.getMaxY() + bounds.getMinY()) / 2, getWidth(), (bounds.getMaxY() + bounds.getMinY()) / 2);
+//        gc.strokeLine((bounds.getMinX() + bounds.getMaxX()) / 2, bounds.getMinY(), (bounds.getMinX() + bounds.getMaxX()) / 2, getHeight());
 
         gc.restore();
     }
 
-    private void drawElement(GraphicsContext gc, Element element)
-    {
+    private void drawElement(GraphicsContext gc, Element element) {
         gc.setLineDashes(getStrokeStyle(element.getType())); //Apply stroke style
 
         if(theme.get(element.getType()).isTwoColored())
@@ -78,15 +83,13 @@ public class MapCanvas extends Canvas {
         }
     }
 
-    private double[] getStrokeStyle(String type)
-    {
+    private double[] getStrokeStyle(String type) {
         double[] strokeStyle = new double[2];
         for(int i = 0; i < strokeStyle.length; i++) strokeStyle[i] = StrokeFactory.getStrokeStyle(theme.get(type).getStyle(), trans);
         return strokeStyle;
     }
 
-    private double getStrokeWidth(String type, boolean inner)
-    {
+    private double getStrokeWidth(String type, boolean inner) {
         if(inner) return StrokeFactory.getStrokeWidth(theme.get(type).getInnerWidth(), trans);
         return StrokeFactory.getStrokeWidth(theme.get(type).getOuterWidth(), trans);
     }
@@ -120,10 +123,10 @@ public class MapCanvas extends Canvas {
         double distance = getDistance(start, end);
         double pixels = getWidth();
         double dPerPixel = distance / pixels;
-        System.out.println(start + "\n" + end);
-        System.out.println("Distance: " + distance + " m");
-        System.out.println(dPerPixel + " px/m");
-        System.out.println("50 px = " + (dPerPixel * 50));
+        //System.out.println(start + "\n" + end);
+        //System.out.println("Distance: " + distance + " m");
+        //System.out.println(dPerPixel + " px/m");
+        //System.out.println("50 px = " + (dPerPixel * 50));
         int scale = (int) (dPerPixel * 50);
         String toDisplay = scale >= 1000 ? (scale / 1000) + " km" : scale + " m";
         ratio.set(toDisplay);
@@ -223,8 +226,21 @@ public class MapCanvas extends Canvas {
     }
 
     public void startup() {
-        pan(-mapData.getMinX(), -mapData.getMinY());
-        zoom((getWidth() - 200) / (mapData.getMaxX() - mapData.getMinX()), new Point2D(-0.009127, -0.010532));
+        double cardWidth = mapData.getMaxX() - mapData.getMinX();
+        double boundsWidth = bounds.getMaxX() - bounds.getMinX();
+        double x2 = bounds.getMinX() + ((boundsWidth - cardWidth) / 2);
+
+        double cardHeight = mapData.getMaxY() - mapData.getMinY();
+        double boundsHeight = bounds.getMaxY() - bounds.getMinY();
+        double y2 = bounds.getMinY() + ((boundsHeight - cardHeight) / 2);
+
+        double dx = (x2 - mapData.getMinX());
+        double dy = (y2 - mapData.getMinY());
+
+        pan(dx, dy);
+
+        //pan(-mapData.getMinX(), -mapData.getMinY());
+        //zoom((getWidth() - 200) / (mapData.getMaxX() - mapData.getMinX()), new Point2D(-0.009127, -0.010532));
     }
 
     public void rTreeDebugMode() {
