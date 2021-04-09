@@ -5,10 +5,11 @@ import javafx.scene.canvas.GraphicsContext;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Node extends Element{
-    private List<Way> partOfWays;
-    private boolean isAddress;
+public class Node extends Element {
 
+    private List<Way> partOfWays;
+    private List<Node> adjacentNodes;
+    private boolean isAddress;
     private String housenumber;
     private String city;
     private int postcode;
@@ -40,14 +41,15 @@ public class Node extends Element{
         this.yMin = lat;
         this.yMax = lat;
     }
-    public void addReferenceToHighWay(Way way){
-        if(partOfWays == null){
-         partOfWays = new ArrayList<>();
+
+    public void addReferenceToHighWay(Way way) {
+        if (partOfWays == null) {
+            partOfWays = new ArrayList<>();
         }
         partOfWays.add(way);
     }
 
-    public List<Way> getReferencedHighWays(){
+    public List<Way> getReferencedHighWays() {
         return partOfWays;
     }
 
@@ -56,7 +58,7 @@ public class Node extends Element{
 
     }
 
-    public boolean isAddress(){
+    public boolean isAddress() {
         return isAddress;
     }
 
@@ -91,6 +93,13 @@ public class Node extends Element{
     public void setStreet(String street) {
         isAddress = true;
         this.street = street;
+    }
+
+    public void addAdjacentNode(Node n) {
+        if (adjacentNodes == null) {
+            adjacentNodes = new ArrayList<>();
+        }
+        adjacentNodes.add(n);
     }
 
 }

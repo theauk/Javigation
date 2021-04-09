@@ -5,7 +5,7 @@ import javafx.scene.canvas.GraphicsContext;
 
 public class Way extends NodeHolder {
     private String name;
-    private int maxspeed;
+    private int maxSpeed;
     private boolean onewayRoad = false;
     private boolean isDriveable = true;
     private boolean isCycleable = true;
@@ -18,11 +18,11 @@ public class Way extends NodeHolder {
         isHighway = false;
     }
 
-    public void setType(String type, boolean isHighway){
+    public void setType(String type, boolean isHighway) {
         super.setType(type);
-        if(isHighway){
+        if (isHighway) {
             setBooleans();
-            for(Node n: nodes){
+            for (Node n : nodes) {
                 n.addReferenceToHighWay(this);
             }
         }
@@ -43,9 +43,10 @@ public class Way extends NodeHolder {
         }
     }
 
-    public boolean hasName(){
+    public boolean hasName() {
         return name != null;
     }
+
     public void setNotCycleable() {
         this.isCycleable = false;
     }
@@ -62,16 +63,16 @@ public class Way extends NodeHolder {
         onewayRoad = true;
     }
 
-    public int getMaxspeed() {
-        if(isDriveable && maxspeed == 0){
+    public int getMaxSpeed() {
+        if (isDriveable && maxSpeed == 0) {
             return 50;
         } else {
-            return maxspeed;
+            return maxSpeed;
         }
     }
 
-    public void setMaxspeed(int maxspeed) {
-        this.maxspeed = maxspeed;
+    public void setMaxSpeed(int maxSpeed) {
+        this.maxSpeed = maxSpeed;
     }
 
     public String getName() {
@@ -81,10 +82,6 @@ public class Way extends NodeHolder {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public boolean isHighWay(){
-        return isHighway;
     }
 
     @Override
@@ -98,15 +95,28 @@ public class Way extends NodeHolder {
         gc.stroke();
     }
 
-    public boolean isWalkable(){
+    public boolean isHighWay() {
+        return isHighway;
+    }
+
+    public boolean isWalkable() {
         return isWalkable;
     }
 
-    public boolean isCycleable(){
+    public boolean isCycleable() {
         return isCycleable;
     }
 
-    public boolean isOnewayRoad(){
+    public boolean isOnewayRoad() {
         return onewayRoad;
+    }
+
+    public void updateNodesForNavigation() {
+        for (int i = 1; i < nodes.size(); i++) {
+            nodes.get(i - 1).addAdjacentNode(nodes.get(i));
+            if (!onewayRoad) {
+                nodes.get(i).addAdjacentNode(nodes.get(i - 1));
+            }
+        }
     }
 }
