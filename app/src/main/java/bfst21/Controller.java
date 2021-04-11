@@ -85,7 +85,7 @@ public class Controller {
         zoomOutItem.disableProperty().bind(loading);
         resetItem.disableProperty().bind(loading);
         showUIItem.disableProperty().bind(loading);
-        cancelItem.disableProperty().bind(loading.not());
+        cancelItem.disableProperty().bind(openItem.disableProperty().not());
     }
 
     private void initUI() {
@@ -247,6 +247,7 @@ public class Controller {
 
     private void loadRunning() {
         centerPane.setCursor(Cursor.WAIT);
+        openItem.disableProperty().bind(loading);
         statusLabel.textProperty().bind(creator.messageProperty());
         loadingBar.progressProperty().bind(creator.progressProperty());
         loaderPane.setVisible(true);
@@ -262,13 +263,15 @@ public class Controller {
     }
 
     private void loadFailed() {
-        mapCanvas = new MapCanvas();
+        mapData = new MapData();
+        openItem.disableProperty().bind(loading.not());
         cleanupLoad("Failed.");
         creator.exceptionProperty().get().printStackTrace();
     }
 
     private void loadCancelled() {
-        mapCanvas = new MapCanvas();
+        mapData = new MapData();
+        openItem.disableProperty().bind(loading.not());
         cleanupLoad("Cancelled.");
     }
 
