@@ -11,17 +11,20 @@ import javafx.scene.paint.Color;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 
+import java.util.Map;
+
 public class MapCanvas extends Canvas {
     private MapData mapData;
     private Affine trans;
     private CanvasBounds bounds;
     private Theme theme;
 
-    private boolean hasListener;
+    private boolean initialized;
     private final int ZOOM_FACTOR = 2;
-    private int zoomLevel = MIN_ZOOM_LEVEL;
+    private byte zoomLevel = MIN_ZOOM_LEVEL;
     public final static int MIN_ZOOM_LEVEL = 1;
     public final static int MAX_ZOOM_LEVEL = 19;
+    private Map<String, Byte> zoomMap;
 
     private final StringProperty ratio = new SimpleStringProperty("- - -");
 
@@ -31,13 +34,19 @@ public class MapCanvas extends Canvas {
         trans = new Affine();
         bounds = new CanvasBounds();
 
-        if(!hasListener) {
+        if(!initialized) {
+            zoomMap = theme.createZoomMap();
             widthProperty().addListener((observable, oldValue, newValue) -> pan((newValue.doubleValue() - oldValue.doubleValue()) / 2, 0));
             heightProperty().addListener((observable, oldValue, newValue) -> pan(0, (newValue.doubleValue() - oldValue.doubleValue()) / 2));
         }
-        hasListener = true;
+        initialized = true;
 
         updateMap();
+    }
+
+    private byte getZoomLevelForElement(String type) {
+        if(zoomMap.get(type) != null) return zoomMap.get(type);
+        return MIN_ZOOM_LEVEL;
     }
 
     public void repaint() {
@@ -51,7 +60,7 @@ public class MapCanvas extends Canvas {
         gc.setTransform(trans);
 
         for(Element element: mapData.getMapSegment()) {
-            drawElement(gc, element);
+            if(zoomLevel >= getZoomLevelForElement(element.getType())) drawElement(gc, element);
         }
 
         gc.setStroke(Color.RED);
@@ -261,7 +270,7 @@ public class MapCanvas extends Canvas {
         double dy = (minYMap - mapData.getMinY());
 
         double zoom = getWidth() / (mapData.getMaxX() - mapData.getMinX()); //Get the scale for the view to show all of the map
-        int levels = (int) (Math.log(zoom) / Math.log(2));                  //Calculate amount of levels to zoom in
+        int levels = (int) (Math.log(zoom) / Math.log(ZOOM_FACTOR));                  //Calculate amount of levels to zoom in
 
         pan(dx, dy);
         zoom(true, levels);
