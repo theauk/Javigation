@@ -1,9 +1,12 @@
 package bfst21;
 
+import bfst21.Osm_Elements.Node;
+import bfst21.Osm_Elements.Way;
 import bfst21.view.CanvasBounds;
 import bfst21.view.MapCanvas;
 import bfst21.view.Theme;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
@@ -20,13 +23,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public class Controller {
+
     private MapData mapData;
     private Loader loader;
     private Creator creator;
@@ -35,36 +37,74 @@ public class Controller {
     private Point2D lastMouse;
     private boolean viaZoomSlider = true;
 
-    @FXML private MapCanvas mapCanvas;
+    private Node currentFromNode;
+    private Node currentToNode;
 
-    @FXML private Scene scene;
-    @FXML private StackPane centerPane;
-    @FXML private VBox loaderPane;
+    @FXML
+    private MapCanvas mapCanvas;
 
-    @FXML private Label coordsLabel;
-    @FXML private Label geoCoordsLabel;
-    @FXML private Label nearestRoadLabel;
-    @FXML private Label statusLabel;
-    @FXML private Label scaleLabel;
-    @FXML private Label boundsTR;
-    @FXML private Label boundsBR;
-    @FXML private Label boundsTL;
-    @FXML private Label boundsBL;
+    @FXML
+    private Scene scene;
+    @FXML
+    private StackPane centerPane;
+    @FXML
+    private VBox loaderPane;
 
-    @FXML private ProgressIndicator loadingBar;
-    @FXML private Slider zoomSlider;
+    @FXML
+    private Label coordsLabel;
+    @FXML
+    private Label geoCoordsLabel;
+    @FXML
+    private Label nearestRoadLabel;
+    @FXML
+    private Label statusLabel;
+    @FXML
+    private Label scaleLabel;
+    @FXML
+    private Label boundsTR;
+    @FXML
+    private Label boundsBR;
+    @FXML
+    private Label boundsTL;
+    @FXML
+    private Label boundsBL;
 
-    @FXML private Menu themeMenu;
-    @FXML private MenuItem resetItem;
-    @FXML private MenuItem zoomInItem;
-    @FXML private MenuItem zoomOutItem;
+    @FXML
+    private ProgressIndicator loadingBar;
+    @FXML
+    private Slider zoomSlider;
 
-    @FXML private Button zoomInButton;
-    @FXML private Button zoomOutButton;
-    @FXML private RadioMenuItem defaultThemeItem;
-    @FXML private RadioMenuItem rTreeDebug;
+    @FXML
+    private Menu themeMenu;
+    @FXML
+    private MenuItem resetItem;
+    @FXML
+    private MenuItem zoomInItem;
+    @FXML
+    private MenuItem zoomOutItem;
 
-    @FXML private ToggleGroup themeGroup;
+    @FXML
+    private Button zoomInButton;
+    @FXML
+    private Button zoomOutButton;
+    @FXML
+    private RadioMenuItem defaultThemeItem;
+    @FXML
+    private RadioMenuItem rTreeDebug;
+
+    @FXML
+    private ToggleGroup themeGroup;
+
+    @FXML
+    private TextField textFieldFromNav;
+    @FXML
+    private Button chooseCorButtonFromNav;
+    @FXML
+    private TextField textFieldToNav;
+    @FXML
+    private Button chooseCorButtonToNav;
+    @FXML
+    private Button searchNav;
 
     public void init() {
         mapData = new MapData();
@@ -85,18 +125,18 @@ public class Controller {
         mapCanvas.heightProperty().addListener((observable, oldValue, newValue) -> setBoundsLabels());
 
         zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if(viaZoomSlider) zoom(newValue.intValue() - oldValue.intValue());
+            if (viaZoomSlider) zoom(newValue.intValue() - oldValue.intValue());
         });
 
         scaleLabel.textProperty().bind(mapCanvas.getRatio());
     }
 
     private void loadThemes() {
-        for(String file : loader.getFilesIn("/themes", ".mtheme")) {
+        for (String file : loader.getFilesIn("/themes", ".mtheme")) {
             String themeName = Theme.parseName(file);
             themes.put(themeName, file);
 
-            if(!file.equals("default.mtheme")) {
+            if (!file.equals("default.mtheme")) {
                 RadioMenuItem item = new RadioMenuItem(themeName);
                 item.setToggleGroup(themeGroup);
                 themeMenu.getItems().add(item);
@@ -121,8 +161,10 @@ public class Controller {
      */
     @FXML
     private void zoom(ActionEvent e) {
-        if (e.getSource().equals(zoomInItem) || e.getSource().equals(zoomInButton)) zoom(true, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
-        else if (e.getSource().equals(zoomOutItem)  || e.getSource().equals(zoomOutButton)) zoom(false, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
+        if (e.getSource().equals(zoomInItem) || e.getSource().equals(zoomInButton))
+            zoom(true, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
+        else if (e.getSource().equals(zoomOutItem) || e.getSource().equals(zoomOutButton))
+            zoom(false, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
     }
 
     /**
@@ -131,8 +173,8 @@ public class Controller {
      * @param levels the amount of zoom levels to be zoomed in or out.
      */
     private void zoom(int levels) {
-        if(levels > 0) mapCanvas.zoom(true, levels);
-        else if(levels < 0) mapCanvas.zoom(false, levels);
+        if (levels > 0) mapCanvas.zoom(true, levels);
+        else if (levels < 0) mapCanvas.zoom(false, levels);
         setBoundsLabels();
     }
 
@@ -270,7 +312,7 @@ public class Controller {
         String name = themes.get(themeName);
         Theme theme = loader.loadTheme(name);
         scene.getStylesheets().clear();
-        if(theme.getStylesheet() != null) scene.getStylesheets().add(theme.getStylesheet());
+        if (theme.getStylesheet() != null) scene.getStylesheets().add(theme.getStylesheet());
         mapCanvas.setTheme(theme);
     }
 
@@ -333,7 +375,59 @@ public class Controller {
         mapCanvas.rTreeDebugMode();
     }
 
-    private void testDijkstra(double x, double y) {
-        mapData.getNearestRoadNode((float) x, (float) -y / 0.56f);
+    @FXML
+    public void getDijkstraPath(ActionEvent actionEvent) {
+        //return mapData.getNearestRoadNode((float) x, (float) -y / 0.56f); // TODO: 4/9/21 fix values
+        ArrayList<Node> res = mapData.getDijkstraRoute(0f, 0f);
+        mapCanvas.drawDijkstraDebug(res);
+    }
+
+    @FXML
+    public void getPointNavFrom(ActionEvent actionEvent) {
+        System.out.println("From");
+        getPointNav(true);
+    }
+
+    @FXML
+    public void getPointNavTo(ActionEvent actionEvent) {
+        System.out.println("To");
+        getPointNav(false);
+    }
+
+    public void getPointNav(boolean from) {
+        EventHandler<MouseEvent> event = e -> getCoordinateNearestRoadString(from, e);
+        mapCanvas.setOnMouseClicked(event); // TODO: 4/12/21 remove the event listener after the user has clicked
+    }
+
+    private void getCoordinateNearestRoadString(boolean from, MouseEvent e) {
+        try {
+            Point2D cursorPoint = new Point2D(e.getX(), e.getY());
+            Point2D geoCoords = mapCanvas.getGeoCoords(cursorPoint.getX(), cursorPoint.getY());
+            Node nearestRoadNode = mapData.getNearestRoadNode((float) geoCoords.getX(), (float) -geoCoords.getY() / 0.56f);
+
+            String names = "";
+            ArrayList<String> list = new ArrayList<>();
+            if (nearestRoadNode.getReferencedHighWays() != null) {
+                for (Way way : nearestRoadNode.getReferencedHighWays()) {
+                    if (way.getName() != null) list.add(way.getName());
+                }
+                names = String.join(", ", list);
+            }
+
+            if (from) {
+                textFieldFromNav.setText(names);
+                currentFromNode = nearestRoadNode;
+            } else {
+                textFieldToNav.setText(names);
+                currentToNode = nearestRoadNode;
+            }
+        } catch (NonInvertibleTransformException nonInvertibleTransformException) {
+            nonInvertibleTransformException.printStackTrace();
+        }
+    }
+
+    @FXML
+    public void searchNav() {
+
     }
 }

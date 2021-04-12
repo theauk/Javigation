@@ -32,6 +32,7 @@
                     <MenuItem fx:id="resetItem" text="Reset" onAction="#resetView" accelerator="CTRL + R"/>
                     <SeparatorMenuItem/>
                     <RadioMenuItem fx:id="showUIItem" text="Show UI" selected="true" accelerator="CTRL + T"/>
+                    <RadioMenuItem fx:id="navigationPane" text="Show Navigation Pane" selected="true"/>
                     <SeparatorMenuItem/>
                     <Menu fx:id="themeMenu" text="Change Theme...">
                         <RadioMenuItem fx:id="defaultThemeItem" text="Default" selected="true">
@@ -50,6 +51,8 @@
                     <RadioMenuItem fx:id="informationBoard" text="Information Board" selected="true"/>
                     <SeparatorMenuItem/>
                     <RadioMenuItem fx:id="rTreeDebug" text="R-tree" onAction="#setRTreeDebug"/>
+                    <SeparatorMenuItem/>
+                    <RadioMenuItem fx:id="dijkstraDebug" text="Dijkstra" onAction="#getDijkstraPath"/>
                 </Menu>
             </MenuBar>
         </top>
@@ -113,6 +116,20 @@
                         <Label fx:id="scaleLabel" text="- - -">
                         </Label>
                     </HBox>
+                </AnchorPane>
+
+                <AnchorPane id="navigationControl" visible="${navigationPane.selected}" pickOnBounds="false">
+                    <VBox alignment="BASELINE_LEFT" AnchorPane.leftAnchor="5" AnchorPane.topAnchor="5">
+                        <HBox>
+                            <TextField fx:id="textFieldFromNav" promptText="From"/>
+                            <Button fx:id="chooseCorButtonFromNav" text="Choose on map" onAction="#getPointNavFrom"/>
+                        </HBox>
+                        <HBox>
+                            <TextField fx:id="textFieldToNav" promptText="To"/>
+                            <Button fx:id="chooseCorButtonToNav" text="Choose on map" onAction="#getPointNavTo"/>
+                        </HBox>
+                        <Button fx:id="searchNav" text="Search" onAction="#searchNav"/>
+                    </VBox>
                 </AnchorPane>
 
                 <VBox fx:id="loaderPane" alignment="CENTER" style="-fx-background-color: rgb(180, 180, 180);">

@@ -1,8 +1,6 @@
 package bfst21.data_structures;
 
 import bfst21.Osm_Elements.Node;
-import bfst21.Osm_Elements.Way;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,6 +8,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DijkstraSP {
+    // TODO: 4/10/21 Add vehicle type 
+    // TODO: 4/10/21 Fix road types travel (like no bike lanes for car) 
+    // TODO: 4/10/21 Add shortest + fastest 
+    // TODO: 4/10/21 Add restrictions 
+    // TODO: 4/10/21 Improve remove min 
+    // TODO: 4/10/21 Consider distTo and Edgefrom types => what makes sense? 
+    // TODO: 4/10/21 Is distance between nodes correct? 
 
     private Node from;
     private Node to;
@@ -17,11 +22,10 @@ public class DijkstraSP {
     private String fastestOrShortest;
     private HashMap<Long, Double> distTo; // TODO: 4/9/21 node?
     private HashMap<Long, Node> nodeBefore;
-    //private PriorityQueue<Long> pq;
     private HashMap<Node, Double> pq;
 
 
-    public DijkstraSP(Node from, Node to, String vehicleType, String fastestOrShortest) {
+    public DijkstraSP(Node from, Node to, String vehicleType, String fastestOrShortest) { // TODO: 4/9/21 right now you need to wipe to create new route
         this.from = from;
         this.to = to;
         this.vehicleType = vehicleType;
@@ -29,10 +33,9 @@ public class DijkstraSP {
         distTo = new HashMap<>();
         nodeBefore = new HashMap<>();
         pq = new HashMap<>();
-        setUp();
     }
 
-    private void setUp() {
+    public ArrayList<Node> getPath() {
         distTo.put(from.getId(), 0.0);
         pq.put(from, 0.0);
 
@@ -43,7 +46,8 @@ public class DijkstraSP {
             else break;
         }
         ArrayList<Node> res = getTrack(new ArrayList<>(), n);
-        printResult(res);
+        //printResult(res);
+        return res;
     }
 
     private Node temporaryRemoveAndGetMin() {
@@ -62,13 +66,10 @@ public class DijkstraSP {
 
     private void printResult(ArrayList<Node> result) {
         int counter = 1;
-        for (int i = result.size() - 1; i >= 0 ; i--) {
+        for (int i = result.size() - 1; i >= 0; i--) {
             System.out.println("");
             System.out.println("Node: " + counter + ", id: " + result.get(i).getId() + ", coordinates: " + Arrays.toString(result.get(i).getCoordinates()));
             System.out.println("Street(s) referenced:");
-            for (Way w : result.get(i).getReferencedHighWays()) {
-                System.out.println("Way name: " + w.getName());
-            }
             System.out.println("");
             counter++;
         }
@@ -85,17 +86,19 @@ public class DijkstraSP {
 
     private void relax(Node from) {
 
-        for (Node to : from.getAdjacentNodes()) {
-            double distanceBetweenFromTo = getDistanceBetweenTwoNodes(from, to);
-            long fromId = from.getId();
-            long toId = to.getId();
+        if (from.getAdjacentNodes() != null) {
+            for (Node to : from.getAdjacentNodes()) {
+                double distanceBetweenFromTo = getDistanceBetweenTwoNodes(from, to);
+                long fromId = from.getId();
+                long toId = to.getId();
 
-            double distanceTo = distTo.get(toId) == null ? Double.POSITIVE_INFINITY : distTo.get(toId);
+                double distanceTo = distTo.get(toId) == null ? Double.POSITIVE_INFINITY : distTo.get(toId);
 
-            if (distanceTo > distTo.get(fromId) + distanceBetweenFromTo) {
-                distTo.put(toId, distTo.get(fromId) + distanceBetweenFromTo);
-                nodeBefore.put(toId, from);
-                pq.put(to, distTo.get(toId)); // do not need if else because updates if it is not there and inserts if not there
+                if (distanceTo > distTo.get(fromId) + distanceBetweenFromTo) {
+                    distTo.put(toId, distTo.get(fromId) + distanceBetweenFromTo);
+                    nodeBefore.put(toId, from);
+                    pq.put(to, distTo.get(toId)); // do not need if else because updates if it is not there and inserts if not there
+                }
             }
         }
     }

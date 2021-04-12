@@ -2,6 +2,8 @@ package bfst21.view;
 
 import bfst21.MapData;
 import bfst21.Osm_Elements.Element;
+import bfst21.Osm_Elements.Node;
+import bfst21.Osm_Elements.Way;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Point2D;
@@ -11,18 +13,18 @@ import javafx.scene.paint.Color;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 
+import java.util.ArrayList;
+
 public class MapCanvas extends Canvas {
+    public final static int MIN_ZOOM_LEVEL = 1;
+    public final static int MAX_ZOOM_LEVEL = 19;
+    private final int ZOOM_FACTOR = 2;
+    private final StringProperty ratio = new SimpleStringProperty("- - -");
     private MapData mapData;
     private Affine trans;
     private CanvasBounds bounds;
     private Theme theme;
-
-    private final int ZOOM_FACTOR = 2;
     private int zoomLevel = MIN_ZOOM_LEVEL;
-    public final static int MIN_ZOOM_LEVEL = 1;
-    public final static int MAX_ZOOM_LEVEL = 19;
-
-    private final StringProperty ratio = new SimpleStringProperty("- - -");
 
     public void init(MapData mapData, Theme theme) {
         this.mapData = mapData;
@@ -45,8 +47,7 @@ public class MapCanvas extends Canvas {
 
         gc.setTransform(trans);
 
-        for(Element element: mapData.getMapSegment())
-        {
+        for (Element element : mapData.getMapSegment()) {
             drawElement(gc, element);
         }
 
@@ -65,8 +66,7 @@ public class MapCanvas extends Canvas {
     private void drawElement(GraphicsContext gc, Element element) {
         gc.setLineDashes(getStrokeStyle(element.getType())); //Apply stroke style
 
-        if(theme.get(element.getType()).isTwoColored())
-        {
+        if (theme.get(element.getType()).isTwoColored()) {
             gc.setLineWidth(getStrokeWidth(element.getType(), false));
             gc.setStroke(theme.get(element.getType()).getColor().getOuter());
             element.draw(gc);
@@ -76,8 +76,7 @@ public class MapCanvas extends Canvas {
         gc.setStroke(theme.get(element.getType()).getColor().getInner());   //Get and apply line color
         element.draw(gc);
 
-        if(theme.get(element.getType()).fill())
-        {
+        if (theme.get(element.getType()).fill()) {
             gc.setFill(theme.get(element.getType()).getColor().getInner());
             gc.fill();
         }
@@ -85,12 +84,13 @@ public class MapCanvas extends Canvas {
 
     private double[] getStrokeStyle(String type) {
         double[] strokeStyle = new double[2];
-        for(int i = 0; i < strokeStyle.length; i++) strokeStyle[i] = StrokeFactory.getStrokeStyle(theme.get(type).getStyle(), trans);
+        for (int i = 0; i < strokeStyle.length; i++)
+            strokeStyle[i] = StrokeFactory.getStrokeStyle(theme.get(type).getStyle(), trans);
         return strokeStyle;
     }
 
     private double getStrokeWidth(String type, boolean inner) {
-        if(inner) return StrokeFactory.getStrokeWidth(theme.get(type).getInnerWidth(), trans);
+        if (inner) return StrokeFactory.getStrokeWidth(theme.get(type).getInnerWidth(), trans);
         return StrokeFactory.getStrokeWidth(theme.get(type).getOuterWidth(), trans);
     }
 
@@ -115,8 +115,7 @@ public class MapCanvas extends Canvas {
         return Math.round(distance * scale) / scale;
     }
 
-    private void calculateRatio()
-    {
+    private void calculateRatio() {
         Point2D start = new Point2D(bounds.getMinX(), convertToGeo(bounds.getMinY()));
         Point2D end = new Point2D(bounds.getMaxX(), convertToGeo(bounds.getMinY()));
 
@@ -133,11 +132,11 @@ public class MapCanvas extends Canvas {
     }
 
     public void zoom(boolean zoomIn, Point2D center) {
-        if(zoomIn && zoomLevel == MAX_ZOOM_LEVEL) return;
-        else if(!zoomIn && zoomLevel == MIN_ZOOM_LEVEL) return;
+        if (zoomIn && zoomLevel == MAX_ZOOM_LEVEL) return;
+        else if (!zoomIn && zoomLevel == MIN_ZOOM_LEVEL) return;
 
-        if(zoomIn && zoomLevel < MAX_ZOOM_LEVEL) zoomLevel++;
-        else if(!zoomIn && zoomLevel > MIN_ZOOM_LEVEL) zoomLevel--;
+        if (zoomIn && zoomLevel < MAX_ZOOM_LEVEL) zoomLevel++;
+        else if (!zoomIn && zoomLevel > MIN_ZOOM_LEVEL) zoomLevel--;
         zoom(zoomIn ? ZOOM_FACTOR : (float) ZOOM_FACTOR / 4, center);
     }
 
@@ -145,10 +144,10 @@ public class MapCanvas extends Canvas {
         zoomLevel += levels;
 
         double factor;
-        if(zoomIn) factor = ZOOM_FACTOR;
+        if (zoomIn) factor = ZOOM_FACTOR;
         else factor = ZOOM_FACTOR / 4.0;
 
-        for(int i = 0; i < Math.abs(levels); i++) {
+        for (int i = 0; i < Math.abs(levels); i++) {
             zoom(factor, new Point2D(getWidth() / 2, getHeight() / 2));
         }
     }
@@ -201,7 +200,7 @@ public class MapCanvas extends Canvas {
     public Point2D getGeoCoords(double x, double y) throws NonInvertibleTransformException {
         Point2D geoCoords = getTransCoords(x, y);
 
-        return new Point2D(geoCoords.getX(), -geoCoords.getY() * 0.56f);
+        return new Point2D(geoCoords.getX(), -geoCoords.getY() * 0.56f); // TODO: 4/12/21 her bliver der ganget i fx set nearest road bliver der så divideret (udligner)
     }
 
     private double convertToGeo(double value) {
@@ -248,16 +247,36 @@ public class MapCanvas extends Canvas {
         repaint();
     }
 
-    private static class StrokeFactory
-    {
+    public void drawDijkstraDebug(ArrayList<Node> res) {
+        GraphicsContext gc = getGraphicsContext2D();
+        gc.save();
+        gc.setTransform(new Affine());
+
+        //gc.setFill(theme.get("background").getColor().getInner());
+        //gc.fillRect(0, 0, getWidth(), getHeight());
+
+        gc.setTransform(trans);
+        gc.setStroke(Color.RED);
+
+        for (int i = 0; i < res.size() - 1; i++) {
+            Way w = new Way(0);
+            w.addNode(res.get(i));
+            w.addNode(res.get(i + 1));
+            drawElement(gc, w);
+        }
+        gc.restore();
+
+    }
+
+    private static class StrokeFactory {
         private static final String NORMAL = "normal";
         private static final String DOTTED = "dotted";
 
         public static double getStrokeStyle(String stroke, Affine trans) {
             int pattern = 0;
 
-            if(stroke.equals(NORMAL)) return pattern;
-            else if(stroke.equals(DOTTED)) pattern = 3;
+            if (stroke.equals(NORMAL)) return pattern;
+            else if (stroke.equals(DOTTED)) pattern = 3;
             else {
                 System.err.println("Warning: Style '" + stroke + "' is not supported. Returning default.");
                 return pattern;

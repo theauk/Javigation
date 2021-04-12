@@ -7,6 +7,8 @@ import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.*;
 import bfst21.view.CanvasBounds;
+import javafx.geometry.Point2D;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -48,9 +50,8 @@ public class MapData {
     }
 
     public String getNearestRoad(float x, float y) {
-        System.out.println(x + " " + y);
-        getNearestRoadNode(x, y);
         String names = "";
+        //System.out.println(x + " " + y);
         HashSet<String> list = new HashSet<>();
         try {
             Node node =  closetRoadTree.getNearestNode(x,y);
@@ -67,14 +68,32 @@ public class MapData {
         return names;
     }
 
-    public void getNearestRoadNode(float x, float y) {
+    public Node getNearestRoadNode(float x, float y) {
+        Node nearestRoadNode = null;
         try {
-            Node node1 = closetRoadTree.getNearestNode(12.594574f, -99.40638f);
-            Node node2 = closetRoadTree.getNearestNode( 12.595245f, -99.40244f);
-            DijkstraSP d = new DijkstraSP(node1, node2, "v", "f");
+            nearestRoadNode = closetRoadTree.getNearestNode(x, y);
         } catch (KDTreeEmptyException e) {
             e.printStackTrace();
         }
+        return nearestRoadNode;
+    }
+
+    public ArrayList<Node> getDijkstraRoute(float x, float y) {
+        ArrayList<Node> pathNodes = new ArrayList<>();
+        try {
+            //Node node1 = closetRoadTree.getNearestNode(12.594574f, -99.40638f);
+            //Node node2 = closetRoadTree.getNearestNode( 12.595245f, -99.40244f);
+            //Node node1 = closetRoadTree.getNearestNode(12.594574f, -99.40638f);
+            //Node node2 = closetRoadTree.getNearestNode( 12.584137f, -99.425026f);
+            Node node1 = closetRoadTree.getNearestNode(12.5877075f, -99.39949f);
+            Node node2 = closetRoadTree.getNearestNode( 12.577728f, -99.42861f);
+            DijkstraSP d = new DijkstraSP(node1, node2, "v", "f");
+            pathNodes = d.getPath();
+            return pathNodes;
+        } catch (KDTreeEmptyException e) {
+            e.printStackTrace();
+        }
+        return pathNodes;
     }
 
     public List<Element> getMapSegment() {
