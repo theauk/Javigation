@@ -142,6 +142,7 @@ public class Creator extends Task<Void> {
                                 if (node != null) {
                                     if(node.isAddress()){
                                         addressTree.put(node);
+                                        node.setLayer(4);
                                     } else{
                                         idToNode.put(node);
                                     }
@@ -197,15 +198,18 @@ public class Creator extends Task<Void> {
                 break;
             case "bridge":
                 relation.setType("bridge");
+                relation.setLayer(2);
                 break;
             case "type":
                 if(v.equals("multipolygon")) relation.isMultiPolygon();
                 break;
             case "building":
                 relation.setType(k);
+                relation.setLayer(3);
                 break;
             case "natural":
                 if(v.equals("water")) relation.setType(v);
+                relation.setLayer(1);
                 break;
             // TODO: 07-04-2021 park green areas; 
         }
@@ -215,15 +219,24 @@ public class Creator extends Task<Void> {
     private void checkWay(String k, String v, Way way) {
         switch (k) {
             case "natural":
-                if (v.equals("coastline")) way.setType(v);
+                if (v.equals("coastline")) {
+                    way.setType(v);
+                    way.setLayer(4);
+                }
                 break;
 
             case "building":
-                if(v.equals("yes")) way.setType(v);
+                if(v.equals("yes")) {
+                    way.setType(v);
+                    way.setLayer(3);
+                }
                 break;
 
             case "leisure":
-                if (v.equals("park")) way.setType(v);
+                if (v.equals("park")) {
+                    way.setType(v);
+                    way.setLayer(1);
+                }
                 break;
             case "highway":
                 checkHighWayType(way,v);

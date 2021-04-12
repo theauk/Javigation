@@ -44,11 +44,14 @@ public class MapCanvas extends Canvas {
         gc.fillRect(0, 0, getWidth(), getHeight());
 
         gc.setTransform(trans);
-
-        for(Element element: mapData.getMapSegment())
-        {
-            drawElement(gc, element);
+        int layers = mapData.getMapSegment().size();
+        for(int layer = 0; layer<layers; layer++){
+            for(Element element: mapData.getMapSegment().get(layer))
+            {
+                drawElement(gc, element);
+            }
         }
+
 
         gc.setStroke(Color.RED);
 //        gc.strokeLine(mapData.getMinX(), mapData.getMinY(), mapData.getMaxX(), mapData.getMinY());
