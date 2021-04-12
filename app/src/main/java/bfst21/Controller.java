@@ -258,7 +258,7 @@ public class Controller {
         state = State.MAP;
         disableMenus();
         showLoaderPane(false);
-        cleanupLoad("Working...");
+        cleanupLoad();
         initUI();
         resetView();
     }
@@ -267,7 +267,8 @@ public class Controller {
         state = State.MENU;
         disableMenus();
         mapData = new MapData();
-        cleanupLoad("Failed.");
+        cleanupLoad();
+        statusLabel.setText("Failed.");
         creator.exceptionProperty().get().printStackTrace();
     }
 
@@ -275,14 +276,14 @@ public class Controller {
         state = State.MENU;
         disableMenus();
         mapData = new MapData();
-        cleanupLoad("Cancelled.");
+        cleanupLoad();
+        statusLabel.setText("Cancelled.");
     }
 
-    private void cleanupLoad(String status) {
+    private void cleanupLoad() {
         centerPane.setCursor(Cursor.DEFAULT);
         statusLabel.textProperty().unbind();
         loadingBar.progressProperty().unbind();
-        statusLabel.setText(status);
     }
 
     private void disableMenus() {
@@ -334,7 +335,6 @@ public class Controller {
         scene.getStylesheets().remove(mapCanvas.getTheme().getStylesheet());
         if(theme.getStylesheet() != null) scene.getStylesheets().add(theme.getStylesheet());
         mapCanvas.setTheme(theme);
-        System.out.println(scene.getStylesheets().size());
     }
 
     private void setLabels(Point2D point) {

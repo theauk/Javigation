@@ -21,9 +21,9 @@ public class MapCanvas extends Canvas {
 
     private boolean initialized;
     private final int ZOOM_FACTOR = 2;
+    public final static byte MIN_ZOOM_LEVEL = 1;
+    public final static byte MAX_ZOOM_LEVEL = 19;
     private byte zoomLevel = MIN_ZOOM_LEVEL;
-    public final static int MIN_ZOOM_LEVEL = 1;
-    public final static int MAX_ZOOM_LEVEL = 19;
     private Map<String, Byte> zoomMap;
 
     private final StringProperty ratio = new SimpleStringProperty("- - -");
@@ -112,20 +112,18 @@ public class MapCanvas extends Canvas {
         //Calculations need y to be before x in a point.
         double earthRadius = 6371e3; //in meters
 
-        double lat1 = start.getY() * Math.PI / 180;
-        double lat2 = end.getY() * Math.PI / 180;
+        double lat1 = Math.toRadians(start.getY());
+        double lat2 = Math.toRadians(end.getY());
         double lon1 = start.getX();
         double lon2 = end.getX();
 
-        double deltaLat = (lat2 - lat1) * Math.PI / 180;
-        double deltaLon = (lon2 - lon1) * Math.PI / 180;
+        double deltaLat = Math.toRadians(lat2 - lat1);
+        double deltaLon = Math.toRadians(lon2 - lon1);
 
         double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = earthRadius * c;
 
-        double scale = Math.pow(10, 1);
-        return Math.round(distance * scale) / scale;
+        return earthRadius * c;
     }
 
     private void calculateRatio()
@@ -240,7 +238,7 @@ public class MapCanvas extends Canvas {
         return -value * 0.56f;
     }
 
-    public int getZoomLevel() {
+    public byte getZoomLevel() {
         return zoomLevel;
     }
 
@@ -270,7 +268,7 @@ public class MapCanvas extends Canvas {
         double dy = (minYMap - mapData.getMinY());
 
         double zoom = getWidth() / (mapData.getMaxX() - mapData.getMinX()); //Get the scale for the view to show all of the map
-        int levels = (int) (Math.log(zoom) / Math.log(ZOOM_FACTOR));                  //Calculate amount of levels to zoom in
+        int levels = (int) (Math.log(zoom) / Math.log(ZOOM_FACTOR));        //Calculate amount of levels to zoom in
 
         pan(dx, dy);
         zoom(true, levels);
