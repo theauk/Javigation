@@ -331,9 +331,10 @@ public class Controller {
     private void setTheme(String themeName) {
         String name = themes.get(themeName);
         Theme theme = loader.loadTheme(name);
-        scene.getStylesheets().clear();
+        scene.getStylesheets().remove(mapCanvas.getTheme().getStylesheet());
         if(theme.getStylesheet() != null) scene.getStylesheets().add(theme.getStylesheet());
         mapCanvas.setTheme(theme);
+        System.out.println(scene.getStylesheets().size());
     }
 
     private void setLabels(Point2D point) {

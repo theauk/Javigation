@@ -235,6 +235,10 @@ public class MapCanvas extends Canvas {
         return zoomLevel;
     }
 
+    public Theme getTheme() {
+        return theme;
+    }
+
     public void setTheme(Theme theme) {
         this.theme = theme;
         repaint();
