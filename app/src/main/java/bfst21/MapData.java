@@ -3,16 +3,12 @@ package bfst21;
 import bfst21.exceptions.KDTreeEmptyException;
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
-
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.*;
 import bfst21.view.CanvasBounds;
-import javafx.geometry.Point2D;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 public class MapData {
     private KDTree<Node> closetRoadTree;
@@ -28,7 +24,7 @@ public class MapData {
 
     }
 
-    public void addDataTrees(KDTree<Node> highWayRoadNodes, RTree rTree, RoadGraph roadGraph,AddressTriesTree addressTree ){
+    public void addDataTrees(KDTree<Node> highWayRoadNodes, RTree rTree, RoadGraph roadGraph, AddressTriesTree addressTree) {
         this.rTree = rTree;
         this.closetRoadTree = highWayRoadNodes;
         this.addressTree = addressTree;
@@ -53,10 +49,10 @@ public class MapData {
         String names = "";
         HashSet<String> list = new HashSet<>();
         try {
-            Node node =  closetRoadTree.getNearestNode(x,y);
-            if(node.getReferencedHighWays() != null){
-                for(Way way : node.getReferencedHighWays()){
-                    if(way.getName()!=null)list.add(way.getName());
+            Node node = closetRoadTree.getNearestNode(x, y);
+            if (node.getReferencedHighWays() != null) {
+                for (Way way : node.getReferencedHighWays()) {
+                    if (way.getName() != null) list.add(way.getName());
                 }
                 names = String.join(", ", list);
             }
@@ -71,7 +67,7 @@ public class MapData {
         Node nearestRoadNode = null;
         try {
             nearestRoadNode = closetRoadTree.getNearestNode(x, y);
-        } catch (bfst21.Exceptions.KDTreeEmptyException e) {
+        } catch (KDTreeEmptyException e) {
             e.printStackTrace();
         }
         return nearestRoadNode;

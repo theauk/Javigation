@@ -1,8 +1,8 @@
 package bfst21;
 
-import bfst21.exceptions.NoOSMInZipFileException;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
+import bfst21.exceptions.NoOSMInZipFileException;
 import bfst21.view.CanvasBounds;
 import bfst21.view.MapCanvas;
 import bfst21.view.Theme;
@@ -24,43 +24,30 @@ import javafx.util.Duration;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Controller {
 
+    private final String BINARY_FILE = "/small.osm";
     private MapData mapData;
     private Loader loader;
     private Creator creator;
-    private final String BINARY_FILE = "/small.osm";
-
     private Map<String, String> themes;
     private Point2D lastMouse = new Point2D(0, 0);
     private boolean viaZoomSlider = true;
-
-    private enum State {
-        MENU,
-        LOADING,
-        MAP
-    }
-
     private Node currentFromNode;
     private Node currentToNode;
-
     private State state = State.MENU;
-
-    @FXML private MapCanvas mapCanvas;
-
+    @FXML
+    private MapCanvas mapCanvas;
     @FXML
     private Scene scene;
     @FXML
     private StackPane centerPane;
     @FXML
     private VBox loaderPane;
-
     @FXML
     private Label coordsLabel;
     @FXML
@@ -79,27 +66,32 @@ public class Controller {
     private Label boundsTL;
     @FXML
     private Label boundsBL;
-
     @FXML
     private ProgressIndicator loadingBar;
     @FXML
     private Slider zoomSlider;
-
-    @FXML private Menu themeMenu;
-    @FXML private MenuItem openItem;
-    @FXML private MenuItem resetItem;
-    @FXML private MenuItem cancelItem;
-    @FXML private MenuItem zoomInItem;
-    @FXML private MenuItem zoomOutItem;
-
-    @FXML private Button zoomInButton;
-    @FXML private Button zoomOutButton;
-    @FXML private RadioMenuItem defaultThemeItem;
-    @FXML private RadioMenuItem rTreeDebug;
-
+    @FXML
+    private Menu themeMenu;
+    @FXML
+    private MenuItem openItem;
+    @FXML
+    private MenuItem resetItem;
+    @FXML
+    private MenuItem cancelItem;
+    @FXML
+    private MenuItem zoomInItem;
+    @FXML
+    private MenuItem zoomOutItem;
+    @FXML
+    private Button zoomInButton;
+    @FXML
+    private Button zoomOutButton;
+    @FXML
+    private RadioMenuItem defaultThemeItem;
+    @FXML
+    private RadioMenuItem rTreeDebug;
     @FXML
     private ToggleGroup themeGroup;
-
     @FXML
     private TextField textFieldFromNav;
     @FXML
@@ -246,7 +238,7 @@ public class Controller {
         long fileSize;
 
         try {
-            if(file != null) {
+            if (file != null) {
                 inputStream = loader.load(file.getPath());
                 fileSize = file.getName().endsWith(".zip") ? loader.getZipFileEntrySize(file.getPath()) : file.length();
             } else {
@@ -326,21 +318,19 @@ public class Controller {
     }
 
     private void disableMenus() {
-        if(state == State.MENU) {
+        if (state == State.MENU) {
             openItem.setDisable(false);
             zoomInItem.setDisable(true);
             zoomOutItem.setDisable(true);
             resetItem.setDisable(true);
             cancelItem.setDisable(true);
-        }
-        else if(state == State.LOADING) {
+        } else if (state == State.LOADING) {
             openItem.setDisable(true);
             zoomInItem.setDisable(true);
             zoomOutItem.setDisable(true);
             resetItem.setDisable(true);
             cancelItem.setDisable(false);
-        }
-        else if(state == State.MAP) {
+        } else if (state == State.MAP) {
             openItem.setDisable(false);
             zoomInItem.setDisable(false);
             zoomOutItem.setDisable(false);
@@ -351,8 +341,8 @@ public class Controller {
 
     private void showLoaderPane(boolean show) {
         FadeTransition ft = new FadeTransition(Duration.millis(500), loaderPane);
-        if(show) {
-            if(loaderPane.isVisible()) return;
+        if (show) {
+            if (loaderPane.isVisible()) return;
             statusLabel.setText("Waiting");
             loadingBar.setProgress(0);
             loaderPane.setVisible(true);
@@ -372,7 +362,7 @@ public class Controller {
         String name = themes.get(themeName);
         Theme theme = loader.loadTheme(name);
         scene.getStylesheets().remove(mapCanvas.getTheme().getStylesheet());
-        if(theme.getStylesheet() != null) scene.getStylesheets().add(theme.getStylesheet());
+        if (theme.getStylesheet() != null) scene.getStylesheets().add(theme.getStylesheet());
         mapCanvas.setTheme(theme);
     }
 
@@ -440,29 +430,26 @@ public class Controller {
     }
 
     private void getCoordinateNearestRoadString(boolean from, MouseEvent e) { // TODO: 4/12/21 clean up
-        try {
-            Point2D cursorPoint = new Point2D(e.getX(), e.getY());
-            Point2D geoCoords = mapCanvas.getGeoCoords(cursorPoint.getX(), cursorPoint.getY());
-            Node nearestRoadNode = mapData.getNearestRoadNode((float) geoCoords.getX(), (float) -geoCoords.getY() / 0.56f);
 
-            String names = "";
-            ArrayList<String> list = new ArrayList<>();
-            if (nearestRoadNode.getReferencedHighWays() != null) {
-                for (Way way : nearestRoadNode.getReferencedHighWays()) {
-                    if (way.getName() != null) list.add(way.getName());
-                }
-                names = String.join(", ", list);
-            }
+        Point2D cursorPoint = new Point2D(e.getX(), e.getY());
+        Point2D geoCoords = mapCanvas.getGeoCoords(cursorPoint.getX(), cursorPoint.getY());
+        Node nearestRoadNode = mapData.getNearestRoadNode((float) geoCoords.getX(), (float) -geoCoords.getY() / 0.56f);
 
-            if (from) {
-                textFieldFromNav.setText(names);
-                currentFromNode = nearestRoadNode;
-            } else {
-                textFieldToNav.setText(names);
-                currentToNode = nearestRoadNode;
+        String names = "";
+        ArrayList<String> list = new ArrayList<>();
+        if (nearestRoadNode.getReferencedHighWays() != null) {
+            for (Way way : nearestRoadNode.getReferencedHighWays()) {
+                if (way.getName() != null) list.add(way.getName());
             }
-        } catch (NonInvertibleTransformException nonInvertibleTransformException) {
-            nonInvertibleTransformException.printStackTrace();
+            names = String.join(", ", list);
+        }
+
+        if (from) {
+            textFieldFromNav.setText(names);
+            currentFromNode = nearestRoadNode;
+        } else {
+            textFieldToNav.setText(names);
+            currentToNode = nearestRoadNode;
         }
     }
 
@@ -483,5 +470,11 @@ public class Controller {
     public void getDijkstraPath() { // TODO: 4/12/21 need to repaint if no pan/zoom before new route
         ArrayList<Node> res = mapData.getDijkstraRoute(currentFromNode, currentToNode);
         mapCanvas.drawDijkstra(res);
+    }
+
+    private enum State {
+        MENU,
+        LOADING,
+        MAP
     }
 }
