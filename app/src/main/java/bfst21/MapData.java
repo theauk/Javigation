@@ -18,7 +18,7 @@ import java.util.List;
 public class MapData {
     private KDTree<Node> closetRoadTree;
     private RTree rTree;
-    private List<Element> mapSegment; //Only content within bounds
+    private ArrayList<ArrayList<Element>> mapSegment; //Only content within bounds
     private float minX, minY, maxX, maxY;
     private AddressTriesTree addressTree;
     private RoadGraph roadGraph;
@@ -68,7 +68,7 @@ public class MapData {
         return names;
     }
 
-    public List<Element> getMapSegment() {
+    public ArrayList<ArrayList<Element>> getMapSegment() {
         return mapSegment;
     }
 
