@@ -371,26 +371,17 @@ public class Controller {
 
     @FXML
     private void setRTreeDebug() {
-        mapData.setRTreeDebug(rTreeDebug.isSelected()); // TODO: 3/31/21 which class should it go via?
+        mapData.setRTreeDebug(rTreeDebug.isSelected());
         mapCanvas.rTreeDebugMode();
     }
 
     @FXML
-    public void getDijkstraPath(ActionEvent actionEvent) {
-        //return mapData.getNearestRoadNode((float) x, (float) -y / 0.56f); // TODO: 4/9/21 fix values
-        ArrayList<Node> res = mapData.getDijkstraRoute(0f, 0f);
-        mapCanvas.drawDijkstraDebug(res);
-    }
-
-    @FXML
-    public void getPointNavFrom(ActionEvent actionEvent) {
-        System.out.println("From");
+    public void getPointNavFrom(ActionEvent actionEvent) { // TODO: 4/12/21 better way to do this?
         getPointNav(true);
     }
 
     @FXML
     public void getPointNavTo(ActionEvent actionEvent) {
-        System.out.println("To");
         getPointNav(false);
     }
 
@@ -399,7 +390,7 @@ public class Controller {
         mapCanvas.setOnMouseClicked(event); // TODO: 4/12/21 remove the event listener after the user has clicked
     }
 
-    private void getCoordinateNearestRoadString(boolean from, MouseEvent e) {
+    private void getCoordinateNearestRoadString(boolean from, MouseEvent e) { // TODO: 4/12/21 clean up
         try {
             Point2D cursorPoint = new Point2D(e.getX(), e.getY());
             Point2D geoCoords = mapCanvas.getGeoCoords(cursorPoint.getX(), cursorPoint.getY());
@@ -428,6 +419,20 @@ public class Controller {
 
     @FXML
     public void searchNav() {
+        if (currentToNode == null || currentFromNode == null) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Navigation Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Please enter both from and to");
+            alert.showAndWait();
+        } else {
+            getDijkstraPath();
+        }
+    }
 
+    @FXML
+    public void getDijkstraPath() { // TODO: 4/12/21 need to repaint if no pan/zoom before new route
+        ArrayList<Node> res = mapData.getDijkstraRoute(currentFromNode, currentToNode);
+        mapCanvas.drawDijkstra(res);
     }
 }

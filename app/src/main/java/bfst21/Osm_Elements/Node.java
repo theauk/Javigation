@@ -21,7 +21,6 @@ public class Node extends Element {
         this.xMax = lon;
         this.yMin = -lat / 0.56f;
         this.yMax = -lat / 0.56f;
-
     }
 
     public Node(long id, float lon, float lat, boolean nodeFromNode) {

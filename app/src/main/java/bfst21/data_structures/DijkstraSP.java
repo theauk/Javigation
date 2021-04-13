@@ -45,8 +45,11 @@ public class DijkstraSP {
             if (n != to) relax(n);
             else break;
         }
+        if (n != to) {
+            System.out.println("island"); // TODO: 4/12/21 fix this / do something -> happens when a route cannot be found as the last node should be "to" node'en if it worked. 
+        }
         ArrayList<Node> res = getTrack(new ArrayList<>(), n);
-        //printResult(res);
+
         return res;
     }
 

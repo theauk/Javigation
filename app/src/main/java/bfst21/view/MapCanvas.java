@@ -247,7 +247,7 @@ public class MapCanvas extends Canvas {
         repaint();
     }
 
-    public void drawDijkstraDebug(ArrayList<Node> res) {
+    public void drawDijkstra(ArrayList<Node> res) {
         GraphicsContext gc = getGraphicsContext2D();
         gc.save();
         gc.setTransform(new Affine());

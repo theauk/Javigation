@@ -51,7 +51,6 @@ public class MapData {
 
     public String getNearestRoad(float x, float y) {
         String names = "";
-        //System.out.println(x + " " + y);
         HashSet<String> list = new HashSet<>();
         try {
             Node node =  closetRoadTree.getNearestNode(x,y);
@@ -78,21 +77,9 @@ public class MapData {
         return nearestRoadNode;
     }
 
-    public ArrayList<Node> getDijkstraRoute(float x, float y) {
-        ArrayList<Node> pathNodes = new ArrayList<>();
-        try {
-            //Node node1 = closetRoadTree.getNearestNode(12.594574f, -99.40638f);
-            //Node node2 = closetRoadTree.getNearestNode( 12.595245f, -99.40244f);
-            //Node node1 = closetRoadTree.getNearestNode(12.594574f, -99.40638f);
-            //Node node2 = closetRoadTree.getNearestNode( 12.584137f, -99.425026f);
-            Node node1 = closetRoadTree.getNearestNode(12.5877075f, -99.39949f);
-            Node node2 = closetRoadTree.getNearestNode( 12.577728f, -99.42861f);
-            DijkstraSP d = new DijkstraSP(node1, node2, "v", "f");
-            pathNodes = d.getPath();
-            return pathNodes;
-        } catch (KDTreeEmptyException e) {
-            e.printStackTrace();
-        }
+    public ArrayList<Node> getDijkstraRoute(Node from, Node to) {
+        DijkstraSP d = new DijkstraSP(from, to, "v", "f");
+        ArrayList<Node> pathNodes = d.getPath();
         return pathNodes;
     }
 
@@ -100,12 +87,9 @@ public class MapData {
         return mapSegment;
     }
 
-
-
     public Node getAddressNode(String address) {
         return addressTree.getAddressNode(address);
     }
-
 
     public float getMinX() {
         return minX;
