@@ -205,7 +205,7 @@ public class Creator extends Task<Void> {
                 break;
             case "building":
                 relation.setType(k);
-                relation.setLayer(3);
+                relation.setLayer(2);
                 break;
             case "natural":
                 if(v.equals("water")) relation.setType(v);
@@ -228,7 +228,7 @@ public class Creator extends Task<Void> {
             case "building":
                 if(v.equals("yes")) {
                     way.setType(v);
-                    way.setLayer(3);
+                    way.setLayer(2);
                 }
                 break;
 
@@ -238,6 +238,13 @@ public class Creator extends Task<Void> {
                     way.setLayer(1);
                 }
                 break;
+
+            case "landuse":
+            if (v.equals("forest")) {
+                way.setType(v);
+                way.setLayer(1);
+            }
+            break;
             case "highway":
                 checkHighWayType(way,v);
                 break;

@@ -18,8 +18,8 @@ public class Node extends Element{
         super(id);
         this.xMin = lon;
         this.xMax = lon;
-        this.yMin = -lat / 0.56f;
-        this.yMax = -lat / 0.56f;
+        this.yMin = -lat/0.56f;
+        this.yMax = this.yMin;
 
     }
 
