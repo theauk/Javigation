@@ -1,5 +1,7 @@
 package bfst21.Osm_Elements;
 
+import javafx.scene.canvas.GraphicsContext;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,5 +62,8 @@ public abstract class NodeHolder extends Element {
     public List<Node> getNodes() {
         return nodes;
     }
+
+    
+    public abstract void draw(GraphicsContext gc); // TODO: 4/14/21 necessary? 
 
 }

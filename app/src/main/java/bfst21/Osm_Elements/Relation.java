@@ -43,11 +43,42 @@ public class Relation extends NodeHolder {
 
     @Override
     public void draw(GraphicsContext gc) {
+        if (inner.size() > 0) {
+            gc.beginPath();
+            gc.moveTo(inner.get(0).getxMin(), inner.get(0).getyMin());
+            for (var node : inner) {
+                gc.lineTo(node.getxMin(), node.getyMin());
+            }
+
+        }
+
+        if (outer.size() > 0) {
+
+            gc.moveTo(outer.get(0).getxMin(), outer.get(0).getyMin());
+            for (var node : outer) {
+                gc.lineTo(node.getxMin(), node.getyMin());
+            }
+            gc.stroke();
+        }
+
         // TODO: 28-03-2021 make draw method
-        gc.beginPath();
+        //gc.beginPath();
+
+        /*for (Way w : ways) {
+            gc.setStroke(Color.RED);
+            List<Node> n = w.getNodes();
+
+        }*/
+
+        /*for (Way w : ways) {
+            gc.setStroke(Color.RED);
+            gc.beginPath();
+            w.relationDraw(gc);
+            gc.stroke();
+        }*/
 
 
-            if(isMultiPolygon){
+            /*if(isMultiPolygon){
                 if(inner != null){
                     for (Way way : inner) {
                         way.draw(gc);
@@ -65,34 +96,35 @@ public class Relation extends NodeHolder {
                     way.draw(gc);
                 }
                 gc.stroke();
-            }
+            }*/
     }
-    public void setIsMultiPolygon(){
+
+    public void setIsMultiPolygon() {
         isMultiPolygon = true;
     }
 
-    public boolean isMultiPolygon(){
+    public boolean isMultiPolygon() {
         return isMultiPolygon;
     }
 
     private ArrayList<Way> mergeWays(ArrayList<Way> ways) {
         /*
-        * Inner and outer rings are created from closed ways whenever possible,
-        * except when these ways become very large (on the order of 2000 nodes). W
-        * ays are usually not shared by different multipolygons.
-        * From OSM wiki - mapping stype best practice with Relations
-        */
-        Map<Node,Way> pieces = new HashMap<>();
+         * Inner and outer rings are created from closed ways whenever possible,
+         * except when these ways become very large (on the order of 2000 nodes). W
+         * ays are usually not shared by different multipolygons.
+         * From OSM wiki - mapping stype best practice with Relations
+         */
+        Map<Node, Way> pieces = new HashMap<>();
         for (var way : ways) {
             var before = pieces.remove(way.first());
             var after = pieces.remove(way.last());
             if (before == after) after = null;
             var merged = Way.merge(before, way, after);
-            pieces.put(merged.first(),merged);
-            pieces.put(merged.last(),merged);
+            pieces.put(merged.first(), merged);
+            pieces.put(merged.last(), merged);
         }
         ArrayList<Way> merged = new ArrayList<>();
-        pieces.forEach((node,way) -> {
+        pieces.forEach((node, way) -> {
             if (way.last() == node) {
                 merged.add(way);
             }
@@ -102,7 +134,7 @@ public class Relation extends NodeHolder {
 
 
     public void LastWayOuter(boolean isOuter) {
-        if(!ways.isEmpty()) {
+        if (!ways.isEmpty()) {
             if (isOuter) {
                 if (outer == null) outer = new ArrayList<>();
                 outer.add(ways.get(ways.size() - 1));

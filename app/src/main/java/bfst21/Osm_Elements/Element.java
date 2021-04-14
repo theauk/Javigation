@@ -66,5 +66,4 @@ public abstract class Element implements Spatializable {
         return layer;
     }
 
-
 }

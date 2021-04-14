@@ -142,7 +142,10 @@ public class Creator extends Task<Void> {
                                     var type = (reader.getAttributeValue(null, "type"));
                                     var refR = Long.parseLong(reader.getAttributeValue(null, "ref"));
                                     if (type.equals("way")) {
-                                        relation.addWay(idToWay.get(refR));
+                                        if (idToWay.get(refR) != null) {
+                                            relation.addWay(idToWay.get(refR)); // TODO: 4/14/21 fix
+                                            relation.addAllNodes(idToWay.get(refR).getNodes());
+                                        }
                                     }
                                     if (type.equals("node")) {
                                         relation.addNode(idToNode.get(refR));
@@ -188,7 +191,12 @@ public class Creator extends Task<Void> {
                                     if(relation.hasType()){
                                         if(relation.getType().equals("restriction")){
                                             roadGraph.addRestriction(relation);
-                                        }else rTree.insert(relation);
+                                        }else {
+                                        /*for (Way w : relation.getWays()) {
+                                            rTree.insert(w);
+                                          }*/
+                                            rTree.insert(relation);
+                                        }
                                     }
                                 }
                                 relation = null;
