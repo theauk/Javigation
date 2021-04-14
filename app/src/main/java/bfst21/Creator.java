@@ -159,14 +159,16 @@ public class Creator extends Task<Void> {
                                             relation.addInnerOuterWay(idToWay.get(refR), true);
                                         }
                                         if (role.equals("to")){
-
+                                            relation.setTo(idToWay.get(refR));
                                         }
                                         if (role.equals("from")){
-
+                                            relation.setFrom(idToWay.get(refR));
                                         }
-                                        if (role.equals("via")){
 
-                                        }
+                                    }
+                                    if (role.equals("via")){
+                                        relation.setVia(idToNode.get(refR));
+
                                     }
                                 }
                                 break;
@@ -205,7 +207,8 @@ public class Creator extends Task<Void> {
                             case "relation":
                                 if (relation != null) {
                                     if (relation.hasType()) {
-                                        if (relation.getType().equals("restriction")) {
+                                        if (relation.getType().equals("restriction") && relation.getVia() != null) {
+                                            // TODO: 14-04-2021 needs be bettter plz 
                                             nodeToRestriction.put(relation.getVia(), relation);
                                         } else {
                                             rTree.insert(relation);
@@ -246,8 +249,16 @@ public class Creator extends Task<Void> {
                 relation.setLayer(2);
                 break;
             case "natural":
-                if (v.equals("water")) relation.setType(v);
-                relation.setLayer(1);
+                if (v.equals("water")) {
+                    relation.setType(v);
+                    relation.setLayer(1);
+                }
+                break;
+            case "leisure":
+                if (v.equals("park")) {
+                    relation.setType(v);
+                    relation.setLayer(1);
+                }
                 break;
             // TODO: 07-04-2021 park green areas; 
         }
@@ -261,13 +272,17 @@ public class Creator extends Task<Void> {
                     way.setType(v);
                     way.setLayer(4);
                 }
+                if (v.equals("water")) {
+                    way.setType(v);
+                    way.setLayer(1);
+                }
                 break;
 
             case "building":
-                if (v.equals("yes")) {
+
                     way.setType(k);
                     way.setLayer(2);
-                }
+
                 break;
 
             case "leisure":
