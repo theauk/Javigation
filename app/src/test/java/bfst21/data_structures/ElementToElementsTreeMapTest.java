@@ -8,12 +8,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class NodeToWayMapTest {
-    NodeToWayMap map;
+class ElementToElementsTreeMapTest {
+    ElementToElementsTreeMap map;
 
     @BeforeEach
     void setUp() {
-        map = new NodeToWayMap();
+        map = new ElementToElementsTreeMap();
     }
 
     @Test

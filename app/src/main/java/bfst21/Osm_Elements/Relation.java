@@ -9,13 +9,40 @@ import java.util.Map;
 public class Relation extends NodeHolder {
 
     private ArrayList<Way> ways;
+    private String name;
+    private boolean isMultiPolygon;
 
     private ArrayList<Way> innerWays;
     private ArrayList<Way> outerWays;
 
-    private String name;
+
     private String restriction;
-    private boolean isMultiPolygon;
+    private Way to,from;
+    private Node via;
+
+    public Way getTo() {
+        return to;
+    }
+
+    public void setTo(Way to) {
+        this.to = to;
+    }
+
+    public Way getFrom() {
+        return from;
+    }
+
+    public void setFrom(Way from) {
+        this.from = from;
+    }
+
+    public Node getVia() {
+        return via;
+    }
+
+    public void setVia(Node via) {
+        this.via = via;
+    }
 
     public Relation(long id) {
         super(id);

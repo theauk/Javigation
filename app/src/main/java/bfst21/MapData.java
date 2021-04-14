@@ -1,5 +1,6 @@
 package bfst21;
 
+import bfst21.Osm_Elements.Relation;
 import bfst21.exceptions.KDTreeEmptyException;
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
@@ -15,21 +16,22 @@ public class MapData {
     private ArrayList<ArrayList<Element>> mapSegment; //Only content within bounds
     private float minX, minY, maxX, maxY;
     private AddressTriesTree addressTree;
-    private RoadGraph roadGraph;
     private boolean rTreeDebug;
-    private NodeToWayMap nodeToHighWay;
+    private ElementToElementsTreeMap<Node,Way> nodeToHighWay;
+    private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
 
     public MapData() {
         mapSegment = new ArrayList<>();
 
     }
 
-    public void addDataTrees(KDTree<Node> highWayRoadNodes, RTree rTree, RoadGraph roadGraph, AddressTriesTree addressTree, NodeToWayMap nodeToWayMap) {
+    public void addDataTrees(KDTree<Node> highWayRoadNodes, RTree rTree, ElementToElementsTreeMap<Node, Relation> nodeToRestriction ,AddressTriesTree addressTree, ElementToElementsTreeMap<Node,Way> nodeToWayMap) {
         this.rTree = rTree;
         this.closetRoadTree = highWayRoadNodes;
         this.addressTree = addressTree;
-        this.roadGraph = roadGraph;
         nodeToHighWay = nodeToWayMap;
+        this.nodeToRestriction = nodeToRestriction;
+
         buildTrees();
     }
 
@@ -83,7 +85,7 @@ public class MapData {
     }
 
     public ArrayList<Node> getDijkstraRoute(Node from, Node to) {
-        DijkstraSP d = new DijkstraSP(nodeToHighWay, from, to, "v", "f");
+        DijkstraSP d = new DijkstraSP(nodeToHighWay,nodeToRestriction, from, to, "v", "f");
         ArrayList<Node> pathNodes = d.getPath();
         return pathNodes;
     }

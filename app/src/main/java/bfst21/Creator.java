@@ -58,9 +58,9 @@ public class Creator extends Task<Void> {
 
         KDTree<Node> highWayRoadNodes = new KDTree<>(2, 4);
         RTree rTree = new RTree(1, 30, 4);
-        RoadGraph roadGraph = new RoadGraph();
         AddressTriesTree addressTree = new AddressTriesTree();
-        NodeToWayMap nodeToWayMap = new NodeToWayMap();
+        ElementToElementsTreeMap<Node,Way> nodeToWayMap = new ElementToElementsTreeMap<>();
+        ElementToElementsTreeMap<Node, Relation> nodeToRestriction = new ElementToElementsTreeMap<>();
 
         while (reader.hasNext()) {
             if (isCancelled()) return;   //Abort task
@@ -158,6 +158,15 @@ public class Creator extends Task<Void> {
                                         if (role.equals("inner")) {
                                             relation.addInnerOuterWay(idToWay.get(refR), true);
                                         }
+                                        if (role.equals("to")){
+
+                                        }
+                                        if (role.equals("from")){
+
+                                        }
+                                        if (role.equals("via")){
+
+                                        }
                                     }
                                 }
                                 break;
@@ -197,7 +206,7 @@ public class Creator extends Task<Void> {
                                 if (relation != null) {
                                     if (relation.hasType()) {
                                         if (relation.getType().equals("restriction")) {
-                                            roadGraph.addRestriction(relation);
+                                            nodeToRestriction.put(relation.getVia(), relation);
                                         } else {
                                             rTree.insert(relation);
                                         }
@@ -211,7 +220,7 @@ public class Creator extends Task<Void> {
             }
         }
         updateMessage("Finalizing...");
-        mapData.addDataTrees(highWayRoadNodes, rTree, roadGraph, addressTree, nodeToWayMap);
+        mapData.addDataTrees(highWayRoadNodes, rTree, nodeToRestriction, addressTree, nodeToWayMap);
         reader.close();
     }
 

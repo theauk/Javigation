@@ -1,8 +1,8 @@
 package bfst21.data_structures;
 
 import bfst21.Osm_Elements.Node;
+import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,7 +18,7 @@ public class DijkstraSP {
     // TODO: 4/10/21 Consider distTo and Edgefrom types => what makes sense? 
     // TODO: 4/10/21 Is distance between nodes correct? 
 
-    private NodeToWayMap nodeToWayMap;
+    private ElementToElementsTreeMap nodeToWayMap;
     private Node from;
     private Node to;
     private String vehicleType;
@@ -26,9 +26,11 @@ public class DijkstraSP {
     private HashMap<Long, Double> distTo; // TODO: 4/9/21 node?
     private HashMap<Long, Node> nodeBefore;
     private HashMap<Node, Double> pq;
+    private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
 
 
-    public DijkstraSP(NodeToWayMap nodeToWayMap, Node from, Node to, String vehicleType, String fastestOrShortest) { // TODO: 4/9/21 right now you need to wipe to create new route
+    public DijkstraSP(ElementToElementsTreeMap<Node, Way> nodeToWayMap,ElementToElementsTreeMap<Node, Relation> nodeToRestriction , Node from, Node to, String vehicleType, String fastestOrShortest) {// TODO: 4/9/21 right now you need to wipe to create new route
+        this.nodeToRestriction = nodeToRestriction;
         this.nodeToWayMap = nodeToWayMap;
         this.from = from;
         this.to = to;
