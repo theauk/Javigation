@@ -64,7 +64,7 @@ public class MapData {
         ArrayList<Way> ways = nodeToHighWay.getWaysFromNode(node);
         if (ways != null) {
             for (Way way : ways) {
-                if (way.getName() != null) list.add(way.getName());
+                if (way.getName() != null && !list.contains(way.getName())) list.add(way.getName());
             }
             names = String.join(", ", list);
         }
