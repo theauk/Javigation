@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 public class AddressTriesTreeTest {
     private static AddressTriesTree addressTriesTree;
     private static Node node;
-    private static AddressNode addressNode;
 
 
 
