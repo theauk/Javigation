@@ -22,26 +22,34 @@ public class DijkstraSP {
     private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
     private Node from;
     private Node to;
-    private String vehicleType;
-    private String fastestOrShortest;
-    private HashMap<Long, Double> distTo; // TODO: 4/9/21 node?
+    private HashMap<Long, Double> unitsTo;
     private HashMap<Long, Node> nodeBefore;
     private HashMap<Node, Double> pq;
+    private boolean car;
+    private boolean bike;
+    private boolean walk;
+    private boolean fastest;
 
-    public DijkstraSP(ElementToElementsTreeMap<Node, Way> nodeToWayMap, ElementToElementsTreeMap<Node, Relation> nodeToRestriction, Node from, Node to, String vehicleType, String fastestOrShortest) {// TODO: 4/9/21 right now you need to wipe to create new route
+    public DijkstraSP(ElementToElementsTreeMap<Node, Way> nodeToWayMap, ElementToElementsTreeMap<Node, Relation> nodeToRestriction) {// TODO: 4/9/21 right now you need to wipe to create new route
         this.nodeToRestriction = nodeToRestriction;
         this.nodeToWayMap = nodeToWayMap;
+    }
+
+    private void setup(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest) {
         this.from = from;
         this.to = to;
-        this.vehicleType = vehicleType;
-        this.fastestOrShortest = fastestOrShortest;
-        distTo = new HashMap<>();
+        this.car = car;
+        this.bike = bike;
+        this.walk = walk;
+        this.fastest = fastest;
+        unitsTo = new HashMap<>();
         nodeBefore = new HashMap<>();
         pq = new HashMap<>();
     }
 
-    public ArrayList<Node> getPath() {
-        distTo.put(from.getId(), 0.0);
+    public ArrayList<Node> getPath(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest) {
+        setup(from, to, car, bike, walk, fastest);
+        unitsTo.put(from.getId(), 0.0);
         pq.put(from, 0.0);
 
         Node n = null;
@@ -57,7 +65,7 @@ public class DijkstraSP {
         return getTrack(new ArrayList<>(), n);
     }
 
-    private Node temporaryRemoveAndGetMin() {
+    private Node temporaryRemoveAndGetMin() { // TODO: 4/15/21 make more efficient 
         double minValue = Double.POSITIVE_INFINITY;
         Node minNode = null;
 
@@ -71,18 +79,6 @@ public class DijkstraSP {
         return minNode;
     }
 
-    private void printResult(ArrayList<Node> result) {
-        int counter = 1;
-        for (int i = result.size() - 1; i >= 0; i--) {
-            System.out.println("");
-            System.out.println("Node: " + counter + ", id: " + result.get(i).getId() + ", coordinates: " + Arrays.toString(result.get(i).getCoordinates()));
-            System.out.println("Street(s) referenced:");
-            System.out.println("");
-            counter++;
-        }
-        System.out.println("DONE");
-    }
-
     private ArrayList<Node> getTrack(ArrayList<Node> nodes, Node currentNode) {
         if (currentNode != null) {
             nodes.add(currentNode);
@@ -91,35 +87,62 @@ public class DijkstraSP {
         return nodes;
     }
 
-    private void relax(Node from) {
-
-        ArrayList<Way> waysWithFromNode = nodeToWayMap.getWaysFromNode(from);
+    private void relax(Node currentFrom) {
+        ArrayList<Way> waysWithFromNode = nodeToWayMap.getWaysFromNode(currentFrom);
         ArrayList<Node> adjacentNodes = new ArrayList<>();
-        for (Way w : waysWithFromNode) { // TODO: 4/14/21 handle one-way
 
-            if (!w.isOnewayRoad()) {
-                Node previousNode = w.getPreviousNode(from);
-                if (previousNode != null) adjacentNodes.add(previousNode);
-            }
-            Node nextNode = w.getNextNode(from);
-            if (nextNode != null) adjacentNodes.add(nextNode);
+        for (Way w : waysWithFromNode) {
 
-        }
-
-        if (adjacentNodes.size() > 0) {
-            for (Node to : adjacentNodes) {
-                double distanceBetweenFromTo = getDistanceBetweenTwoNodes(from, to);
-                long fromId = from.getId();
-                long toId = to.getId();
-
-                double distanceTo = distTo.get(toId) == null ? Double.POSITIVE_INFINITY : distTo.get(toId);
-
-                if (distanceTo > distTo.get(fromId) + distanceBetweenFromTo) {
-                    distTo.put(toId, distTo.get(fromId) + distanceBetweenFromTo);
-                    nodeBefore.put(toId, from);
-                    pq.put(to, distTo.get(toId)); // do not need if else because updates if it is not there and inserts if not there
+            if (car) {
+                if (w.isDriveable()) {
+                    if (!w.isOnewayRoad()) {
+                        getPreviousNode(adjacentNodes, w, currentFrom);
+                    }
+                    getNextNode(adjacentNodes, w, currentFrom);
+                }
+            } else if (bike) {
+                if (w.isCycleable()) {
+                    getPreviousNode(adjacentNodes, w, currentFrom);
+                    getNextNode(adjacentNodes, w, currentFrom);
+                }
+            } else if (walk) {
+                if (w.isWalkable()) {
+                    getPreviousNode(adjacentNodes, w, currentFrom);
+                    getNextNode(adjacentNodes, w, currentFrom);
                 }
             }
+            if (adjacentNodes.size() > 0) {
+                for (Node currentTo : adjacentNodes) {
+                    checkDistance(currentFrom, currentTo, w); // TODO: 4/15/21 need to now the way type
+                }
+            }
+        }
+    }
+
+    private void getPreviousNode(ArrayList<Node> adjacentNodes, Way w, Node currentFrom) {
+        Node previousNode = w.getPreviousNode(currentFrom);
+        if (previousNode != null) adjacentNodes.add(previousNode);
+    }
+
+    private void getNextNode(ArrayList<Node> adjacentNodes, Way w, Node currentFrom) {
+        Node nextNode = w.getNextNode(currentFrom);
+        if (nextNode != null) adjacentNodes.add(nextNode);
+    }
+
+    private void checkDistance(Node currentFrom, Node currentTo, Way w) { // TODO: 4/15/21 fastest
+        long fromId = currentFrom.getId();
+        long toId = currentTo.getId();
+
+        double currentUnitsTo = unitsTo.get(toId) == null ? Double.POSITIVE_INFINITY : unitsTo.get(toId);
+        double unitsBetweenFromTo = getDistanceBetweenTwoNodes(currentFrom, currentTo);
+        if (fastest) {
+            unitsBetweenFromTo = getTravelTime(unitsBetweenFromTo, w);
+        }
+
+        if (unitsTo.get(fromId) + unitsBetweenFromTo < currentUnitsTo) {
+            unitsTo.put(toId, unitsTo.get(fromId) + unitsBetweenFromTo);
+            nodeBefore.put(toId, currentFrom);
+            pq.put(currentTo, unitsTo.get(toId)); // do not need if else because updates if it is not there and inserts if not there
         }
     }
 
@@ -142,5 +165,22 @@ public class DijkstraSP {
 
         double scale = Math.pow(10, 1);
         return (distance * scale) / scale; // TODO: 4/9/21 scale cancels – why is it there?
+    }
+
+    private double getTravelTime(double distance, Way w) {
+        int speed = w.getMaxSpeed();
+        return distance / speed;
+    }
+
+    private void printResult(ArrayList<Node> result) {
+        int counter = 1;
+        for (int i = result.size() - 1; i >= 0; i--) {
+            System.out.println("");
+            System.out.println("Node: " + counter + ", id: " + result.get(i).getId() + ", coordinates: " + Arrays.toString(result.get(i).getCoordinates()));
+            System.out.println("Street(s) referenced:");
+            System.out.println("");
+            counter++;
+        }
+        System.out.println("DONE");
     }
 }

@@ -19,6 +19,7 @@ public class MapData {
     private boolean rTreeDebug;
     private ElementToElementsTreeMap<Node,Way> nodeToHighWay;
     private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
+    private DijkstraSP dijkstra;
 
     public MapData() {
         mapSegment = new ArrayList<>();
@@ -29,8 +30,9 @@ public class MapData {
         this.rTree = rTree;
         this.closetRoadTree = highWayRoadNodes;
         this.addressTree = addressTree;
-        nodeToHighWay = nodeToWayMap;
         this.nodeToRestriction = nodeToRestriction;
+        nodeToHighWay = nodeToWayMap;
+        dijkstra = new DijkstraSP(nodeToHighWay, nodeToRestriction);
 
         buildTrees();
     }
@@ -85,9 +87,7 @@ public class MapData {
     }
 
     public ArrayList<Node> getDijkstraRoute(Node from, Node to) {
-        DijkstraSP d = new DijkstraSP(nodeToHighWay,nodeToRestriction, from, to, "v", "f");
-        ArrayList<Node> pathNodes = d.getPath();
-        return pathNodes;
+        return dijkstra.getPath(from, to, true, false, false, false);
     }
 
     public ArrayList<ArrayList<Element>> getMapSegment() {

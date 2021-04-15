@@ -106,22 +106,25 @@ public class Way extends NodeHolder {
         for (var node : nodes) {
             gc.lineTo(node.getxMin(), node.getyMin());
         }
-
     }
 
     public boolean isHighWay() {
         return isHighway;
     }
 
-    public boolean isWalkable(){
+    public boolean isWalkable() {
         return isWalkable;
     }
 
-    public boolean isCycleable(){
+    public boolean isCycleable() {
         return isCycleable;
     }
 
-    public boolean isOnewayRoad(){
+    public boolean isDriveable() {
+        return isDriveable;
+    }
+
+    public boolean isOnewayRoad() {
         return onewayRoad;
     }
 
