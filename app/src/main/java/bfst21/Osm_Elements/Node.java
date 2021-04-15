@@ -2,8 +2,6 @@ package bfst21.Osm_Elements;
 
 import javafx.scene.canvas.GraphicsContext;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class Node extends Element {
     public Node(long id, float lon, float lat) {

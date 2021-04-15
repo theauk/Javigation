@@ -88,11 +88,7 @@ public class KDTree<Value extends Element> {
     }
 
     private void removeDuplicates(List<KDTreeNode> nodes) {
-        // TODO: 07-04-2021 remove when not needed
-        double start = System.nanoTime();
         nodes.removeIf(n -> n.isDuplicate);
-        double end = System.nanoTime();
-        System.out.println("Kd tree remove duplicates time : " + (end - start) / 1000000000);
     }
 
     public Value getNearestNode(float x, float y) throws KDTreeEmptyException {

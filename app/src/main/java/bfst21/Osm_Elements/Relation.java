@@ -52,8 +52,6 @@ public class Relation extends NodeHolder {
     public ArrayList<Way> getWays() {
         return ways;
     }
-
-    // TODO: 28-03-2021 due to small input not all relations are "full" // some elements are missing, therefore we need to check for null 
     public void addWay(Way way) {
         if (way != null) {
             ways.add(way);

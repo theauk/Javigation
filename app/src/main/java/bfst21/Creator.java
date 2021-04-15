@@ -266,7 +266,6 @@ public class Creator extends Task<Void> {
                     relation.setLayer(layerTwo);
                 }
                 break;
-            // TODO: 07-04-2021 park green areas; 
         }
     }
 

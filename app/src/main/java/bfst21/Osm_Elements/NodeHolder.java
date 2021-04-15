@@ -17,7 +17,6 @@ public abstract class NodeHolder extends Element {
 
     }
 
-    // TODO: 28-03-2021 Due to relations being bigger than input, some nodes are null. 
     public void addNode(Node node) {
         if (node != null) {
             nodes.add(node);
@@ -62,8 +61,5 @@ public abstract class NodeHolder extends Element {
     public List<Node> getNodes() {
         return nodes;
     }
-
-    
-    public abstract void draw(GraphicsContext gc); // TODO: 4/14/21 necessary? 
 
 }
