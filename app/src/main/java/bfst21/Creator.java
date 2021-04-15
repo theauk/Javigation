@@ -335,9 +335,8 @@ public class Creator extends Task<Void> {
             case "junction":
                 if (v.equals("roundabout")) {
                     way.setOnewayRoad();
-                    way.setType("roundabout"); // TODO: 4/15/21 fix theme
+                    way.setType("roundabout");
                 }
-                // TODO: 06-04-2021 rundkørsel, what to do about that.
                 break;
 
             case "bicycle_road":

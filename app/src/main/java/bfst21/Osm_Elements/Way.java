@@ -144,7 +144,8 @@ public class Way extends NodeHolder {
             }
         }
         if (type.equals("roundabout") && currentNode == nodes.get(nodes.size() - 1)) {
-            return nodes.get(0);
+            // to ensure that the route can get around the roundabout because the first + last node is the same
+            return nodes.get(1);
         } else {
             return nextNode;
         }
