@@ -143,7 +143,11 @@ public class Way extends NodeHolder {
                 nextNode = nodes.get(i + 1);
             }
         }
-        return nextNode;
+        if (type.equals("roundabout") && currentNode == nodes.get(nodes.size() - 1)) {
+            return nodes.get(0);
+        } else {
+            return nextNode;
+        }
     }
 
     public Node getPreviousNode(Node currentNode) {

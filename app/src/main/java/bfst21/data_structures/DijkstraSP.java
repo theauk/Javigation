@@ -28,7 +28,7 @@ public class DijkstraSP {
     private boolean walk;
     private boolean fastest;
 
-    public DijkstraSP(ElementToElementsTreeMap<Node, Way> nodeToWayMap, ElementToElementsTreeMap<Node, Relation> nodeToRestriction) {// TODO: 4/9/21 right now you need to wipe to create new route
+    public DijkstraSP(ElementToElementsTreeMap<Node, Way> nodeToWayMap, ElementToElementsTreeMap<Node, Relation> nodeToRestriction) {
         this.nodeToRestriction = nodeToRestriction;
         this.nodeToWayMap = nodeToWayMap;
     }
@@ -57,10 +57,12 @@ public class DijkstraSP {
             else break;
         }
         if (n != to) {
-            System.out.println("island"); // TODO: 4/12/21 fix this / do something -> happens when a route cannot be found as the last node should be "to" node'en if it worked. 
+            // TODO: 4/12/21 fix this / do something -> happens when a route cannot be found as the last node should be "to" node'en if it worked.
+            System.err.println("Dijkstra: navigation is not possible with this from/to e.g. due to vehicle restrictions, island, etc.");
+            return new ArrayList<>();
+        } else {
+            return getTrack(new ArrayList<>(), n);
         }
-
-        return getTrack(new ArrayList<>(), n);
     }
 
     private Node temporaryRemoveAndGetMin() { // TODO: 4/15/21 make more efficient 
@@ -111,7 +113,7 @@ public class DijkstraSP {
             }
             if (adjacentNodes.size() > 0) {
                 for (Node currentTo : adjacentNodes) {
-                    checkDistance(currentFrom, currentTo, w); // TODO: 4/15/21 need to now the way type
+                    checkDistance(currentFrom, currentTo, w);
                 }
             }
         }
@@ -127,7 +129,7 @@ public class DijkstraSP {
         if (nextNode != null) adjacentNodes.add(nextNode);
     }
 
-    private void checkDistance(Node currentFrom, Node currentTo, Way w) { // TODO: 4/15/21 fastest
+    private void checkDistance(Node currentFrom, Node currentTo, Way w) {
         long fromId = currentFrom.getId();
         long toId = currentTo.getId();
 

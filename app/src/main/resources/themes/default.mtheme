@@ -17,6 +17,7 @@ name = "Default";
 "tertiary" = {iColor = [254, 254, 254], oColor = [157, 157, 157]}, {iWidth = 2, oWidth = 3}, {showAt = 12};
 "unclassified" = {iColor = [254, 254, 254], oColor = [189, 184, 184]}, {iWidth = 1, oWidth = 2}, {showAt = 13};
 "residential" = {iColor = [254, 254, 254], oColor = [189, 184, 184]}, {iWidth = 1, oWidth = 2}, {showAt = 13};
+"roundabout" = {iColor = [254, 254, 254], oColor = [189, 184, 184]}, {iWidth = 1, oWidth = 2}, {showAt = 13};
 
 #Road links
 "motorway_link" = {iColor = [233, 144, 161], oColor = [224, 59, 115]}, {iWidth = 1, oWidth = 2}, {showAt = 13};

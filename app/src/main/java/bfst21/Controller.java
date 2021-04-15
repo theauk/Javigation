@@ -425,7 +425,7 @@ public class Controller {
     }
 
     @FXML
-    public void getPointNavFrom(ActionEvent actionEvent) { // TODO: 4/12/21 better way to do this?
+    public void getPointNavFrom(ActionEvent actionEvent) { // TODO: 4/12/21 better way to do this to avoid two methods?
         getPointNav(true);
     }
 
@@ -454,23 +454,6 @@ public class Controller {
             }
         };
         mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
-    }
-
-    private void getCoordinateNearestRoadString(boolean from, MouseEvent e) { // TODO: 4/12/21 clean up
-
-        Point2D cursorPoint = new Point2D(e.getX(), e.getY());
-        Point2D geoCoords = mapCanvas.getGeoCoords(cursorPoint.getX(), cursorPoint.getY());
-        Node nearestRoadNode = mapData.getNearestRoadNode((float) geoCoords.getX(), (float) -geoCoords.getY() / 0.56f);
-
-        String names = mapData.getNodeHighWayNames(nearestRoadNode);
-        if (from) {
-            textFieldFromNav.setText(names);
-            currentFromNode = nearestRoadNode;
-        } else {
-            textFieldToNav.setText(names);
-            currentToNode = nearestRoadNode;
-        }
-        mapCanvas.removeEventHandler(MouseEvent.MOUSE_CLICKED, this::onMousePressed);
     }
 
     @FXML

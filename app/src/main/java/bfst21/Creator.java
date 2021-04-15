@@ -194,11 +194,13 @@ public class Creator extends Task<Void> {
                                     idToWay.put(way);
                                     if (way.hasType()) {
                                         rTree.insert(way);
-                                    }
-                                    if(way.isHighWay() && way.hasName()){
-                                        nodeToWayMap.putAll(way.getNodes(), way);
-                                        highWayRoadNodes.addAll(way.getNodes());
 
+                                    }
+                                    if(way.isHighWay()) {
+                                        nodeToWayMap.putAll(way.getNodes(), way);
+                                        if (way.hasName()) {
+                                            highWayRoadNodes.addAll(way.getNodes());
+                                        }
                                     }
                                     way = null;
                                 }
@@ -279,10 +281,8 @@ public class Creator extends Task<Void> {
                 break;
 
             case "building":
-
                     way.setType(k);
                     way.setLayer(2);
-
                 break;
 
             case "leisure":
@@ -333,7 +333,10 @@ public class Creator extends Task<Void> {
                 break;
 
             case "junction":
-                if (v.equals("roundabout")) way.setOnewayRoad();
+                if (v.equals("roundabout")) {
+                    way.setOnewayRoad();
+                    way.setType("roundabout"); // TODO: 4/15/21 fix theme
+                }
                 // TODO: 06-04-2021 rundkørsel, what to do about that.
                 break;
 
@@ -409,6 +412,10 @@ public class Creator extends Task<Void> {
             return;
         }
 
+        if (v.contains("roundabout")) {
+            System.out.println("GE");
+        }
+
         if (restOfHighWays(v)) way.setType(v, true);
     }
 
@@ -423,6 +430,7 @@ public class Creator extends Task<Void> {
 
         if (v.equals("pedestrian") || v.equals("footway") || v.equals("cycleway"))
             return true;
+
         else return false;
     }
 
