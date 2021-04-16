@@ -5,7 +5,7 @@ import javafx.scene.canvas.GraphicsContext;
 
 public class Way extends NodeHolder {
     private String name;
-    private int maxspeed;
+    private int maxSpeed;
     private boolean onewayRoad = false;
     private boolean isDriveable = true;
     private boolean isCycleable = true;
@@ -18,35 +18,53 @@ public class Way extends NodeHolder {
         isHighway = false;
     }
 
-    public void setType(String type, boolean isHighway){
+    public Way() {
+        super();
+        isHighway = false;
+    }
+
+    public static Way merge(Way first, Way second) {
+        if (first == null) return second;
+        if (second == null) return first;
+        Way merged = new Way();
+        merged.nodes.addAll(first.nodes);
+        merged.nodes.addAll(second.nodes.subList(1, second.nodes.size()));
+        return merged;
+    }
+
+    public static Way merge(Way before, Way coast, Way after) {
+        return merge(merge(before, coast), after);
+    }
+
+    public void setType(String type, boolean isHighway, boolean foot) {
         super.setType(type);
-        if(isHighway){
-            setBooleans();
-            for(Node n: nodes){
-                n.addReferenceToHighWay(this);
-            }
+        if (isHighway) {
+            setBooleans(foot);
         }
     }
 
-    private void setBooleans() {
+    private void setBooleans(boolean foot) {
         isHighway = true;
         super.setLayer(3);
         if (type.contains("motorway") || type.contains("trunk")) {
             setNotCycleable();
             setNotWalkable();
         }
-        if (type.equals("pedestrian") || type.equals("footway") || type.equals("steps")) {
+        if (type.equals("pedestrian") || type.equals("footway") || type.equals("steps") || type.equals("path")) {
             setNotDriveable();
         }
         if (type.equals("cycleway")) {
             setNotDriveable();
-            setNotWalkable();
+            if (!foot) {
+                setNotWalkable();
+            }
         }
     }
 
-    public boolean hasName(){
+    public boolean hasName() {
         return name != null;
     }
+
     public void setNotCycleable() {
         this.isCycleable = false;
     }
@@ -63,51 +81,47 @@ public class Way extends NodeHolder {
         onewayRoad = true;
     }
 
-    public int getMaxspeed() {
-        if(isDriveable && maxspeed == 0){
+    public int getMaxSpeed() {
+        if (isDriveable && maxSpeed == 0) {
             return 50;
         } else {
-            return maxspeed;
+            return maxSpeed;
         }
     }
 
-    public void setMaxspeed(int maxspeed) {
-        this.maxspeed = maxspeed;
+    public void setMaxSpeed(int maxSpeed) {
+        this.maxSpeed = maxSpeed;
     }
 
     public String getName() {
         return name;
     }
 
-
     public void setName(String name) {
         this.name = name;
     }
 
-    public boolean isHighWay(){
+
+
+    public boolean isHighWay() {
         return isHighway;
     }
 
-    @Override
-    public void draw(GraphicsContext gc) {
-        //TODO Should check for one way.....
-        gc.beginPath();
-        gc.moveTo(nodes.get(0).getxMin(), nodes.get(0).getyMin());
-        for (var node : nodes) {
-            gc.lineTo(node.getxMin(), node.getyMin());
-        }
-        gc.stroke();
-    }
-
-    public boolean isWalkable(){
+    public boolean isWalkable() {
         return isWalkable;
     }
 
-    public boolean isCycleable(){
+    public boolean isCycleable() {
         return isCycleable;
     }
 
-    public boolean isOnewayRoad(){
+    public boolean isDriveable() {
+        return isDriveable;
+    }
+
+    public boolean isOnewayRoad() {
         return onewayRoad;
     }
+
+
 }
