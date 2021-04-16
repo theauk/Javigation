@@ -50,7 +50,7 @@ public class Way extends NodeHolder {
             setNotCycleable();
             setNotWalkable();
         }
-        if (type.equals("pedestrian") || type.equals("footway") || type.equals("steps")) {
+        if (type.equals("pedestrian") || type.equals("footway") || type.equals("steps") || type.equals("path")) {
             setNotDriveable();
         }
         if (type.equals("cycleway")) {
@@ -101,14 +101,7 @@ public class Way extends NodeHolder {
         this.name = name;
     }
 
-    @Override
-    public void draw(GraphicsContext gc) {
-        //TODO Should check for one way.....
-        gc.moveTo(nodes.get(0).getxMin(), nodes.get(0).getyMin());
-        for (var node : nodes) {
-            gc.lineTo(node.getxMin(), node.getyMin());
-        }
-    }
+
 
     public boolean isHighWay() {
         return isHighway;
@@ -130,36 +123,5 @@ public class Way extends NodeHolder {
         return onewayRoad;
     }
 
-    public Node first() {
-        return nodes.get(0);
-    }
 
-    public Node last() {
-        return nodes.get(nodes.size() - 1);
-    }
-
-    public Node getNextNode(Node currentNode) {
-        Node nextNode = null;
-        for (int i = 0; i < nodes.size() - 1; i++) {
-            if (nodes.get(i) == currentNode) {
-                nextNode = nodes.get(i + 1);
-            }
-        }
-        if (type.equals("roundabout") && currentNode == nodes.get(nodes.size() - 1)) {
-            // to ensure that the route can get around the roundabout because the first + last node is the same
-            return nodes.get(1);
-        } else {
-            return nextNode;
-        }
-    }
-
-    public Node getPreviousNode(Node currentNode) {
-        Node previousNode = null;
-        for (int i = 1; i < nodes.size(); i++) {
-            if (nodes.get(i) == currentNode) {
-                previousNode = nodes.get(i - 1);
-            }
-        }
-        return previousNode;
-    }
 }

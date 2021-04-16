@@ -52,8 +52,6 @@ public class Relation extends NodeHolder {
     public ArrayList<Way> getWays() {
         return ways;
     }
-
-    // TODO: 28-03-2021 due to small input not all relations are "full" // some elements are missing, therefore we need to check for null 
     public void addWay(Way way) {
         if (way != null) {
             ways.add(way);
@@ -104,18 +102,18 @@ public class Relation extends NodeHolder {
                 }
             }
         } else {
-            for (Way w : ways) {
-                w.draw(gc);
+            if(ways != null) {
+                for (Way w : ways) {
+                    w.draw(gc);
+                }
+            } if(nodes != null){
+                super.draw(gc);
             }
         }
     }
 
     public void setIsMultiPolygon() {
         isMultiPolygon = true;
-    }
-
-    public boolean isMultiPolygon() {
-        return isMultiPolygon;
     }
 
     private ArrayList<Way> mergeWays(ArrayList<Way> ways) {
