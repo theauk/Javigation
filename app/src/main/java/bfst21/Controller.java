@@ -28,11 +28,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Controller {
+    private final String BINARY_FILE = "/small.osm";
     private MapData mapData;
     private Loader loader;
     private Creator creator;
-    private final String BINARY_FILE = "/small.osm";
-
     private Map<String, String> themes;
     private Point2D lastMouse = new Point2D(0, 0);
     private boolean viaZoomSlider = true;
@@ -41,13 +40,6 @@ public class Controller {
 
     private Node currentFromNode;
     private Node currentToNode;
-
-    private enum State {
-        MENU,
-        LOADING,
-        MAP
-    }
-
     private State state = State.MENU;
     @FXML
     private MapCanvas mapCanvas;
@@ -101,7 +93,6 @@ public class Controller {
     private RadioMenuItem rTreeDebug;
     @FXML
     private ToggleGroup themeGroup;
-
     @FXML
     private TextField textFieldFromNav;
     @FXML
@@ -240,7 +231,7 @@ public class Controller {
     @FXML
     private void onMouseReleased() {
         mapCanvas.setCursor(Cursor.DEFAULT);
-        if(dragged) {
+        if (dragged) {
             mapCanvas.updateMap();
             dragged = false;
         }
@@ -387,7 +378,7 @@ public class Controller {
         String name = themes.get(themeName);
         Theme theme = loader.loadTheme(name);
         scene.getStylesheets().remove(mapCanvas.getTheme().getStylesheet());
-        if(theme.getStylesheet() != null) {
+        if (theme.getStylesheet() != null) {
             scene.getStylesheets().add(theme.getStylesheet());
         }
         mapCanvas.setTheme(theme);
@@ -506,4 +497,5 @@ public class Controller {
         LOADING,
         MAP
     }
+
 }

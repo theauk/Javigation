@@ -3,13 +3,12 @@ package bfst21;
 import bfst21.Exceptions.KDTreeEmptyException;
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
-import bfst21.Osm_Elements.Way;
 import bfst21.Osm_Elements.Relation;
+import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.*;
 import bfst21.view.CanvasBounds;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 public class MapData {
     private KDTree<Node> closetRoadTree;
@@ -18,7 +17,7 @@ public class MapData {
     private float minX, minY, maxX, maxY;
     private AddressTriesTree addressTree;
     private boolean rTreeDebug;
-    private ElementToElementsTreeMap<Node,Way> nodeToHighWay;
+    private ElementToElementsTreeMap<Node, Way> nodeToHighWay;
     private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
     private DijkstraSP dijkstra;
 
@@ -26,7 +25,7 @@ public class MapData {
         mapSegment = new ArrayList<>();
     }
 
-    public void addDataTrees(KDTree<Node> highWayRoadNodes, RTree rTree, ElementToElementsTreeMap<Node, Relation> nodeToRestriction ,AddressTriesTree addressTree, ElementToElementsTreeMap<Node,Way> nodeToWayMap) {
+    public void addDataTrees(KDTree<Node> highWayRoadNodes, RTree rTree, ElementToElementsTreeMap<Node, Relation> nodeToRestriction, AddressTriesTree addressTree, ElementToElementsTreeMap<Node, Way> nodeToWayMap) {
         this.rTree = rTree;
         this.closetRoadTree = highWayRoadNodes;
         this.addressTree = addressTree;
@@ -62,7 +61,7 @@ public class MapData {
         return names;
     }
 
-    public String getNodeHighWayNames(Node node){
+    public String getNodeHighWayNames(Node node) {
         String names = "";
         ArrayList<String> list = new ArrayList<>();
         ArrayList<Way> ways = nodeToHighWay.getWaysFromNode(node);
