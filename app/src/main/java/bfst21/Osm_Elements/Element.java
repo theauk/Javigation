@@ -9,9 +9,15 @@ public abstract class Element implements Spatializable {
     protected float yMin;
     protected float yMax;
     protected String type;
+    protected int layer;
 
     public Element(long id) {
         this.id = id;
+        layer = 4; //default value;
+    }
+
+    public Element(){
+
     }
 
     public long getId() {
@@ -24,6 +30,11 @@ public abstract class Element implements Spatializable {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public void setType(String type, int lay) {
+        this.type = type;
+        if(lay < 5) layer = lay;
     }
 
     public boolean hasType() {
@@ -53,5 +64,11 @@ public abstract class Element implements Spatializable {
         return new float[]{xMin, xMax, yMin, yMax};
     }
 
+    public void setLayer(int lay){
+        if(lay < 5) layer = lay;
+    }
+    public int getLayer(){
+        return layer;
+    }
 
 }
