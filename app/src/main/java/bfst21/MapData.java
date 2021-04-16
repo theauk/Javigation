@@ -1,9 +1,8 @@
 package bfst21;
 
-import bfst21.exceptions.KDTreeEmptyException;
+import bfst21.Exceptions.KDTreeEmptyException;
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
-
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.AddressTriesTree;
 import bfst21.data_structures.KDTree;
@@ -13,7 +12,6 @@ import bfst21.view.CanvasBounds;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 public class MapData {
     private KDTree<Node> closetRoadTree;
@@ -26,7 +24,6 @@ public class MapData {
 
     public MapData() {
         mapSegment = new ArrayList<>();
-
     }
 
     public void addDataTrees(KDTree<Node> highWayRoadNodes, RTree rTree, RoadGraph roadGraph,AddressTriesTree addressTree ){
@@ -40,7 +37,6 @@ public class MapData {
     private void buildTrees() {
         closetRoadTree.buildTree();
     }
-
 
     public void searchInData(CanvasBounds bounds) {
         mapSegment = rTree.search(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY(), rTreeDebug);

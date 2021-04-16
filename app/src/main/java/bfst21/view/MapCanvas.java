@@ -2,15 +2,23 @@ package bfst21.view;
 
 import bfst21.MapData;
 import bfst21.Osm_Elements.Element;
+import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
+import javafx.util.Duration;
 
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class MapCanvas extends Canvas {
     private MapData mapData;
@@ -49,6 +57,7 @@ public class MapCanvas extends Canvas {
     }
 
     public void repaint() {
+        long time = System.currentTimeMillis();
         GraphicsContext gc = getGraphicsContext2D();
         gc.save();
         gc.setTransform(new Affine());
@@ -78,6 +87,7 @@ public class MapCanvas extends Canvas {
         //gc.strokeLine((bounds.getMinX() + bounds.getMaxX()) / 2, bounds.getMinY(), (bounds.getMinX() + bounds.getMaxX()) / 2, getHeight());
 
         gc.restore();
+        System.out.println(System.currentTimeMillis() - time + " ms");
     }
 
     private void drawElement(GraphicsContext gc, Element element) {
@@ -191,10 +201,11 @@ public class MapCanvas extends Canvas {
 
     public void pan(double dx, double dy) {
         trans.prependTranslation(dx, dy);
-        updateMap();
+        repaint();
+        //updateMap();
     }
 
-    private void updateMap() {
+    public void updateMap() {
         setBounds();
         mapData.searchInData(bounds);
         repaint();

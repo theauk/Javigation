@@ -1,6 +1,6 @@
 package bfst21;
 
-import bfst21.exceptions.NoOSMInZipFileException;
+import bfst21.Exceptions.NoOSMInZipFileException;
 import bfst21.view.CanvasBounds;
 import bfst21.view.MapCanvas;
 import bfst21.view.Theme;
@@ -33,6 +33,8 @@ public class Controller {
     private Map<String, String> themes;
     private Point2D lastMouse = new Point2D(0, 0);
     private boolean viaZoomSlider = true;
+
+    private boolean dragged;
 
     private enum State {
         MENU,
@@ -168,6 +170,7 @@ public class Controller {
             mapCanvas.setCursor(Cursor.CLOSED_HAND);
             setBoundsLabels();
             mapCanvas.pan(dx, dy);
+            dragged = true;
         }
 
         onMousePressed(e);
@@ -188,6 +191,10 @@ public class Controller {
     @FXML
     private void onMouseReleased() {
         mapCanvas.setCursor(Cursor.DEFAULT);
+        if(dragged) {
+            mapCanvas.updateMap();
+            dragged = false;
+        }
     }
 
     @FXML
@@ -333,7 +340,9 @@ public class Controller {
         String name = themes.get(themeName);
         Theme theme = loader.loadTheme(name);
         scene.getStylesheets().remove(mapCanvas.getTheme().getStylesheet());
-        if(theme.getStylesheet() != null) scene.getStylesheets().add(theme.getStylesheet());
+        if(theme.getStylesheet() != null) {
+            scene.getStylesheets().add(theme.getStylesheet());
+        }
         mapCanvas.setTheme(theme);
     }
 
