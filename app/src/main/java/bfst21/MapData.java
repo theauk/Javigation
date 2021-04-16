@@ -20,7 +20,7 @@ public class MapData {
     private ElementToElementsTreeMap<Node, Way> nodeToHighWay;
     private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
     private DijkstraSP dijkstra;
-    private Way currentDijkstraRoute;
+    private ArrayList<Element> currentDijkstraRoute;
 
     public MapData() {
         mapSegment = new ArrayList<>();
@@ -33,6 +33,7 @@ public class MapData {
         this.nodeToRestriction = nodeToRestriction;
         nodeToHighWay = nodeToWayMap;
         dijkstra = new DijkstraSP(nodeToHighWay, nodeToRestriction);
+        currentDijkstraRoute = new ArrayList<>();
 
         buildTrees();
     }
@@ -88,18 +89,33 @@ public class MapData {
 
     public void setDijkstraRoute(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest) {
         ArrayList<Node> path = dijkstra.getPath(from, to, car, bike, walk, fastest);
-        currentDijkstraRoute = new Way(0);
-        currentDijkstraRoute.setType("navigation");
-        for (int i = 0; i < path.size() - 1; i++) {
-            currentDijkstraRoute.addNode(path.get(i));
+        currentDijkstraRoute = new ArrayList<>();
+        if(path.size() > 0) {
+            Way route = new Way();
+            Node start = path.get(0);
+            Node end = path.get(path.size() - 1);
+            setRouteElementType(route, start, end);
+
+            route.setType("navigation");
+            for (int i = 0; i < path.size() - 1; i++) {
+                route.addNode(path.get(i));
+            }
+            currentDijkstraRoute.add(route);
+            currentDijkstraRoute.add(start);
+            currentDijkstraRoute.add(end);
         }
     }
 
-    public Way getCurrentDjikstraRoute(){
+    private void setRouteElementType(Way way, Node start, Node end){
+        way.setType("navigation");
+        start.setType("start_route_note");
+        end.setType("end_route_note");
+    }
+    public ArrayList<Element> getCurrentDjikstraRoute(){
         return currentDijkstraRoute;
     }
-    public void setCurrentDijkstraRouteNull(){
-        currentDijkstraRoute = null;
+    public void removeCurrentDijkstraRoute(){
+        currentDijkstraRoute = new ArrayList<>();
     }
 
     public ArrayList<ArrayList<Element>> getMapSegment() {
