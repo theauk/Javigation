@@ -65,7 +65,7 @@ public class MapData {
     public String getNodeHighWayNames(Node node) {
         String names = "";
         ArrayList<String> list = new ArrayList<>();
-        ArrayList<Way> ways = nodeToHighWay.getWaysFromNode(node);
+        ArrayList<Way> ways = nodeToHighWay.getElementsFromNode(node);
         if (ways != null) {
             for (Way way : ways) {
                 if (way.getName() != null && !list.contains(way.getName())) list.add(way.getName());
@@ -98,6 +98,7 @@ public class MapData {
     public Way getCurrentDjikstraRoute(){
         return currentDijkstraRoute;
     }
+
     public void setCurrentDijkstraRouteNull(){
         currentDijkstraRoute = null;
     }

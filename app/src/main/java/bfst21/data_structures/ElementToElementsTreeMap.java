@@ -33,7 +33,7 @@ public class ElementToElementsTreeMap<Key extends Element,Value extends Element>
         }
     }
 
-    public ArrayList<Value> getWaysFromNode(Key key){
+    public ArrayList<Value> getElementsFromNode(Key key){
         return map.get(key.getId());
     }
 

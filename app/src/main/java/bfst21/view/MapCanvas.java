@@ -67,7 +67,7 @@ public class MapCanvas extends Canvas {
                 if (zoomLevel >= getZoomLevelForElement(element.getType())) drawElement(gc, element);
             }
         }
-        if(mapData.getCurrentDjikstraRoute()!= null){
+        if(mapData.getCurrentDjikstraRoute() != null && mapData.getCurrentDjikstraRoute().getNodes().size() > 0){ // TODO: 4/16/21 better place for last part (if no route found)? 
             drawElement(gc, mapData.getCurrentDjikstraRoute());
         }
 
@@ -290,16 +290,6 @@ public class MapCanvas extends Canvas {
     public void rTreeDebugMode() {
         mapData.searchInData(bounds);
         repaint();
-    }
-
-
-    public void drawDijkstra(Way way){
-        GraphicsContext gc = getGraphicsContext2D();
-        gc.save();
-        gc.setTransform(new Affine());
-        drawElement(gc,way);
-        gc.setTransform(trans);
-        gc.setStroke(Color.RED);
     }
 
     private static class StrokeFactory {

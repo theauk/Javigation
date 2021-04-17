@@ -15,6 +15,8 @@ public class DijkstraSP {
     // TODO: 4/10/21 Is distance between nodes correct?
     // TODO: 4/15/21 Walk and bike speed in Way
 
+    // TODO: 4/16/21 Maybe wipe maps after use? 
+
     // TODO: 4/15/21 fastest and shortest for bike/walk should always be the same due to the same speed right? In that case, fastest/shortest selection does not make sense for walk/bike 
 
     private ElementToElementsTreeMap<Node, Way> nodeToWayMap;
@@ -23,6 +25,7 @@ public class DijkstraSP {
     private Node to;
     private HashMap<Long, Double> unitsTo;
     private HashMap<Long, Node> nodeBefore;
+    private HashMap<Long, Way> wayBefore;
     private HashMap<Node, Double> pq;
     private boolean car;
     private boolean bike;
@@ -46,6 +49,7 @@ public class DijkstraSP {
         this.fastest = fastest;
         unitsTo = new HashMap<>();
         nodeBefore = new HashMap<>();
+        wayBefore = new HashMap<>();
         pq = new HashMap<>();
         bikingSpeed = 16; // from Google Maps 16 km/h
         walkingSpeed = 5; // from Google Maps 5 km/h
@@ -101,45 +105,64 @@ public class DijkstraSP {
     }
 
     private void relax(Node currentFrom) {
-        ArrayList<Way> waysWithFromNode = nodeToWayMap.getWaysFromNode(currentFrom);
+        ArrayList<Way> waysWithFromNode = nodeToWayMap.getElementsFromNode(currentFrom);
         ArrayList<Node> adjacentNodes = new ArrayList<>();
+
+        HashMap<Node, Way> adjacentNodesWithWays = new HashMap<>(); // TODO: 4/17/21 fix it to implement this
 
         for (Way w : waysWithFromNode) {
 
             if (car) {
                 if (w.isDriveable()) {
                     if (!w.isOnewayRoad()) {
-                        getPreviousNode(adjacentNodes, w, currentFrom);
+                        getPreviousNode(adjacentNodesWithWays, w, currentFrom);
                     }
-                    getNextNode(adjacentNodes, w, currentFrom);
+                    getNextNode(adjacentNodesWithWays, w, currentFrom);
                 }
-            } else if (bike) { // TODO: 4/15/21 roundabouts, one-way, and bikes... (currently, the bike can go the wrong way) Also relevant for certain bike lanes [missing oneway:bicycle which is just oneway for cycleway...]
+            } else if (bike) {
                 if (w.isCycleable()) {
-                    getPreviousNode(adjacentNodes, w, currentFrom);
-                    getNextNode(adjacentNodes, w, currentFrom);
+                    if (!w.isOneWayForBikes()) {
+                        getPreviousNode(adjacentNodesWithWays, w, currentFrom);
+                    }
+                    getNextNode(adjacentNodesWithWays, w, currentFrom);
                 }
             } else if (walk) {
                 if (w.isWalkable()) {
-                    getPreviousNode(adjacentNodes, w, currentFrom);
-                    getNextNode(adjacentNodes, w, currentFrom);
+                    getPreviousNode(adjacentNodesWithWays, w, currentFrom);
+                    getNextNode(adjacentNodesWithWays, w, currentFrom);
                 }
             }
-            if (adjacentNodes.size() > 0) {
-                for (Node currentTo : adjacentNodes) {
-                    checkDistance(currentFrom, currentTo, w);
+            if (adjacentNodesWithWays.size() > 0) {
+                for (Map.Entry<Node, Way> nodeWayEntry : adjacentNodesWithWays.entrySet()) {
+                    if (!isThereARestriction(wayBefore.get(currentFrom.getId()), currentFrom, nodeWayEntry.getValue())) { // TODO: 4/16/21 should be moved so that the distance to a node is updated to very large if restriction apply
+                        checkDistance(currentFrom, nodeWayEntry.getKey(), w);
+                    } // TODO: 4/17/21 use the HM instead and send the fromWay = currentFromsWay, viaNode = currentFrom, toWay = currentTo way in the HM
                 }
             }
         }
     }
 
-    private void getPreviousNode(ArrayList<Node> adjacentNodes, Way w, Node currentFrom) {
+    private void getPreviousNode(HashMap<Node, Way> adjacentNodesWithWays, Way w, Node currentFrom) {
         Node previousNode = w.getPreviousNode(currentFrom);
-        if (previousNode != null) adjacentNodes.add(previousNode);
+        if (previousNode != null) adjacentNodesWithWays.put(previousNode, w);
     }
 
-    private void getNextNode(ArrayList<Node> adjacentNodes, Way w, Node currentFrom) {
+    private void getNextNode(HashMap<Node, Way> adjacentNodesWithWays, Way w, Node currentFrom) {
         Node nextNode = w.getNextNode(currentFrom);
-        if (nextNode != null) adjacentNodes.add(nextNode);
+        if (nextNode != null) adjacentNodesWithWays.put(nextNode, w);
+    }
+
+    private boolean isThereARestriction(Way fromWay, Node viaNode, Way toWay) {
+        ArrayList<Relation> restrictions = nodeToRestriction.getElementsFromNode(viaNode);
+
+        if (restrictions != null) {
+            for (Relation restriction : restrictions) {
+                if (restriction.getFrom() == fromWay && restriction.getVia() == viaNode && restriction.getTo() == toWay) { // TODO: 4/16/21 er i tvivl om to way == via way...
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void checkDistance(Node currentFrom, Node currentTo, Way w) {
@@ -155,6 +178,7 @@ public class DijkstraSP {
         if (unitsTo.get(fromId) + unitsBetweenFromTo < currentUnitsTo) {
             unitsTo.put(toId, unitsTo.get(fromId) + unitsBetweenFromTo);
             nodeBefore.put(toId, currentFrom);
+            wayBefore.put(toId, w);
             pq.put(currentTo, unitsTo.get(toId)); // do not need if else because updates if it is not there and inserts if not there
         }
     }
@@ -203,6 +227,5 @@ public class DijkstraSP {
             System.out.println("");
             counter++;
         }
-        System.out.println("DONE");
     }
 }

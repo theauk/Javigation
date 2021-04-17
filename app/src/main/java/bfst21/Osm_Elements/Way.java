@@ -7,6 +7,7 @@ public class Way extends NodeHolder {
     private String name;
     private int maxSpeed;
     private boolean onewayRoad = false;
+    private boolean onewayBikeRoad = false;
     private boolean isDriveable = true;
     private boolean isCycleable = true;
     private boolean isWalkable = true;
@@ -81,6 +82,10 @@ public class Way extends NodeHolder {
         onewayRoad = true;
     }
 
+    public void setOnewayBikeRoad() {
+        onewayBikeRoad = true;
+    }
+
     public int getMaxSpeed() {
         if (isDriveable && maxSpeed == 0) {
             return 50;
@@ -101,8 +106,6 @@ public class Way extends NodeHolder {
         this.name = name;
     }
 
-
-
     public boolean isHighWay() {
         return isHighway;
     }
@@ -121,6 +124,14 @@ public class Way extends NodeHolder {
 
     public boolean isOnewayRoad() {
         return onewayRoad;
+    }
+
+    public boolean isOneWayForBikes() {
+        if (onewayBikeRoad) {
+            return true;
+        } else if (onewayRoad && type.equals("cycleway")) {
+            return true;
+        } else return type.equals("roundabout");
     }
 
     @Override
