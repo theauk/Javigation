@@ -21,6 +21,7 @@ public class MapData {
     private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
     private DijkstraSP dijkstra;
     private ArrayList<Element> currentDijkstraRoute;
+    private ArrayList<Node> userAddedPoints;
 
     public MapData() {
         mapSegment = new ArrayList<>();
@@ -34,6 +35,7 @@ public class MapData {
         nodeToHighWay = nodeToWayMap;
         dijkstra = new DijkstraSP(nodeToHighWay, nodeToRestriction);
         currentDijkstraRoute = new ArrayList<>();
+        userAddedPoints = new ArrayList<>();
 
         buildTrees();
     }
@@ -104,6 +106,15 @@ public class MapData {
             currentDijkstraRoute.add(start);
             currentDijkstraRoute.add(end);
         }
+    }
+
+    public void addToUserPointList(Node toAdd){
+        toAdd.setType("user_added");
+        userAddedPoints.add(toAdd);
+    }
+
+    public ArrayList<Node> getUserAddedPoints(){
+        return userAddedPoints;
     }
 
     private void setRouteElementType(Way way, Node start, Node end){

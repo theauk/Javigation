@@ -1,7 +1,7 @@
 package bfst21.view;
 
 import bfst21.MapData;
-import bfst21.Osm_Elements.Element;
+import bfst21.Osm_Elements.*;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Point2D;
@@ -67,7 +67,16 @@ public class MapCanvas extends Canvas {
                 drawElement(gc, route);
             }
 
+            drawUserAddedPoints();
 
+
+    }
+
+    public void drawUserAddedPoints(){
+        GraphicsContext gc = getGraphicsContext2D();
+        for(Node point : mapData.getUserAddedPoints()){
+            drawRectangleNode(gc, point);
+        }
         gc.restore();
     }
 
@@ -90,13 +99,23 @@ public class MapCanvas extends Canvas {
         }
     }
 
+    private void drawRectangleNode(GraphicsContext gc, Node point) {
+        Theme.ThemeElement themeElement = theme.get(point.getType());
+        double length = (themeElement.getInnerWidth()/Math.sqrt(trans.determinant()));
+        gc.setFill(themeElement.getColor().getInner());
+        gc.fillRect(point.getxMax(),point.getyMax(),length, length);
+        gc.setStroke(themeElement.getColor().getOuter());
+        gc.strokeRect(point.getxMax(),point.getyMax(),length, length);
+
+    }
+
     private void drawRoundNode(GraphicsContext gc, Element element, Theme.ThemeElement themeElement){
         double innerRadius = (themeElement.getInnerWidth()/Math.sqrt(trans.determinant()));
         double outerRadius = (themeElement.getOuterWidth()/Math.sqrt(trans.determinant()));
         gc.setFill(themeElement.getColor().getInner());
-        gc.fillOval(element.getxMax(),element.getyMax(),outerRadius, outerRadius);
-        gc.setFill(themeElement.getColor().getInner());
         gc.fillOval(element.getxMax(),element.getyMax(),innerRadius, innerRadius);
+        gc.setStroke(themeElement.getColor().getOuter());
+        gc.strokeOval(element.getxMax(),element.getyMax(),outerRadius, outerRadius);
     }
 
     private void drawOuterElement(GraphicsContext gc, Element element, Theme.ThemeElement themeElement) {
@@ -296,6 +315,21 @@ public class MapCanvas extends Canvas {
 
         pan(dx, dy);
         zoom(true, levels);
+    }
+
+    public void centerOnPoint(double x, double y){
+        y = convertToGeo(y);
+        double boundsWidth = (bounds.getMaxX() - bounds.getMinX())/2;
+        double boundsHeight = (bounds.getMaxY() - bounds.getMinY())/2;
+        Point2D center = getGeoCoords(bounds.getMaxX() -boundsWidth ,bounds.getMaxY() - boundsHeight);
+
+        double dx = center.getX() - x;
+        double dy = center.getY()- y;
+        dx = dx *  Math.sqrt(trans.determinant());
+        dy = dy *  Math.sqrt(trans.determinant());
+
+        pan(dx,dy);
+
     }
 
     public void rTreeDebugMode() {

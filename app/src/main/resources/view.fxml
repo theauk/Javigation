@@ -183,6 +183,15 @@
                             </RadioButton>
                         </HBox>
                         <Button fx:id="searchNav" text="Search" onAction="#searchNav"/>
+                        <VBox>
+                            <HBox.margin>
+                                <Insets right="30.0"/>
+                                <Insets bottom="10.0"/>
+                            </HBox.margin>
+                            <Button fx:id="addPointButton" text="Choose on map to add point" onAction="#addUserPoint"/>
+                            <TextField fx:id="textFieldPointName" promptText="Name your point"/>
+                            <ComboBox fx:id="dropDownPoints" onAction="#moveToPoint"/>
+                        </VBox>
                     </VBox>
                 </AnchorPane>
 

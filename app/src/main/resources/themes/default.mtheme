@@ -13,8 +13,10 @@ name = "Default";
 
 #Navigation
 "navigation" = {iColor = [102, 157, 246], oColor = [29, 106, 212]}, {iWidth = 6, oWidth = 8}, {showAt = 0};
-"start_route_note" = {iColor = [200, 0, 0], oColor = [255, 0, 0]}, {iWidth = 7, oWidth = 9}, {node = true}, {showAt = 0};
-"end_route_note" = {iColor = [0, 0, 200], oColor = [0, 0, 255]}, {iWidth = 7, oWidth = 9}, {node = true}, {showAt = 0};
+"start_route_note" = {iColor = [255, 92, 92], oColor = [158, 0, 0]}, {iWidth = 7, oWidth = 9}, {node = true}, {showAt = 0};
+"end_route_note" = {iColor = [120, 120, 255], oColor = [0, 0, 158]}, {iWidth = 7, oWidth = 9}, {node = true}, {showAt = 0};
+"user_added" = {iColor = [247, 216, 62], oColor = [219, 191, 53]}, {iWidth = 10, oWidth = 12}, {node = true}, {showAt = 0};
+
 
 #Roads
 "motorway" = {iColor = [226, 122, 143], oColor = [213, 18, 88]}, {iWidth = 2, oWidth = 3}, {showAt = 10};
