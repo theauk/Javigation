@@ -1,9 +1,11 @@
 package bfst21.Osm_Elements;
 
+import java.io.Serial;
+import java.io.Serializable;
 
-import javafx.scene.canvas.GraphicsContext;
+public class Way extends NodeHolder implements Serializable {
+    @Serial private static final long serialVersionUID = 8806015478559051293L;
 
-public class Way extends NodeHolder {
     private String name;
     private int maxSpeed;
     private boolean onewayRoad = false;

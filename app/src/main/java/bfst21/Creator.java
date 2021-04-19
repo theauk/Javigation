@@ -21,8 +21,9 @@ import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 /**
  * Creates Objects such as Nodes, Ways and Relations from the .osm file given from the Loader.
  */
-public class Creator extends Task<Void> {
+public class Creator extends Task<MapData> {
     private final boolean[] touched = new boolean[3];
+    private final boolean binary;
     private MapData mapData;
     private ProgressInputStream progressInputStream;
     private HashSet<String> nodesNotCreateKeys;
@@ -35,10 +36,11 @@ public class Creator extends Task<Void> {
 
     private boolean isFoot = false; // TODO: 4/15/21 is there a better way?
 
-    public Creator(MapData mapData, InputStream inputStream, long fileSize) {
-        this.mapData = mapData;
+    public Creator(InputStream inputStream, long fileSize, boolean binary) {
+        mapData = new MapData();
         progressInputStream = new ProgressInputStream(inputStream);
         progressInputStream.addInputStreamListener(totalBytes -> updateProgress(totalBytes, fileSize));
+        this.binary = binary;
         nodesNotCreateKeys = new HashSet<>();
         nodesNotCreateValues = new HashSet<>();
         bottomLayer = 0;
@@ -53,12 +55,21 @@ public class Creator extends Task<Void> {
     }
 
     @Override
-    protected Void call() throws Exception {
-        create();
-        return null;
+    protected MapData call() throws Exception {
+        if(!binary) create();
+        else {
+            create();
+            //createBinary();
+        }
+
+        return mapData;
     }
 
-    public void create() throws XMLStreamException {
+    private void createBinary() {
+
+    }
+
+    private void create() throws XMLStreamException {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new BufferedInputStream(progressInputStream));
 
         BinarySearchTree<Node> idToNode = new BinarySearchTree<>();

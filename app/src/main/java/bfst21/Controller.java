@@ -20,9 +20,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 
 public class Controller {
@@ -206,9 +204,10 @@ public class Controller {
     @FXML
     private void openFile() {
         showLoaderPane(true);
-        File file = showFileChooser().showOpenDialog(scene.getWindow());
+        File file = showFileChooser("Open File", "").showOpenDialog(scene.getWindow());
         InputStream inputStream;
         long fileSize;
+        boolean binary = false;
 
         try {
             if (file != null) {
@@ -217,13 +216,33 @@ public class Controller {
             } else {
                 inputStream = loader.loadResource(BINARY_FILE);
                 fileSize = loader.getResourceFileSize(BINARY_FILE);
+                binary = true;
             }
 
-            loadFile(inputStream, fileSize);
+            loadFile(inputStream, fileSize, binary);
         } catch (IOException e) {
             statusLabel.setText("Failed: File not found.");
         } catch (NoOSMInZipFileException e) {
             statusLabel.setText("Failed: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void createBinary() {
+        File file = showFileChooser("Save File", "MapData").showSaveDialog(scene.getWindow());
+        if(file != null) {
+            FileOutputStream fileOutputStream;
+            ObjectOutputStream objectOutputStream;
+            try {
+                fileOutputStream = new FileOutputStream(file);
+                objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                objectOutputStream.writeObject(mapData);
+                objectOutputStream.close();
+                System.out.println("DONE");
+            } catch (IOException e) {
+                //e.printStackTrace();
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -237,9 +256,9 @@ public class Controller {
         creator.cancel();
     }
 
-    private void loadFile(InputStream inputStream, long fileSize) {
+    private void loadFile(InputStream inputStream, long fileSize, boolean binary) {
         mapData = new MapData();
-        creator = new Creator(mapData, inputStream, fileSize);
+        creator = new Creator(inputStream, fileSize, binary);
         creator.setOnRunning(e -> loadRunning());
         creator.setOnSucceeded(e -> loadSuccess());
         creator.setOnCancelled(e -> loadCancelled());
@@ -260,6 +279,7 @@ public class Controller {
 
     private void loadSuccess() {
         state = State.MAP;
+        mapData = creator.getValue();
         disableMenus();
         showLoaderPane(false);
         cleanupLoad();
@@ -373,9 +393,10 @@ public class Controller {
         return Math.round(number * scale) / scale;
     }
 
-    private FileChooser showFileChooser() {
+    private FileChooser showFileChooser(String title, String initialFileName) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open File");
+        fileChooser.setTitle(title);
+        fileChooser.setInitialFileName(initialFileName);
         fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Desktop"));
         fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Open Street Map File", "*.osm", "*.zip"));
 

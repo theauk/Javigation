@@ -53,6 +53,8 @@
                     <RadioMenuItem fx:id="rTreeDebug" text="R-tree" onAction="#setRTreeDebug"/>
                     <SeparatorMenuItem/>
                     <RadioMenuItem fx:id="dijkstraDebug" text="Dijkstra" onAction="#getDijkstraPath"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem fx:id="binaryItem" text="Dump MapData" onAction="#createBinary"/>
                 </Menu>
             </MenuBar>
         </top>

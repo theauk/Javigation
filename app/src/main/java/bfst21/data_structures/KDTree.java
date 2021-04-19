@@ -4,13 +4,17 @@ import bfst21.Exceptions.KDTreeEmptyException;
 import bfst21.Osm_Elements.Element;
 import javafx.geometry.Point2D;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-public class KDTree<Value extends Element> {
-    private final Comparator<KDTreeNode> comparatorX = new Comparator<KDTreeNode>() {
+public class KDTree<Value extends Element> implements Serializable {
+    @Serial private static final long serialVersionUID = 2546489468741939125L;
+
+    private final transient Comparator<KDTreeNode> comparatorX = new Comparator<KDTreeNode>() {
         @Override
         public int compare(KDTreeNode p1, KDTreeNode p2) {
             int c = Float.compare(p1.node.getxMax(), p2.node.getxMax());
@@ -20,7 +24,7 @@ public class KDTree<Value extends Element> {
             return c;
         }
     };
-    private final Comparator<KDTreeNode> comparatorY = new Comparator<KDTreeNode>() {
+    private final transient Comparator<KDTreeNode> comparatorY = new Comparator<KDTreeNode>() {
         @Override
         public int compare(KDTreeNode p1, KDTreeNode p2) {
             int c = Float.compare(p1.node.getyMax(), p2.node.getyMax());
@@ -189,7 +193,9 @@ public class KDTree<Value extends Element> {
         return result;
     }
 
-    private class KDTreeNode {
+    private class KDTreeNode implements Serializable {
+        @Serial private static final long serialVersionUID = -6786678243546431229L;
+
         private Value node;
         private KDTreeNode leftChild;
         private KDTreeNode rightChild;

@@ -4,11 +4,16 @@ package bfst21.data_structures;
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
+
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
-public class ElementToElementsTreeMap<Key extends Element,Value extends Element> {
+public class ElementToElementsTreeMap<Key extends Element,Value extends Element> implements Serializable {
+    @Serial private static final long serialVersionUID = 7599232655577398280L;
+
     private TreeMap<Long, ArrayList<Value>> map;
 
     public ElementToElementsTreeMap() {

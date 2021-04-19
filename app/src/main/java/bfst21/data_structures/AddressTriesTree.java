@@ -2,13 +2,16 @@ package bfst21.data_structures;
 
 import bfst21.Osm_Elements.Node;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Not yet implemented
  */
 // TODO: 28-03-2021 implement
-public class AddressTriesTree {
+public class AddressTriesTree implements Serializable {
+    @Serial private static final long serialVersionUID = 5713923887785799744L;
 
     /**
      * Not yet implemented!
