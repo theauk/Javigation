@@ -1,5 +1,6 @@
 package bfst21.data_structures;
 
+import bfst21.Exceptions.NoNavigationResultException;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
@@ -63,7 +64,7 @@ public class DijkstraSP {
         pq.put(from, 0.0);
     }
 
-    public ArrayList<Node> getPath(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest) {
+    public ArrayList<Node> getPath(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest) throws NoNavigationResultException {
         setup(from, to, car, bike, walk, fastest);
         Node n = checkN();
 
@@ -76,7 +77,7 @@ public class DijkstraSP {
             if (n != to) {
                 // TODO: 4/12/21 fix this / do something -> happens when a route cannot be found as the last node should be "to" node'en if it worked.
                 System.err.println("Dijkstra: navigation is not possible with this from/to e.g. due to vehicle restrictions, island, etc.");
-                return new ArrayList<>();
+                throw new NoNavigationResultException();
             } else {
                 return getTrack(new ArrayList<>(), n);
             }
@@ -265,7 +266,7 @@ public class DijkstraSP {
         } else {
             speed = w.getMaxSpeed();
         }
-        return distance / speed;
+        return distance / (speed * (5f / 18f));
     }
 
     private void printResult(ArrayList<Node> result) {

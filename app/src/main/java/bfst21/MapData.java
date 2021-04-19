@@ -1,6 +1,7 @@
 package bfst21;
 
 import bfst21.Exceptions.KDTreeEmptyException;
+import bfst21.Exceptions.NoNavigationResultException;
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
@@ -87,13 +88,17 @@ public class MapData {
     }
 
     public void setDijkstraRoute(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest) {
-        ArrayList<Node> path = dijkstra.getPath(from, to, car, bike, walk, fastest);
-        currentDijkstraRoute = new Way(0);
-        currentDijkstraRoute.setType("navigation");
-        for (int i = 0; i < path.size() - 1; i++) {
-            currentDijkstraRoute.addNode(path.get(i));
+        try {
+            ArrayList<Node> path = dijkstra.getPath(from, to, car, bike, walk, fastest);
+            currentDijkstraRoute = new Way(0);
+            currentDijkstraRoute.setType("navigation");
+            for (int i = 0; i < path.size() - 1; i++) {
+                currentDijkstraRoute.addNode(path.get(i));
+            }
+            controller.setDistanceAndTimeNav(dijkstra.getTotalDistance(), dijkstra.getTotalTime());
+        } catch (NoNavigationResultException e) {
+            e.printStackTrace(); // TODO: 4/19/21 do something
         }
-        controller.setDistanceAndTimeNav(dijkstra.getTotalDistance(), dijkstra.getTotalTime());
     }
 
     public Way getCurrentDijkstraRoute() {

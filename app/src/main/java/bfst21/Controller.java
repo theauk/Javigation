@@ -494,7 +494,20 @@ public class Controller {
 
     public void setDistanceAndTimeNav(double distance, double time) {
         distanceAndTimeNav.setVisible(true);
-        distanceAndTimeNav.setText("Total distance: " + Math.round(distance) + "units, Total time: " + Math.round(time) + " units");
+        String s = "Total distance: ";
+
+        if (distance < 1000) {
+            s += round(distance, 0) + " m";
+        } else {
+            s += round(distance / 1000f, 2) + " km";
+        }
+
+        if (time < 60) {
+            s += " , Total time: " + round(time, 0) + " s";
+        } else {
+            s += " , Total time: " + round(time / 60f, 2) + " min";
+        }
+        distanceAndTimeNav.setText(s);
     }
 
     public void hideDistanceAndTimeNav() {
