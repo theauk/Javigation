@@ -2,19 +2,15 @@ package bfst21.view;
 
 import bfst21.MapData;
 import bfst21.Osm_Elements.Element;
-import bfst21.Osm_Elements.Node;
-import bfst21.Osm_Elements.Way;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 public class MapCanvas extends Canvas {
@@ -67,8 +63,8 @@ public class MapCanvas extends Canvas {
                 if (zoomLevel >= getZoomLevelForElement(element.getType())) drawElement(gc, element);
             }
         }
-        if(mapData.getCurrentDjikstraRoute() != null && mapData.getCurrentDjikstraRoute().getNodes().size() > 0){ // TODO: 4/16/21 better place for last part (if no route found)? 
-            drawElement(gc, mapData.getCurrentDjikstraRoute());
+        if(mapData.getCurrentDijkstraRoute() != null && mapData.getCurrentDijkstraRoute().getNodes().size() > 0){ // TODO: 4/16/21 better place for last part (if no route found)?
+            drawElement(gc, mapData.getCurrentDijkstraRoute());
         }
 
         gc.restore();

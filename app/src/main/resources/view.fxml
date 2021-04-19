@@ -183,6 +183,7 @@
                             </RadioButton>
                         </HBox>
                         <Button fx:id="searchNav" text="Search" onAction="#searchNav"/>
+                        <Label fx:id="distanceAndTimeNav" visible="false"></Label>
                     </VBox>
                 </AnchorPane>
 

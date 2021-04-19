@@ -23,7 +23,6 @@ import javafx.util.Duration;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -113,9 +112,11 @@ public class Controller {
     private RadioButton radioButtonShortestNav;
     @FXML
     private Button searchNav;
+    @FXML
+    private Label distanceAndTimeNav;
 
     public void init() {
-        mapData = new MapData();
+        mapData = new MapData(this);
         loader = new Loader();
         themes = new HashMap<>();
         loadThemes();
@@ -281,7 +282,7 @@ public class Controller {
     }
 
     private void loadFile(InputStream inputStream, long fileSize) {
-        mapData = new MapData();
+        mapData = new MapData(this);
         creator = new Creator(mapData, inputStream, fileSize);
         creator.setOnRunning(e -> loadRunning());
         creator.setOnSucceeded(e -> loadSuccess());
@@ -313,7 +314,7 @@ public class Controller {
     private void loadFailed() {
         state = State.MENU;
         disableMenus();
-        mapData = new MapData();
+        mapData = new MapData(this);
         cleanupLoad();
         statusLabel.setText("Failed.");
         creator.exceptionProperty().get().printStackTrace();
@@ -322,7 +323,7 @@ public class Controller {
     private void loadCancelled() {
         state = State.MENU;
         disableMenus();
-        mapData = new MapData();
+        mapData = new MapData(this);
         cleanupLoad();
         statusLabel.setText("Cancelled.");
     }
@@ -487,9 +488,17 @@ public class Controller {
 
     @FXML
     public void getDijkstraPath() {
-
         mapData.setDijkstraRoute(currentFromNode, currentToNode, radioButtonCarNav.isSelected(), radioButtonBikeNav.isSelected(), radioButtonWalkNav.isSelected(), radioButtonFastestNav.isSelected());
         mapCanvas.repaint();
+    }
+
+    public void setDistanceAndTimeNav(double distance, double time) {
+        distanceAndTimeNav.setVisible(true);
+        distanceAndTimeNav.setText("Total distance: " + Math.round(distance) + "units, Total time: " + Math.round(time) + " units");
+    }
+
+    public void hideDistanceAndTimeNav() {
+        distanceAndTimeNav.setVisible(false);
     }
 
     private enum State {

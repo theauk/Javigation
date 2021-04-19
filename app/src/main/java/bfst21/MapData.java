@@ -11,19 +11,19 @@ import bfst21.view.CanvasBounds;
 import java.util.ArrayList;
 
 public class MapData {
+    private float minX, minY, maxX, maxY;
+    private boolean rTreeDebug;
+    private Controller controller;
+    private ArrayList<ArrayList<Element>> mapSegment; //Only content within bounds
     private KDTree<Node> closetRoadTree;
     private RTree rTree;
-    private ArrayList<ArrayList<Element>> mapSegment; //Only content within bounds
-    private float minX, minY, maxX, maxY;
     private AddressTriesTree addressTree;
-    private boolean rTreeDebug;
     private ElementToElementsTreeMap<Node, Way> nodeToHighWay;
-    private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
-    private ElementToElementsTreeMap<Way, Relation> wayToRestriction;
     private DijkstraSP dijkstra;
     private Way currentDijkstraRoute;
 
-    public MapData() {
+    public MapData(Controller controller) {
+        this.controller = controller;
         mapSegment = new ArrayList<>();
     }
 
@@ -31,8 +31,6 @@ public class MapData {
         this.rTree = rTree;
         this.closetRoadTree = highWayRoadNodes;
         this.addressTree = addressTree;
-        this.nodeToRestriction = nodeToRestriction;
-        this.wayToRestriction = wayToRestriction;
         nodeToHighWay = nodeToWayMap;
         dijkstra = new DijkstraSP(nodeToHighWay, nodeToRestriction, wayToRestriction);
 
@@ -95,13 +93,14 @@ public class MapData {
         for (int i = 0; i < path.size() - 1; i++) {
             currentDijkstraRoute.addNode(path.get(i));
         }
+        controller.setDistanceAndTimeNav(dijkstra.getTotalDistance(), dijkstra.getTotalTime());
     }
 
-    public Way getCurrentDjikstraRoute(){
+    public Way getCurrentDijkstraRoute() {
         return currentDijkstraRoute;
     }
 
-    public void setCurrentDijkstraRouteNull(){
+    public void setCurrentDijkstraRouteNull() {
         currentDijkstraRoute = null;
     }
 

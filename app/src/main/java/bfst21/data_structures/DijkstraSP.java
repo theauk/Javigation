@@ -3,6 +3,7 @@ package bfst21.data_structures;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +27,7 @@ public class DijkstraSP {
     private ElementToElementsTreeMap<Way, Relation> wayToRestriction;
     private Node from;
     private Node to;
-    private HashMap<Long, Double> unitsTo;
+    private HashMap<Long, DistanceAndTimeEntry> unitsTo;
     private HashMap<Long, Node> nodeBefore;
     private HashMap<Long, Way> wayBefore;
     private HashMap<Node, Double> pq;
@@ -37,7 +38,6 @@ public class DijkstraSP {
     private boolean tryAgain;
     private double bikingSpeed;
     private double walkingSpeed;
-    private double totalUnits;
 
     public DijkstraSP(ElementToElementsTreeMap<Node, Way> nodeToWayMap, ElementToElementsTreeMap<Node, Relation> nodeToRestriction, ElementToElementsTreeMap<Way, Relation> wayToRestriction) {
         this.nodeToRestriction = nodeToRestriction;
@@ -59,8 +59,7 @@ public class DijkstraSP {
         pq = new HashMap<>();
         bikingSpeed = 16; // from Google Maps 16 km/h
         walkingSpeed = 5; // from Google Maps 5 km/h
-        totalUnits = 0;
-        unitsTo.put(from.getId(), 0.0);
+        unitsTo.put(from.getId(), new DistanceAndTimeEntry(0.0, 0.0));
         pq.put(from, 0.0);
     }
 
@@ -82,9 +81,7 @@ public class DijkstraSP {
                 return getTrack(new ArrayList<>(), n);
             }
         } else {
-            ArrayList<Node> nodes = getTrack(new ArrayList<>(), n);
-            System.out.println("Units: " + getTotalUnits());
-            return nodes;
+            return getTrack(new ArrayList<>(), n);
         }
     }
 
@@ -98,8 +95,12 @@ public class DijkstraSP {
         return n;
     }
 
-    public double getTotalUnits() {
-        return unitsTo.get(to.getId()); // TODO: 4/15/21 think its wrong... should be able to just do distanceto with current node
+    public double getTotalDistance() {
+        return unitsTo.get(to.getId()).distance;
+    }
+
+    public double getTotalTime() {
+        return unitsTo.get(to.getId()).time;
     }
 
     private Node temporaryRemoveAndGetMin() { // TODO: 4/15/21 make more efficient – probably tree
@@ -120,7 +121,6 @@ public class DijkstraSP {
         if (currentNode != null) {
             //System.out.println(unitsTo.get(currentNode.getId()));
             nodes.add(currentNode);
-            totalUnits += unitsTo.get(currentNode.getId());
             getTrack(nodes, nodeBefore.get(currentNode.getId()));
         }
         return nodes;
@@ -194,7 +194,7 @@ public class DijkstraSP {
                         }
 
                         if (wayBefore.get(beforeNode.getId()) == restriction.getFrom()) { // walk back until you reach a different Way – then check if that is the from way
-                            if (tryAgain) unitsTo.put(viaNode.getId(), Double.POSITIVE_INFINITY);
+                            if (tryAgain) unitsTo.put(viaNode.getId(), new DistanceAndTimeEntry(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
                             return true;
                         }
                     }
@@ -208,18 +208,29 @@ public class DijkstraSP {
         long fromId = currentFrom.getId();
         long toId = currentTo.getId();
 
-        double currentUnitsTo = unitsTo.get(toId) == null ? Double.POSITIVE_INFINITY : unitsTo.get(toId);
-        double unitsBetweenFromTo = getDistanceBetweenTwoNodes(currentFrom, currentTo);
-        if (fastest) {
-            unitsBetweenFromTo = getTravelTime(unitsBetweenFromTo, w);
-        }
+        double currentDistanceTo = unitsTo.get(toId) == null ? Double.POSITIVE_INFINITY : unitsTo.get(toId).distance;
+        double currentTimeTo = unitsTo.get(toId) == null ? Double.POSITIVE_INFINITY : unitsTo.get(toId).time;
 
-        if (unitsTo.get(fromId) + unitsBetweenFromTo < currentUnitsTo) {
-            unitsTo.put(toId, unitsTo.get(fromId) + unitsBetweenFromTo);
-            nodeBefore.put(toId, currentFrom);
-            wayBefore.put(toId, w);
-            pq.put(currentTo, unitsTo.get(toId));
+        double distanceBetweenFromTo = getDistanceBetweenTwoNodes(currentFrom, currentTo);
+        double timeBetweenFromTo = getTravelTime(distanceBetweenFromTo, w);
+
+        if (fastest) {
+            if (unitsTo.get(fromId).time + timeBetweenFromTo < currentTimeTo) {
+                updateMaps(toId, fromId, w, currentFrom, distanceBetweenFromTo, timeBetweenFromTo);
+                pq.put(currentTo, unitsTo.get(toId).time);
+            }
+        } else {
+            if (unitsTo.get(fromId).distance + distanceBetweenFromTo < currentDistanceTo) {
+                updateMaps(toId, fromId, w, currentFrom, distanceBetweenFromTo, timeBetweenFromTo);
+                pq.put(currentTo, unitsTo.get(toId).distance);
+            }
         }
+    }
+
+    private void updateMaps(long toId, long fromId, Way w, Node currentFrom, double distanceBetweenFromTo, double timeBetweenFromTo) {
+        unitsTo.put(toId, new DistanceAndTimeEntry(unitsTo.get(fromId).distance + distanceBetweenFromTo , unitsTo.get(fromId).time + timeBetweenFromTo));
+        nodeBefore.put(toId, currentFrom);
+        wayBefore.put(toId, w);
     }
 
     private double getDistanceBetweenTwoNodes(Node from, Node to) { // TODO: 4/9/21 From mapcanvas w/small changes
@@ -265,6 +276,16 @@ public class DijkstraSP {
             System.out.println("Street(s) referenced:");
             System.out.println("");
             counter++;
+        }
+    }
+
+    private class DistanceAndTimeEntry {
+        private double distance;
+        private double time;
+
+        public DistanceAndTimeEntry(double distance, double time) {
+            this.distance = distance;
+            this.time = time;
         }
     }
 }
