@@ -36,4 +36,12 @@ public class Node extends Element {
 
     }
 
+    public void drawCircle(){
+
+    }
+
+    public void textOutput(){
+
+    }
+
 }

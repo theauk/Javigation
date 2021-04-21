@@ -4,6 +4,7 @@ import javafx.scene.canvas.GraphicsContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Relation extends NodeHolder {
@@ -106,7 +107,7 @@ public class Relation extends NodeHolder {
                 for (Way w : ways) {
                     w.draw(gc);
                 }
-            } if(nodes != null){
+            } if(nodes != null && nodes.size()!= 0){
                 super.draw(gc);
             }
         }
@@ -116,7 +117,11 @@ public class Relation extends NodeHolder {
         isMultiPolygon = true;
     }
 
-    private ArrayList<Way> mergeWays(ArrayList<Way> ways) {
+    public void mergeWays(){
+        ways = mergeWays(ways);
+    }
+
+    private ArrayList<Way> mergeWays(ArrayList<Way> toMerge) {
         /*
          * Inner and outer rings are created from closed ways whenever possible,
          * except when these ways become very large (on the order of 2000 nodes). W
@@ -124,20 +129,43 @@ public class Relation extends NodeHolder {
          * From OSM wiki - mapping stype best practice with Relations
          */
         Map<Node, Way> pieces = new HashMap<>();
-        for (var way : ways) {
-            var before = pieces.remove(way.first());
-            var after = pieces.remove(way.last());
+        for (Way way : toMerge) {
+            Way before = pieces.remove(way.getNodes().get(0));
+            Way after = pieces.remove(way.getNodes().get(way.getNodes().size()-1));
             if (before == after) after = null;
-            var merged = Way.merge(before, way, after);
-            pieces.put(merged.first(), merged);
-            pieces.put(merged.last(), merged);
+            if(before != null){
+                way = mergeTwoWays(before, way);
+            }
+            if(after != null){
+                mergeTwoWays(way, after);
+            }
+            pieces.put(way.getNodes().get(0), way);
+            pieces.put(way.getNodes().get(way.getNodes().size()-1), way);
         }
         ArrayList<Way> merged = new ArrayList<>();
         pieces.forEach((node, way) -> {
-            if (way.last() == node) {
+            if (way.getNodes().get(way.getNodes().size()-1) == node) {
                 merged.add(way);
             }
         });
         return merged;
     }
+     private ArrayList<Way> mergeWaysTemp(ArrayList<Way> toMerge) {
+         Map<Node, Way> pieces = new HashMap<>();
+            for (Way way : toMerge) {
+                Way before = pieces.remove(way.getNodes().get(0));
+                Way after = pieces.remove(way.getNodes().get(way.getNodes().size()-1));
+                if (before == after) after = null;
+        }
+            return null;
+     }
+
+     private Way mergeTwoWays(Way w1, Way w2){
+        List<Node> list = w2.getNodes();
+        list.remove(1);
+        w1.getNodes().addAll(list);
+        return w1;
+
+     }
+
 }

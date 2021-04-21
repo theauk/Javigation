@@ -521,11 +521,9 @@ public class Controller {
                     String nodeName = textFieldPointName.getText();
                     mapData.addToUserPointList(node);
                     dropDownPoints.getItems().add(nodeName);
-                    mapCanvas.drawUserAddedPoints();
+                    mapCanvas.repaint();
                     textFieldPointName.setText("");
                     mapCanvas.removeEventHandler(MouseEvent.MOUSE_CLICKED, this);
-
-
                 }
             };
             mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);

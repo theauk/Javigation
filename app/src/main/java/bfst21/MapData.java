@@ -9,6 +9,7 @@ import bfst21.data_structures.*;
 import bfst21.view.CanvasBounds;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MapData {
     private KDTree<Node> closetRoadTree;
@@ -22,6 +23,8 @@ public class MapData {
     private DijkstraSP dijkstra;
     private ArrayList<Element> currentDijkstraRoute;
     private ArrayList<Node> userAddedPoints;
+    private Relation coastlines;
+    private HashMap<Element, String> elementToText;
 
     public MapData() {
         mapSegment = new ArrayList<>();
@@ -39,6 +42,14 @@ public class MapData {
 
         buildTrees();
     }
+    public void setCoastlines(Relation relation){
+        coastlines = relation;
+    }
+
+    public Relation getCoastlines(){
+        return coastlines;
+    }
+
 
     private void buildTrees() {
         closetRoadTree.buildTree();
@@ -136,6 +147,13 @@ public class MapData {
     public Node getAddressNode(String address) {
         return addressTree.getAddressNode(address);
     }
+    public String getTextFromElement(Element element){
+        String result = elementToText.get(element);
+        return result;
+    }
+    public void setElementToText(HashMap<Element, String> elementToCityname) {
+        this.elementToText = elementToCityname;
+    }
 
     public float getMinX() {
         return minX;
@@ -168,4 +186,6 @@ public class MapData {
     public void setMaxY(float maxY) {
         this.maxY = maxY;
     }
+
+
 }

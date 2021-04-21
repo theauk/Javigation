@@ -8,8 +8,13 @@ import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.shape.FillRule;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
+
+import javax.swing.tree.VariableHeightLayoutCache;
+import java.awt.*;
 import java.util.Map;
 
 public class MapCanvas extends Canvas {
@@ -53,7 +58,7 @@ public class MapCanvas extends Canvas {
 
         gc.setFill(theme.get("background").getColor().getInner());
         gc.fillRect(0, 0, getWidth(), getHeight());
-
+        fillCoastLines(gc);
         gc.setTransform(trans);
 
         int layers = mapData.getMapSegment().size();
@@ -67,24 +72,24 @@ public class MapCanvas extends Canvas {
                 drawElement(gc, route);
             }
 
-            drawUserAddedPoints();
-
-
-    }
-
-    public void drawUserAddedPoints(){
-        GraphicsContext gc = getGraphicsContext2D();
         for(Node point : mapData.getUserAddedPoints()){
             drawRectangleNode(gc, point);
         }
         gc.restore();
     }
 
+    private void fillCoastLines(GraphicsContext gc) {
+        drawElement(gc, mapData.getCoastlines());
+    }
+
     private void drawElement(GraphicsContext gc, Element element) {
         Theme.ThemeElement themeElement = theme.get(element.getType());
         if(themeElement.isNode()){
             drawRoundNode(gc, element, themeElement);
-        }else {
+        }else if(element.getType().equals("text")){
+            drawText(gc, element, themeElement);
+        }
+        else {
             gc.setLineDashes(getStrokeStyle(themeElement)); //Apply stroke style
 
             if (themeElement.isTwoColored()) {
@@ -97,6 +102,15 @@ public class MapCanvas extends Canvas {
                 fillElement(gc, themeElement);
             }
         }
+    }
+
+    private void drawText(GraphicsContext gc, Element element, Theme.ThemeElement themeElement){
+        String text = mapData.getTextFromElement(element);
+        gc.setTextAlign(TextAlignment.CENTER);
+        Font font = new Font(10/Math.sqrt(trans.determinant()));
+        gc.setFill(themeElement.getColor().getInner());
+        gc.setFont(font);
+        gc.fillText(text,element.getxMax(),element.getyMax());
     }
 
     private void drawRectangleNode(GraphicsContext gc, Node point) {
@@ -318,15 +332,14 @@ public class MapCanvas extends Canvas {
     }
 
     public void centerOnPoint(double x, double y){
-        y = convertToGeo(y);
-        double boundsWidth = (bounds.getMaxX() - bounds.getMinX())/2;
-        double boundsHeight = (bounds.getMaxY() - bounds.getMinY())/2;
-        Point2D center = getGeoCoords(bounds.getMaxX() -boundsWidth ,bounds.getMaxY() - boundsHeight);
+        double boundsWidth = (bounds.getMaxX() - bounds.getMinX());
+        double boundsHeight = (bounds.getMaxY() - bounds.getMinY());
+        Point2D center = new Point2D(bounds.getMaxX() -boundsWidth/2 ,bounds.getMaxY() - boundsHeight/2); // center koordinates
 
         double dx = center.getX() - x;
         double dy = center.getY()- y;
-        dx = dx *  Math.sqrt(trans.determinant());
-        dy = dy *  Math.sqrt(trans.determinant());
+        dx = dx * Math.sqrt(trans.determinant());
+        dy = dy * Math.sqrt(trans.determinant());
 
         pan(dx,dy);
 

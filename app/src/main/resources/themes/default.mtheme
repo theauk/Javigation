@@ -4,18 +4,20 @@
 name = "Default";
 
 #Background
-"background" = {iColor = [255, 255, 255]};
+"background" = {iColor = [170, 211, 223]};
 "man_made" = {iColor = [242, 239, 233], oColor = [0, 0, 0]}, {filled = true}, {showAt = 10};
 "asphalt" = {iColor = [238, 238, 238], oColor = [0, 0, 0]}, {filled = true}, {showAt = 13};
 
 #Coastline
 "coastline" = {iColor = [0, 0, 0]};
+"coastlines" = {iColor = [242, 239, 233], oColor = [0, 0, 0]}, {filled = true}, {showAt = 0};
 
 #Navigation
 "navigation" = {iColor = [102, 157, 246], oColor = [29, 106, 212]}, {iWidth = 6, oWidth = 8}, {showAt = 0};
-"start_route_note" = {iColor = [255, 92, 92], oColor = [158, 0, 0]}, {iWidth = 7, oWidth = 9}, {node = true}, {showAt = 0};
-"end_route_note" = {iColor = [120, 120, 255], oColor = [0, 0, 158]}, {iWidth = 7, oWidth = 9}, {node = true}, {showAt = 0};
-"user_added" = {iColor = [247, 216, 62], oColor = [219, 191, 53]}, {iWidth = 10, oWidth = 12}, {node = true}, {showAt = 0};
+"start_route_note" = {iColor = [255, 92, 92], oColor = [158, 0, 0]}, {iWidth = 7, oWidth = 4}, {node = true}, {showAt = 0};
+"end_route_note" = {iColor = [120, 120, 255], oColor = [0, 0, 158]}, {iWidth = 7, oWidth = 4}, {node = true}, {showAt = 0};
+"user_added" = {iColor = [247, 216, 62], oColor = [219, 191, 53]}, {iWidth = 10, oWidth = 4}, {node = true}, {showAt = 0};
+"text" = {iColor = [0, 0, 0]}, {showAt = 10};
 
 
 #Roads

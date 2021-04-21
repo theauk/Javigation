@@ -1,5 +1,6 @@
 package bfst21;
 
+import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
@@ -27,11 +28,13 @@ public class Creator extends Task<Void> {
     private ProgressInputStream progressInputStream;
     private HashSet<String> nodesNotCreateKeys;
     private HashSet<String> nodesNotCreateValues;
-    private String city, streetName, houseNumber;
+    private String city, streetName, houseNumber, name;
     private Integer postcode;
     private boolean isAddress;
     private int bottomLayer, layerTwo, layerThree, layerFour, topLayer;
     private HashMap<String, Integer> typeToLayer;
+    private Relation coastLines;
+    private HashMap<Element, String> elementToText;
 
     private boolean isFoot = false; // TODO: 4/15/21 is there a better way?
 
@@ -47,6 +50,9 @@ public class Creator extends Task<Void> {
         layerFour = 3;
         topLayer = 4;
         typeToLayer = new HashMap<>();
+        coastLines = new Relation(0);
+        coastLines.setType("coastlines");
+        elementToText = new HashMap<>();
 
         setupNodesNotCreate();
         setUpTypeToLayer();
@@ -195,6 +201,7 @@ public class Creator extends Task<Void> {
                                         node.setLayer(topLayer);
                                         nullifyAddress();
                                     } else {
+                                        if(node.hasType()) rTree.insert(node);
                                         idToNode.put(node);
                                     }
                                     node = null;
@@ -236,6 +243,9 @@ public class Creator extends Task<Void> {
                 }
             }
         }
+        coastLines.mergeWays();
+        mapData.setCoastlines(coastLines);
+        mapData.setElementToText(elementToText);
         updateMessage("Finalizing...");
         mapData.addDataTrees(highWayRoadNodes, rTree, nodeToRestriction, addressTree, nodeToWayMap);
         reader.close();
@@ -291,8 +301,13 @@ public class Creator extends Task<Void> {
     private void checkWay(String k, String v, Way way) {
         switch (k) {
             case "natural":
-                if (v.equals("coastline") ||v.equals("water") || v.equals("wetland")) {
+                if (v.equals("water") || v.equals("wetland")) {
                     way.setType((v),typeToLayer.get(v));
+                    break;
+                }
+                if (v.equals("coastline")) {
+                    //way.setType((v),typeToLayer.get(v));
+                    coastLines.addWay(way);
                     break;
                 }
                 if (v.equals("scrub") || v.equals("wood")) {
@@ -396,15 +411,31 @@ public class Creator extends Task<Void> {
         }
     }
 
-    private void checkAddressNode(String k, String v, Node addressNode) {
+    private void checkAddressNode(String k, String v, Node node) {
         switch (k) {
-            case "addr:city" -> city = v;
-            case "addr:housenumber" -> {
+            case "addr:city" :
+                city = v;
+                break;
+            case "addr:housenumber":
                 houseNumber = v;
                 isAddress = true;
-            }
-            case "addr:postcode" -> postcode = Integer.parseInt(v.trim());
-            case "addr:street" -> streetName = v;
+                break;
+            case "addr:postcode" :
+                postcode = Integer.parseInt(v.trim());
+                break;
+            case "addr:street":
+                streetName = v;
+                break;
+            case "name" :
+                name = v;
+                break;
+            case "place":
+                if(v.equals("city") || v.equals("town") || v.equals("village")) {
+                    node.setType("text",typeToLayer.get("text"));
+                    elementToText.put(node, name);
+                }
+
+                break;
         }
     }
 
@@ -571,6 +602,8 @@ public class Creator extends Task<Void> {
         typeToLayer.put("building",layerThree);
 
         typeToLayer.put("coastline",layerFour);
+
+        typeToLayer.put("text",topLayer);
 
 
     }
