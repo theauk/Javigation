@@ -6,7 +6,8 @@ import java.io.Serial;
 import java.io.Serializable;
 
 public class Way extends NodeHolder implements Serializable {
-    @Serial private static final long serialVersionUID = 8806015478559051293L;
+    @Serial
+    private static final long serialVersionUID = 8806015478559051293L;
 
     private String name;
     private int maxSpeed;
@@ -135,7 +136,7 @@ public class Way extends NodeHolder implements Serializable {
     @Override
     public void draw(GraphicsContext gc) {
         //TODO Should check for one way.....
-       super.draw(gc);
+        super.draw(gc);
     }
 
 }

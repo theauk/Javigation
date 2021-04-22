@@ -15,7 +15,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MapData implements Serializable {
-    @Serial private static final long serialVersionUID = 8514196836151887206L;
+    @Serial
+    private static final long serialVersionUID = 8514196836151887206L;
 
     private KDTree<Node> closetRoadTree;
     private RTree rTree;
@@ -45,14 +46,14 @@ public class MapData implements Serializable {
 
         buildTrees();
     }
-    public void setCoastlines(Relation relation){
-        coastlines = relation;
-    }
 
-    public Relation getCoastlines(){
+    public Relation getCoastlines() {
         return coastlines;
     }
 
+    public void setCoastlines(Relation relation) {
+        coastlines = relation;
+    }
 
     private void buildTrees() {
         closetRoadTree.buildTree();
@@ -81,7 +82,7 @@ public class MapData implements Serializable {
     public String getNodeHighWayNames(Node node) {
         String names = "";
         ArrayList<String> list = new ArrayList<>();
-        ArrayList<Way> ways = nodeToHighWay.getWaysFromNode(node);
+        ArrayList<Way> ways = nodeToHighWay.getElementsFromNode(node);
         if (ways != null) {
             for (Way way : ways) {
                 if (way.getName() != null && !list.contains(way.getName())) list.add(way.getName());
@@ -105,7 +106,7 @@ public class MapData implements Serializable {
     public void setDijkstraRoute(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest) throws NoNavigationResultException {
         ArrayList<Node> path = dijkstra.getPath(from, to, car, bike, walk, fastest);
         currentDijkstraRoute = new ArrayList<>();
-        if(path.size() > 0) {
+        if (path.size() > 0) {
             Way route = new Way();
             Node start = path.get(0);
             Node end = path.get(path.size() - 1);
@@ -129,24 +130,26 @@ public class MapData implements Serializable {
         return dijkstra.getTotalTime();
     }
 
-    public void addToUserPointList(Node toAdd){
+    public void addToUserPointList(Node toAdd) {
         toAdd.setType("user_added");
         userAddedPoints.add(toAdd);
     }
 
-    public ArrayList<Node> getUserAddedPoints(){
+    public ArrayList<Node> getUserAddedPoints() {
         return userAddedPoints;
     }
 
-    private void setRouteElementType(Way way, Node start, Node end){
+    private void setRouteElementType(Way way, Node start, Node end) {
         way.setType("navigation");
         start.setType("start_route_note");
         end.setType("end_route_note");
     }
-    public ArrayList<Element> getCurrentDjikstraRoute(){
+
+    public ArrayList<Element> getCurrentDjikstraRoute() {
         return currentDijkstraRoute;
     }
-    public void removeCurrentDijkstraRoute(){
+
+    public void removeCurrentDijkstraRoute() {
         currentDijkstraRoute = new ArrayList<>();
     }
 
@@ -158,10 +161,11 @@ public class MapData implements Serializable {
         return addressTree.getAddressNode(address);
     }
 
-    public String getTextFromElement(Element element){
+    public String getTextFromElement(Element element) {
         String result = elementToText.get(element);
         return result;
     }
+
     public void setElementToText(HashMap<Element, String> elementToCityname) {
         this.elementToText = elementToCityname;
     }

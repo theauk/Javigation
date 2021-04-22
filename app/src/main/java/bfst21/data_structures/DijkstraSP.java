@@ -13,7 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DijkstraSP implements Serializable {
-    @Serial private static final long serialVersionUID = -488598808136557757L;
+    @Serial
+    private static final long serialVersionUID = -488598808136557757L;
     // TODO: 4/10/21 Add restrictions 
     // TODO: 4/10/21 Improve remove min
     // TODO: 4/19/21 Hide fastest for bike/walk in the view.

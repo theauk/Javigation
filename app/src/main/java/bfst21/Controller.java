@@ -96,7 +96,6 @@ public class Controller {
     @FXML private RadioButton radioButtonWalkNav;
     @FXML private RadioButton radioButtonFastestNav;
     @FXML private RadioButton radioButtonShortestNav;
-    @FXML private Button searchNav;
     @FXML private Label distanceAndTimeNav;
 
     @FXML private ComboBox<String> dropDownPoints;
