@@ -38,7 +38,7 @@ public class Controller {
     private Loader loader;
     private Creator creator;
 
-    private final String BINARY_FILE = "/small.bmapdata";
+    private static final String BINARY_FILE = "/small.bmapdata";
 
     private Point2D lastMouse = new Point2D(0, 0);
     private final CustomKeyCombination upLeftCombination = new CustomKeyCombination(KeyCode.UP, KeyCode.LEFT);
