@@ -8,10 +8,14 @@ import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.*;
 import bfst21.view.CanvasBounds;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class MapData {
+public class MapData implements Serializable {
+    @Serial private static final long serialVersionUID = 8514196836151887206L;
+
     private KDTree<Node> closetRoadTree;
     private RTree rTree;
     private ArrayList<ArrayList<Element>> mapSegment; //Only content within bounds

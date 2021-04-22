@@ -1,11 +1,16 @@
 package bfst21;
 
 import bfst21.Exceptions.NoOSMInZipFileException;
+import bfst21.Exceptions.UnsupportedFileFormatException;
 import bfst21.Osm_Elements.Node;
+import bfst21.file_io.Loader;
+import bfst21.file_io.Serializer;
 import bfst21.view.CanvasBounds;
+import bfst21.view.CustomKeyCombination;
 import bfst21.view.MapCanvas;
 import bfst21.view.Theme;
 import javafx.animation.FadeTransition;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -13,8 +18,11 @@ import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -23,136 +31,108 @@ import javafx.util.Duration;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Controller {
-    private final String BINARY_FILE = "/small.osm";
     private MapData mapData;
     private Loader loader;
     private Creator creator;
-    private Map<String, String> themes;
-    private Point2D lastMouse = new Point2D(0, 0);
-    private boolean viaZoomSlider = true;
 
+    private static final String BINARY_FILE = "/small.bmapdata";
+
+    private Point2D lastMouse = new Point2D(0, 0);
+    private final CustomKeyCombination upLeftCombination = new CustomKeyCombination(KeyCode.UP, KeyCode.LEFT);
+    private final CustomKeyCombination upRightCombination = new CustomKeyCombination(KeyCode.UP, KeyCode.RIGHT);
+    private final CustomKeyCombination downLeftCombination = new CustomKeyCombination(KeyCode.DOWN, KeyCode.LEFT);
+    private final CustomKeyCombination downRightCombination = new CustomKeyCombination(KeyCode.DOWN, KeyCode.RIGHT);
+    private boolean viaZoomSlider = true;
     private boolean dragged;
+
+    private State state = State.MENU;
 
     private Node currentFromNode;
     private Node currentToNode;
-    private State state = State.MENU;
-    @FXML
-    private MapCanvas mapCanvas;
-    @FXML
-    private Scene scene;
-    @FXML
-    private StackPane centerPane;
-    @FXML
-    private VBox loaderPane;
-    @FXML
-    private Label coordsLabel;
-    @FXML
-    private Label geoCoordsLabel;
-    @FXML
-    private Label nearestRoadLabel;
-    @FXML
-    private Label statusLabel;
-    @FXML
-    private Label scaleLabel;
-    @FXML
-    private Label boundsTR;
-    @FXML
-    private Label boundsBR;
-    @FXML
-    private Label boundsTL;
-    @FXML
-    private Label boundsBL;
-    @FXML
-    private ProgressIndicator loadingBar;
-    @FXML
-    private Slider zoomSlider;
-    @FXML
-    private Menu themeMenu;
-    @FXML
-    private MenuItem openItem;
-    @FXML
-    private MenuItem resetItem;
-    @FXML
-    private MenuItem cancelItem;
-    @FXML
-    private MenuItem zoomInItem;
-    @FXML
-    private MenuItem zoomOutItem;
-    @FXML
-    private Button zoomInButton;
-    @FXML
-    private Button zoomOutButton;
-    @FXML
-    private RadioMenuItem defaultThemeItem;
-    @FXML
-    private RadioMenuItem rTreeDebug;
-    @FXML
-    private ToggleGroup themeGroup;
-    @FXML
-    private TextField textFieldFromNav;
-    @FXML
-    private Button chooseCorButtonFromNav;
-    @FXML
-    private TextField textFieldToNav;
-    @FXML
-    private Button chooseCorButtonToNav;
-    @FXML
-    private RadioButton radioButtonCarNav;
-    @FXML
-    private RadioButton radioButtonBikeNav;
-    @FXML
-    private RadioButton radioButtonWalkNav;
-    @FXML
-    private RadioButton radioButtonFastestNav;
-    @FXML
-    private RadioButton radioButtonShortestNav;
-    @FXML
-    private Button searchNav;
-    @FXML
-    private ComboBox<String> dropDownPoints;
-    @FXML
-    private Button addPointButton;
-    @FXML
-    private TextField textFieldPointName;
+
+    @FXML private MapCanvas mapCanvas;
+    @FXML private Scene scene;
+    @FXML private StackPane centerPane;
+    @FXML private VBox loaderPane;
+
+    @FXML private Label coordsLabel;
+    @FXML private Label geoCoordsLabel;
+    @FXML private Label nearestRoadLabel;
+    @FXML private Label statusLabel;
+    @FXML private Label scaleLabel;
+    @FXML private Label boundsTR;
+    @FXML private Label boundsBR;
+    @FXML private Label boundsTL;
+    @FXML private Label boundsBL;
+
+    @FXML private ProgressIndicator loadingBar;
+    @FXML private Slider zoomSlider;
+
+    @FXML private ToggleGroup themeGroup;
+
+    @FXML private Menu themeMenu;
+    @FXML private MenuItem openItem;
+    @FXML private MenuItem resetItem;
+    @FXML private MenuItem cancelItem;
+    @FXML private MenuItem zoomInItem;
+    @FXML private MenuItem zoomOutItem;
+    @FXML private MenuItem dumpItem;
+    @FXML private RadioMenuItem rTreeDebug;
+
+    @FXML private Button zoomInButton;
+    @FXML private Button zoomOutButton;
+    @FXML private Button chooseCorButtonFromNav;
+    @FXML private Button chooseCorButtonToNav;
+    @FXML private Button searchNav;
+
+    @FXML private TextField textFieldFromNav;
+    @FXML private TextField textFieldToNav;
+
+    @FXML private RadioButton radioButtonCarNav;
+    @FXML private RadioButton radioButtonBikeNav;
+    @FXML private RadioButton radioButtonWalkNav;
+    @FXML private RadioButton radioButtonFastestNav;
+    @FXML private RadioButton radioButtonShortestNav;
+
+    @FXML private ComboBox<String> dropDownPoints;
+    @FXML private TextField textFieldPointName;
+    @FXML private Button addPointButton;
 
     public void init() {
         mapData = new MapData();
         loader = new Loader();
-        themes = new HashMap<>();
         loadThemes();
         initView();
         openFile();
     }
 
     private void initView() {
-        themeGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> setTheme(((RadioMenuItem) newValue.getToggleGroup().getSelectedToggle()).getText()));
-        disableMenus();
-    }
-
-    private void initUI() {
-        mapCanvas.init(mapData, loader.loadTheme(themes.get("Default")));
-        mapCanvas.widthProperty().addListener((observable, oldValue, newValue) -> setBoundsLabels());
-        mapCanvas.heightProperty().addListener((observable, oldValue, newValue) -> setBoundsLabels());
-
+        themeGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> setTheme(((RadioMenuItem) newValue.getToggleGroup().getSelectedToggle()).getUserData().toString()));
+        mapCanvas.initTheme(loader.loadTheme(themeGroup.getSelectedToggle().getUserData().toString()));
+        scaleLabel.textProperty().bind(mapCanvas.getRatio());
         zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (viaZoomSlider) zoom(newValue.intValue() - oldValue.intValue());
         });
+        disableMenus();
+        CustomKeyCombination.setTarget(mapCanvas);
+    }
 
-        scaleLabel.textProperty().bind(mapCanvas.getRatio());
+    private void initMapCanvas() {
+        mapCanvas.init(mapData);
+        //TODO MOVE LISTENERS
+        mapCanvas.widthProperty().addListener((observable, oldValue, newValue) -> setBoundsLabels());
+        mapCanvas.heightProperty().addListener((observable, oldValue, newValue) -> setBoundsLabels());
     }
 
     private void loadThemes() {
         for (String file : loader.getFilesIn("/themes", ".mtheme")) {
             String themeName = Theme.parseName(file);
-            themes.put(themeName, file);
 
             if (!file.equals("default.mtheme")) {
                 RadioMenuItem item = new RadioMenuItem(themeName);
+                item.setUserData(file);
                 item.setToggleGroup(themeGroup);
                 themeMenu.getItems().add(item);
             }
@@ -176,10 +156,8 @@ public class Controller {
      */
     @FXML
     private void zoom(ActionEvent e) {
-        if (e.getSource().equals(zoomInItem) || e.getSource().equals(zoomInButton))
-            zoom(true, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
-        else if (e.getSource().equals(zoomOutItem) || e.getSource().equals(zoomOutButton))
-            zoom(false, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
+        if (e.getSource().equals(zoomInItem) || e.getSource().equals(zoomInButton)) zoom(true, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
+        else if (e.getSource().equals(zoomOutItem) || e.getSource().equals(zoomOutButton)) zoom(false, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
     }
 
     /**
@@ -224,13 +202,13 @@ public class Controller {
 
     @FXML
     private void onMouseMoved(MouseEvent e) {
-        mapCanvas.setCursor(Cursor.DEFAULT);
         setLabels(new Point2D(e.getX(), e.getY()));
     }
 
     @FXML
     private void onMousePressed(MouseEvent e) {
         lastMouse = new Point2D(e.getX(), e.getY());
+        mapCanvas.requestFocus();
         setLabels(lastMouse);
     }
 
@@ -244,6 +222,25 @@ public class Controller {
     }
 
     @FXML
+    private void onKeyPressed(KeyEvent e) {
+        int acceleration = 50;
+
+        if(upLeftCombination.match(e)) mapCanvas.pan(acceleration, acceleration);
+        else if(upRightCombination.match(e)) mapCanvas.pan(-acceleration, acceleration);
+        else if(downLeftCombination.match(e)) mapCanvas.pan(acceleration, -acceleration);
+        else if(downRightCombination.match(e)) mapCanvas.pan(-acceleration, -acceleration);
+        else if(e.getCode().equals(KeyCode.UP)) mapCanvas.pan(0, acceleration);
+        else if(e.getCode().equals(KeyCode.DOWN)) mapCanvas.pan(0, -acceleration);
+        else if(e.getCode().equals(KeyCode.LEFT)) mapCanvas.pan(acceleration, 0);
+        else if(e.getCode().equals(KeyCode.RIGHT)) mapCanvas.pan(-acceleration, 0);
+    }
+
+    @FXML
+    private void onKeyReleased() {
+        if(CustomKeyCombination.keyCodes.size() == 0) mapCanvas.updateMap();
+    }
+
+    @FXML
     private void resetView() {
         mapCanvas.reset();
         viaZoomSlider = false;
@@ -253,26 +250,26 @@ public class Controller {
     }
 
     @FXML
-    private void openFile() {
-        showLoaderPane(true);
-        File file = showFileChooser().showOpenDialog(scene.getWindow());
-        InputStream inputStream;
-        long fileSize;
+    private void dumpBinary() {
+        String contentText = "The dumping process of MapData takes excessive amount of memory. If not enough memory is available an Out of Memory Error might be thrown, causing the program to crash. \n\nDo you want to continue?";
+        Alert warning = createAlert(Alert.AlertType.WARNING, "Dump MapData", "MapData Dump", contentText, ButtonType.YES, ButtonType.NO);
+        warning.showAndWait();
 
-        try {
-            if (file != null) {
-                inputStream = loader.load(file.getPath());
-                fileSize = file.getName().endsWith(".zip") ? loader.getZipFileEntrySize(file.getPath()) : file.length();
-            } else {
-                inputStream = loader.loadResource(BINARY_FILE);
-                fileSize = loader.getResourceFileSize(BINARY_FILE);
+        if(warning.getResult() == ButtonType.YES) {
+            File file = showFileChooser("save").showSaveDialog(scene.getWindow());
+            if(file != null) {
+                Serializer serializer = new Serializer(mapData, file);
+                showLoaderPane(true);
+
+                serializer.setOnRunning(e -> taskRunning(serializer));
+                serializer.setOnSucceeded(e -> taskSuccess());
+                serializer.setOnFailed(e -> taskFailed(serializer, true));
+                serializer.setOnCancelled(e -> System.out.println("CANCELLED!"));
+
+                Thread serializerThread = new Thread(serializer, "Serializer Thread");
+                serializerThread.setDaemon(true);
+                serializerThread.start();
             }
-
-            loadFile(inputStream, fileSize);
-        } catch (IOException e) {
-            statusLabel.setText("Failed: File not found.");
-        } catch (NoOSMInZipFileException e) {
-            statusLabel.setText("Failed: " + e.getMessage());
         }
     }
 
@@ -286,54 +283,86 @@ public class Controller {
         creator.cancel();
     }
 
-    private void loadFile(InputStream inputStream, long fileSize) {
+    @FXML
+    private void openFile() {
+        showLoaderPane(true);
+        File file = showFileChooser("open").showOpenDialog(scene.getWindow());
+        InputStream inputStream;
+        long fileSize;
+        boolean binary = false;
+
+        try {
+            if (file != null) {
+                if(file.getName().endsWith(".bmapdata")) binary = true;
+                inputStream = loader.load(file.getPath());
+                fileSize = file.getName().endsWith(".zip") ? loader.getZipFileEntrySize(file.getPath()) : file.length();    //If it's a zip file get the size of the entry else use the default file size.
+            } else {
+                inputStream = loader.loadResource(BINARY_FILE);
+                fileSize = loader.getResourceFileSize(BINARY_FILE);
+                binary = true;
+            }
+
+            loadFile(inputStream, fileSize, binary);
+        } catch (IOException e) {
+            statusLabel.setText("Failed: File not found.");
+        } catch (NoOSMInZipFileException | UnsupportedFileFormatException e) {
+            statusLabel.setText("Failed: " + e.getMessage());
+        }
+    }
+
+    private void loadFile(InputStream inputStream, long fileSize, boolean binary) {
         mapData = new MapData();
-        creator = new Creator(mapData, inputStream, fileSize);
-        creator.setOnRunning(e -> loadRunning());
+        creator = new Creator(inputStream, fileSize, binary);
+        creator.setOnRunning(e -> taskRunning(creator));
         creator.setOnSucceeded(e -> loadSuccess());
-        creator.setOnCancelled(e -> loadCancelled());
-        creator.setOnFailed(e -> loadFailed());
+        creator.setOnCancelled(e -> taskCancelled());
+        creator.setOnFailed(e -> taskFailed(creator, false));
 
         Thread creatorThread = new Thread(creator, "Creator Thread");
         creatorThread.setDaemon(true);
         creatorThread.start();
     }
 
-    private void loadRunning() {
+    private void taskRunning(Task<?> task) {
         state = State.LOADING;
         disableMenus();
         centerPane.setCursor(Cursor.WAIT);
-        statusLabel.textProperty().bind(creator.messageProperty());
-        loadingBar.progressProperty().bind(creator.progressProperty());
+        statusLabel.textProperty().bind(task.messageProperty());
+        loadingBar.progressProperty().bind(task.progressProperty());
     }
 
     private void loadSuccess() {
-        state = State.MAP;
-        disableMenus();
-        showLoaderPane(false);
-        cleanupLoad();
-        initUI();
+        mapData = creator.getValue();
+        taskSuccess();
+        initMapCanvas();
         resetView();
     }
 
-    private void loadFailed() {
-        state = State.MENU;
-        disableMenus();
-        mapData = new MapData();
-        cleanupLoad();
-        statusLabel.setText("Failed.");
-        creator.exceptionProperty().get().printStackTrace();
+    private void taskSuccess() {
+        state = State.MAP;
+        showLoaderPane(false);
+        cleanupTask();
     }
 
-    private void loadCancelled() {
+    private void taskFailed(Task<?> task, boolean showMap) {
+        if(showMap) {
+            state = State.MAP;
+            showLoaderPane(false);
+        }
+        else state = State.MENU;
+        task.exceptionProperty().getValue().printStackTrace();
+        statusLabel.setText("Failed: " + task.exceptionProperty().getValue().getMessage());
+        cleanupTask();
+    }
+
+    private void taskCancelled() {
         state = State.MENU;
-        disableMenus();
-        mapData = new MapData();
-        cleanupLoad();
+        cleanupTask();
         statusLabel.setText("Cancelled.");
     }
 
-    private void cleanupLoad() {
+    private void cleanupTask() {
+        disableMenus();
         centerPane.setCursor(Cursor.DEFAULT);
         statusLabel.textProperty().unbind();
         loadingBar.progressProperty().unbind();
@@ -346,18 +375,21 @@ public class Controller {
             zoomOutItem.setDisable(true);
             resetItem.setDisable(true);
             cancelItem.setDisable(true);
+            dumpItem.setDisable(true);
         } else if (state == State.LOADING) {
             openItem.setDisable(true);
             zoomInItem.setDisable(true);
             zoomOutItem.setDisable(true);
             resetItem.setDisable(true);
             cancelItem.setDisable(false);
+            dumpItem.setDisable(true);
         } else if (state == State.MAP) {
             openItem.setDisable(false);
             zoomInItem.setDisable(false);
             zoomOutItem.setDisable(false);
             resetItem.setDisable(false);
             cancelItem.setDisable(true);
+            dumpItem.setDisable(false);
         }
     }
 
@@ -366,8 +398,10 @@ public class Controller {
         if (show) {
             if (loaderPane.isVisible()) return;
             statusLabel.setText("Waiting");
-            loadingBar.setProgress(0);
+            loadingBar.setProgress(0.0);
             loaderPane.setVisible(true);
+            state = State.MENU;
+            disableMenus();
             ft.setFromValue(0);
             ft.setToValue(1);
         } else {
@@ -380,14 +414,13 @@ public class Controller {
         ft.play();
     }
 
-    private void setTheme(String themeName) {
-        String name = themes.get(themeName);
-        Theme theme = loader.loadTheme(name);
+    private void setTheme(String themeFile) {
+        Theme theme = loader.loadTheme(themeFile);
         scene.getStylesheets().remove(mapCanvas.getTheme().getStylesheet());
         if (theme.getStylesheet() != null) {
             scene.getStylesheets().add(theme.getStylesheet());
         }
-        mapCanvas.setTheme(theme);
+        mapCanvas.changeTheme(theme);
     }
 
     private void setLabels(Point2D point) {
@@ -423,11 +456,20 @@ public class Controller {
         return Math.round(number * scale) / scale;
     }
 
-    private FileChooser showFileChooser() {
+    private FileChooser showFileChooser(String option) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open File");
         fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Desktop"));
-        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Open Street Map File", "*.osm", "*.zip"));
+
+        if(option.equals("open")) {
+            fileChooser.setTitle("Open File");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All OSM Files", "*.osm", "*zip", "*.bmapdata"));
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("OSM File", "*.osm"));
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Zipped OSM File", "*zip"));
+        } else if(option.equals("save")) {
+            fileChooser.setTitle("Save File");
+            fileChooser.setInitialFileName("binary_map_data");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Binary MapData", "*.bmapdata"));
+        }
 
         return fileChooser;
     }
@@ -484,11 +526,15 @@ public class Controller {
     }
 
     private void showDialogBox(String title, String contentText) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        createAlert(Alert.AlertType.INFORMATION, title, null, contentText).showAndWait();
+    }
+
+    private Alert createAlert(Alert.AlertType alertType, String title, String header, String text, ButtonType... buttons) {
+        Alert alert = new Alert(alertType, text, buttons);
         alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(contentText);
-        alert.showAndWait();
+        alert.setHeaderText(header);
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        return alert;
     }
 
     @FXML
@@ -513,7 +559,7 @@ public class Controller {
             EventHandler<MouseEvent> event = new EventHandler<>() {
                 @Override
                 public void handle(MouseEvent e) {
-                    //// TODO: 20-04-2021 make this work 
+                    //// TODO: 20-04-2021 make this work
 
                     Point2D cursorPoint = new Point2D(e.getX(), e.getY());
                     Point2D geoCoords = mapCanvas.getGeoCoords(cursorPoint.getX(), cursorPoint.getY());
@@ -538,5 +584,4 @@ public class Controller {
         LOADING,
         MAP
     }
-
 }

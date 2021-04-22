@@ -2,12 +2,15 @@ package bfst21.Osm_Elements;
 
 import javafx.scene.canvas.GraphicsContext;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Relation extends NodeHolder {
+public class Relation extends NodeHolder implements Serializable {
+    @Serial private static final long serialVersionUID = 4812917960463994060L;
 
     private ArrayList<Way> ways;
     private String name;

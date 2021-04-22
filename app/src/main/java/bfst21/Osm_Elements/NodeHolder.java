@@ -2,10 +2,13 @@ package bfst21.Osm_Elements;
 
 import javafx.scene.canvas.GraphicsContext;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class NodeHolder extends Element {
+public abstract class NodeHolder extends Element implements Serializable {
+    @Serial private static final long serialVersionUID = 4506251123911227447L;
 
     protected List<Node> nodes = new ArrayList<>();
 

@@ -4,9 +4,13 @@ import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 
-public class RTree {
+public class RTree implements Serializable {
+    @Serial private static final long serialVersionUID = 7154862203691144752L;
+
     private final int minimumChildren, maximumChildren, numberOfCoordinates;
     ArrayList<ArrayList<Long>> splitInsertResults;
     private RTreeNode root;

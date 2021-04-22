@@ -5,14 +5,16 @@ import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.*;
-import bfst21.file_reading.ProgressInputStream;
+import bfst21.file_io.ProgressInputStream;
 import javafx.concurrent.Task;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -20,12 +22,12 @@ import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 
 /**
- * Creates Objects such as Nodes, Ways and Relations from the .osm file given from the Loader.
+ * Creates a complete MapData object containing Nodes, Ways and Relations from an InputStream containing either a .osm file or a binary {@link MapData}.
  */
-public class Creator extends Task<Void> {
-    private final boolean[] touched = new boolean[3];
+public class Creator extends Task<MapData> {
     private MapData mapData;
-    private ProgressInputStream progressInputStream;
+    private final ProgressInputStream progressInputStream;
+
     private HashSet<String> nodesNotCreateKeys;
     private HashSet<String> nodesNotCreateValues;
     private String city, streetName, houseNumber, name;
@@ -37,11 +39,14 @@ public class Creator extends Task<Void> {
     private HashMap<Element, String> elementToText;
 
     private boolean isFoot = false; // TODO: 4/15/21 is there a better way?
+    private final boolean[] touched = new boolean[3];
+    private final boolean binary;
 
-    public Creator(MapData mapData, InputStream inputStream, long fileSize) {
-        this.mapData = mapData;
+    public Creator(InputStream inputStream, long fileSize, boolean binary) {
+        mapData = new MapData();
         progressInputStream = new ProgressInputStream(inputStream);
         progressInputStream.addInputStreamListener(totalBytes -> updateProgress(totalBytes, fileSize));
+        this.binary = binary;
         nodesNotCreateKeys = new HashSet<>();
         nodesNotCreateValues = new HashSet<>();
         bottomLayer = 0;
@@ -59,12 +64,28 @@ public class Creator extends Task<Void> {
     }
 
     @Override
-    protected Void call() throws Exception {
-        create();
-        return null;
+    protected MapData call() throws Exception {
+        if(!binary) createMapData();
+        else createBinaryMapData();
+
+        return mapData;
     }
 
-    public void create() throws XMLStreamException {
+    /**
+     * Creates a MapData object from a binary MapData file.
+     *
+     * @throws IOException if the file is not found or the process is interrupted.
+     * @throws ClassNotFoundException if the serialized object recreation process can't find the corresponding class.
+     */
+    private void createBinaryMapData() throws IOException, ClassNotFoundException {
+        updateMessage("Loading...");
+        ObjectInputStream objectInputStream = new ObjectInputStream(new BufferedInputStream(progressInputStream));
+        mapData = (MapData) objectInputStream.readObject();
+        updateMessage("Finalizing...");
+        objectInputStream.close();
+    }
+
+    private void createMapData() throws XMLStreamException {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new BufferedInputStream(progressInputStream));
 
         BinarySearchTree<Node> idToNode = new BinarySearchTree<>();
@@ -290,13 +311,12 @@ public class Creator extends Task<Void> {
                     break;
                 }
                 if (v.equals("grass")) {
-                    relation.setType(("park"),typeToLayer.get("park"));;
+                    relation.setType(("park"),typeToLayer.get("park"));
                     break;
                 }
                 break;
         }
     }
-
 
     private void checkWay(String k, String v, Way way) {
         switch (k) {
@@ -341,7 +361,7 @@ public class Creator extends Task<Void> {
                     break;
                 }
                 if (v.equals("grass")|| v.equals("meadow")) {
-                    way.setType(("park"),typeToLayer.get("park"));;
+                    way.setType(("park"),typeToLayer.get("park"));
                     break;
                 }
                 if (v.equals("farmland")) {
@@ -587,6 +607,7 @@ public class Creator extends Task<Void> {
     private boolean checkNodesNotCreate(String k, String v) {
         return nodesNotCreateKeys.contains(k) || nodesNotCreateValues.contains(v);
     }
+
     private void setUpTypeToLayer() {
         typeToLayer.put("water",bottomLayer);
         typeToLayer.put("light_green",bottomLayer);
@@ -604,8 +625,5 @@ public class Creator extends Task<Void> {
         typeToLayer.put("coastline",layerFour);
 
         typeToLayer.put("text",topLayer);
-
-
     }
-
 }

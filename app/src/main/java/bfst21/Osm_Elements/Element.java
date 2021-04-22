@@ -2,7 +2,12 @@ package bfst21.Osm_Elements;
 
 import javafx.scene.canvas.GraphicsContext;
 
-public abstract class Element implements Spatializable {
+import java.io.Serial;
+import java.io.Serializable;
+
+public abstract class Element implements Spatializable, Serializable {
+    @Serial private static final long serialVersionUID = -5832865119529036880L;
+
     protected long id;
     protected float xMin;
     protected float xMax;
@@ -16,7 +21,7 @@ public abstract class Element implements Spatializable {
         layer = 4; //default value;
     }
 
-    public Element(){
+    public Element() {
 
     }
 
@@ -34,7 +39,7 @@ public abstract class Element implements Spatializable {
 
     public void setType(String type, int lay) {
         this.type = type;
-        if(lay < 5) layer = lay;
+        if (lay < 5) layer = lay;
     }
 
     public boolean hasType() {
@@ -64,10 +69,11 @@ public abstract class Element implements Spatializable {
         return new float[]{xMin, xMax, yMin, yMax};
     }
 
-    public void setLayer(int lay){
-        if(lay < 5) layer = lay;
+    public void setLayer(int lay) {
+        if (lay < 5) layer = lay;
     }
-    public int getLayer(){
+
+    public int getLayer() {
         return layer;
     }
 

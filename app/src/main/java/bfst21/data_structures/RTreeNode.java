@@ -2,9 +2,13 @@ package bfst21.data_structures;
 
 import bfst21.Osm_Elements.Element;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class RTreeNode {
+public class RTreeNode implements Serializable {
+    @Serial private static final long serialVersionUID = 6595066254175712095L;
+
     private float[] coordinates;
     private ArrayList<RTreeNode> children;
     private boolean leaf;

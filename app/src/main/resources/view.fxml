@@ -35,7 +35,7 @@
                     <RadioMenuItem fx:id="navigationPane" text="Show Navigation Pane" selected="true"/>
                     <SeparatorMenuItem/>
                     <Menu fx:id="themeMenu" text="Change Theme...">
-                        <RadioMenuItem text="Default" selected="true">
+                        <RadioMenuItem text="Default" userData="default.mtheme" selected="true">
                             <toggleGroup>
                                 <ToggleGroup fx:id="themeGroup"/>
                             </toggleGroup>
@@ -53,6 +53,8 @@
                     <RadioMenuItem fx:id="rTreeDebug" text="R-tree" onAction="#setRTreeDebug"/>
                     <SeparatorMenuItem/>
                     <RadioMenuItem fx:id="dijkstraDebug" text="Dijkstra" onAction="#getDijkstraPath"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem fx:id="dumpItem" text="Dump MapData" onAction="#dumpBinary" accelerator="CTRL + D"/>
                 </Menu>
             </MenuBar>
         </top>
@@ -67,6 +69,8 @@
                                onMouseDragged="#onMouseDragged"
                                onMouseMoved="#onMouseMoved"
                                onMouseReleased="#onMouseReleased"
+                               onKeyPressed="#onKeyPressed"
+                               onKeyReleased="#onKeyReleased"
                     />
                 </Pane>
 
