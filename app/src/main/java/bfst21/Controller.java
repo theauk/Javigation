@@ -536,9 +536,44 @@ public class Controller {
 
     @FXML
     public void getDijkstraPath() {
+
+        mapData.setDijkstraRoute(currentFromNode, currentToNode, radioButtonCarNav.isSelected(), radioButtonBikeNav.isSelected(), radioButtonWalkNav.isSelected(), radioButtonFastestNav.isSelected());
         mapCanvas.repaint();
-        ArrayList<Node> res = mapData.getDijkstraRoute(currentFromNode, currentToNode, radioButtonCarNav.isSelected(), radioButtonBikeNav.isSelected(), radioButtonWalkNav.isSelected(), radioButtonFastestNav.isSelected());
-        mapCanvas.drawDijkstra(res);
+    }
+
+    @FXML
+    public void moveToPoint(ActionEvent actionEvent) {
+        int i = dropDownPoints.getSelectionModel().getSelectedIndex();
+        Node node = mapData.getUserAddedPoints().get(i);
+        mapCanvas.centerOnPoint(node.getxMin(), node.getyMin());
+
+    }
+
+    @FXML
+    public void addUserPoint(ActionEvent actionEvent) {
+        if (textFieldPointName.getText().equals("")) showDialogBox("User added point error", "Please input name for your point");
+        else {
+            EventHandler<MouseEvent> event = new EventHandler<>() {
+                @Override
+                public void handle(MouseEvent e) {
+                    //// TODO: 20-04-2021 make this work
+
+                    Point2D cursorPoint = new Point2D(e.getX(), e.getY());
+                    Point2D geoCoords = mapCanvas.getGeoCoords(cursorPoint.getX(), cursorPoint.getY());
+                    Node node = new Node((float) geoCoords.getX(), (float) -geoCoords.getY() / 0.56f);
+                    String nodeName = textFieldPointName.getText();
+                    mapData.addToUserPointList(node);
+                    dropDownPoints.getItems().add(nodeName);
+                    mapCanvas.repaint();
+                    textFieldPointName.setText("");
+                    mapCanvas.removeEventHandler(MouseEvent.MOUSE_CLICKED, this);
+                }
+            };
+            mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
+
+
+
+        }
     }
 
     private enum State {

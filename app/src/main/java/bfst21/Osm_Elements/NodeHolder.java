@@ -68,7 +68,6 @@ public abstract class NodeHolder extends Element implements Serializable {
         for (var node : nodes) {
             gc.lineTo(node.getxMin(), node.getyMin());
         }
-
     }
 
     public List<Node> getNodes() {
@@ -102,5 +101,6 @@ public abstract class NodeHolder extends Element implements Serializable {
         }
         return previousNode;
     }
+
 
 }

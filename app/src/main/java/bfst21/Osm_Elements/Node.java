@@ -40,4 +40,12 @@ public class Node extends Element implements Serializable {
 
     }
 
+    public void drawCircle(){
+
+    }
+
+    public void textOutput(){
+
+    }
+
 }

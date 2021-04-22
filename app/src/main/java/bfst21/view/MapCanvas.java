@@ -1,20 +1,20 @@
 package bfst21.view;
 
 import bfst21.MapData;
-import bfst21.Osm_Elements.Element;
-import bfst21.Osm_Elements.Node;
-import bfst21.Osm_Elements.Way;
+import bfst21.Osm_Elements.*;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 
-import java.util.ArrayList;
+import javax.swing.tree.VariableHeightLayoutCache;
+import java.awt.*;
 import java.util.Map;
 
 public class MapCanvas extends Canvas {
@@ -66,6 +66,7 @@ public class MapCanvas extends Canvas {
         gc.fillRect(0, 0, getWidth(), getHeight());
 
         gc.setTransform(trans);
+        fillCoastLines(gc);
 
         int layers = mapData.getMapSegment().size();
         for (int layer = 0; layer < layers; layer++) {
@@ -74,6 +75,13 @@ public class MapCanvas extends Canvas {
             }
         }
 
+            for (Element route : mapData.getCurrentDjikstraRoute()) {
+                drawElement(gc, route);
+            }
+
+        for(Node point : mapData.getUserAddedPoints()){
+            drawRectangleNode(gc, point);
+        }
         gc.restore();
     }
 
@@ -82,53 +90,92 @@ public class MapCanvas extends Canvas {
         return MIN_ZOOM_LEVEL;
     }
 
+    private void fillCoastLines(GraphicsContext gc) {
+        drawElement(gc, mapData.getCoastlines());
+    }
+
     private void drawElement(GraphicsContext gc, Element element) {
-        gc.setLineDashes(getStrokeStyle(element.getType())); //Apply stroke style
-
-        if (theme.get(element.getType()).isTwoColored()) {
-            drawOuterElement(gc, element);
+        Theme.ThemeElement themeElement = theme.get(element.getType());
+        if(themeElement.isNode()){
+            drawRoundNode(gc, element, themeElement);
+        }else if(element.getType().equals("text")){
+            drawText(gc, element, themeElement);
         }
+        else {
+            gc.setLineDashes(getStrokeStyle(themeElement)); //Apply stroke style
 
-        drawInnerElement(gc, element);
+            if (themeElement.isTwoColored()) {
+                drawOuterElement(gc, element, themeElement);
+            }
 
-        if (theme.get(element.getType()).fill()) {
-            fillElement(gc, element);
+            drawInnerElement(gc, element, themeElement);
+
+            if (themeElement.fill()) {
+                fillElement(gc, themeElement);
+            }
         }
     }
 
-    private void drawOuterElement(GraphicsContext gc, Element element) {
-        gc.setLineWidth(getStrokeWidth(element.getType(), false));
-        gc.setStroke(theme.get(element.getType()).getColor().getOuter());
+    private void drawText(GraphicsContext gc, Element element, Theme.ThemeElement themeElement){
+        String text = mapData.getTextFromElement(element);
+        gc.setTextAlign(TextAlignment.CENTER);
+        Font font = new Font(10/Math.sqrt(trans.determinant()));
+        gc.setFill(themeElement.getColor().getInner());
+        gc.setFont(font);
+        gc.fillText(text,element.getxMax(),element.getyMax());
+    }
+
+    private void drawRectangleNode(GraphicsContext gc, Node point) {
+        Theme.ThemeElement themeElement = theme.get(point.getType());
+        double length = (themeElement.getInnerWidth()/Math.sqrt(trans.determinant()));
+        gc.setFill(themeElement.getColor().getInner());
+        gc.fillRect(point.getxMax(),point.getyMax(),length, length);
+        gc.setStroke(themeElement.getColor().getOuter());
+        gc.strokeRect(point.getxMax(),point.getyMax(),length, length);
+
+    }
+
+    private void drawRoundNode(GraphicsContext gc, Element element, Theme.ThemeElement themeElement){
+        double innerRadius = (themeElement.getInnerWidth()/Math.sqrt(trans.determinant()));
+        double outerRadius = (themeElement.getOuterWidth()/Math.sqrt(trans.determinant()));
+        gc.setFill(themeElement.getColor().getInner());
+        gc.fillOval(element.getxMax(),element.getyMax(),innerRadius, innerRadius);
+        gc.setStroke(themeElement.getColor().getOuter());
+        gc.strokeOval(element.getxMax(),element.getyMax(),outerRadius, outerRadius);
+    }
+
+    private void drawOuterElement(GraphicsContext gc, Element element, Theme.ThemeElement themeElement) {
+        gc.setLineWidth(getStrokeWidth(false, themeElement));
+        gc.setStroke(themeElement.getColor().getOuter());
         gc.beginPath();
         element.draw(gc);
         gc.stroke();
     }
 
-    private void drawInnerElement(GraphicsContext gc, Element element) {
-        gc.setLineWidth(getStrokeWidth(element.getType(), true));
-        gc.setStroke(theme.get(element.getType()).getColor().getInner());   //Get and apply line color
+    private void drawInnerElement(GraphicsContext gc, Element element, Theme.ThemeElement themeElement) {
+        gc.setLineWidth(getStrokeWidth(true, themeElement));
+        gc.setStroke(themeElement.getColor().getInner());   //Get and apply line color
         gc.beginPath();
         element.draw(gc);
         gc.stroke();
     }
 
-    private void fillElement(GraphicsContext gc, Element element) {
-        gc.setFill(theme.get(element.getType()).getColor().getInner());
+    private void fillElement(GraphicsContext gc, Theme.ThemeElement themeElement) {
+        gc.setFill(themeElement.getColor().getInner());
         gc.setFillRule(FillRule.EVEN_ODD);
         gc.fill();
     }
 
-    private double[] getStrokeStyle(String type) {
+    private double[] getStrokeStyle(Theme.ThemeElement themeElement) {
         double[] strokeStyle = new double[2];
-        for (int i = 0; i < strokeStyle.length; i++) {
-            strokeStyle[i] = StrokeFactory.getStrokeStyle(theme.get(type).getStyle(), trans);
-        }
+        for (int i = 0; i < strokeStyle.length; i++)
+            strokeStyle[i] = StrokeFactory.getStrokeStyle(themeElement.getStyle(), trans);
         return strokeStyle;
     }
 
-    private double getStrokeWidth(String type, boolean inner) {
-        if (inner) return StrokeFactory.getStrokeWidth(theme.get(type).getInnerWidth(), trans);
-        return StrokeFactory.getStrokeWidth(theme.get(type).getOuterWidth(), trans);
+    private double getStrokeWidth( boolean inner, Theme.ThemeElement themeElement) {
+        if (inner) return StrokeFactory.getStrokeWidth(themeElement.getInnerWidth(), trans);
+        return StrokeFactory.getStrokeWidth(themeElement.getOuterWidth(), trans);
     }
 
     private double getDistance(Point2D start, Point2D end) {
@@ -293,27 +340,23 @@ public class MapCanvas extends Canvas {
         zoom(true, levels);
     }
 
+    public void centerOnPoint(double x, double y){
+        double boundsWidth = (bounds.getMaxX() - bounds.getMinX());
+        double boundsHeight = (bounds.getMaxY() - bounds.getMinY());
+        Point2D center = new Point2D(bounds.getMaxX() -boundsWidth/2 ,bounds.getMaxY() - boundsHeight/2); // center koordinates
+
+        double dx = center.getX() - x;
+        double dy = center.getY()- y;
+        dx = dx * Math.sqrt(trans.determinant());
+        dy = dy * Math.sqrt(trans.determinant());
+
+        pan(dx,dy);
+
+    }
+
     public void rTreeDebugMode() {
         mapData.searchInData(bounds);
         repaint();
-    }
-
-    public void drawDijkstra(ArrayList<Node> res) {
-        GraphicsContext gc = getGraphicsContext2D();
-        gc.save();
-        gc.setTransform(new Affine());
-
-        gc.setTransform(trans);
-        gc.setStroke(Color.RED);
-
-        for (int i = 0; i < res.size() - 1; i++) {
-            Way w = new Way(0);
-            w.addNode(res.get(i));
-            w.addNode(res.get(i + 1));
-            w.setType("navigation");
-            drawElement(gc, w);
-        }
-        gc.restore();
     }
 
     private static class StrokeFactory {

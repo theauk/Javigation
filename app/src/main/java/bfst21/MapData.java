@@ -11,6 +11,7 @@ import bfst21.view.CanvasBounds;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MapData implements Serializable {
     @Serial private static final long serialVersionUID = 8514196836151887206L;
@@ -24,6 +25,10 @@ public class MapData implements Serializable {
     private ElementToElementsTreeMap<Node, Way> nodeToHighWay;
     private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
     private DijkstraSP dijkstra;
+    private ArrayList<Element> currentDijkstraRoute;
+    private ArrayList<Node> userAddedPoints;
+    private Relation coastlines;
+    private HashMap<Element, String> elementToText;
 
     public MapData() {
         mapSegment = new ArrayList<>();
@@ -36,9 +41,19 @@ public class MapData implements Serializable {
         this.nodeToRestriction = nodeToRestriction;
         nodeToHighWay = nodeToWayMap;
         dijkstra = new DijkstraSP(nodeToHighWay, nodeToRestriction);
+        currentDijkstraRoute = new ArrayList<>();
+        userAddedPoints = new ArrayList<>();
 
         buildTrees();
     }
+    public void setCoastlines(Relation relation){
+        coastlines = relation;
+    }
+
+    public Relation getCoastlines(){
+        return coastlines;
+    }
+
 
     private void buildTrees() {
         closetRoadTree.buildTree();
@@ -89,10 +104,44 @@ public class MapData implements Serializable {
         return nearestRoadNode;
     }
 
-    public ArrayList<Node> getDijkstraRoute(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest) {
+    public void setDijkstraRoute(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest) {
         ArrayList<Node> path = dijkstra.getPath(from, to, car, bike, walk, fastest);
-        //System.out.println(dijkstra.getTotalUnits());
-        return path;
+        currentDijkstraRoute = new ArrayList<>();
+        if(path.size() > 0) {
+            Way route = new Way();
+            Node start = path.get(0);
+            Node end = path.get(path.size() - 1);
+            setRouteElementType(route, start, end);
+
+            route.setType("navigation");
+            for (int i = 0; i < path.size() - 1; i++) {
+                route.addNode(path.get(i));
+            }
+            currentDijkstraRoute.add(route);
+            currentDijkstraRoute.add(start);
+            currentDijkstraRoute.add(end);
+        }
+    }
+
+    public void addToUserPointList(Node toAdd){
+        toAdd.setType("user_added");
+        userAddedPoints.add(toAdd);
+    }
+
+    public ArrayList<Node> getUserAddedPoints(){
+        return userAddedPoints;
+    }
+
+    private void setRouteElementType(Way way, Node start, Node end){
+        way.setType("navigation");
+        start.setType("start_route_note");
+        end.setType("end_route_note");
+    }
+    public ArrayList<Element> getCurrentDjikstraRoute(){
+        return currentDijkstraRoute;
+    }
+    public void removeCurrentDijkstraRoute(){
+        currentDijkstraRoute = new ArrayList<>();
     }
 
     public ArrayList<ArrayList<Element>> getMapSegment() {
@@ -101,6 +150,13 @@ public class MapData implements Serializable {
 
     public Node getAddressNode(String address) {
         return addressTree.getAddressNode(address);
+    }
+    public String getTextFromElement(Element element){
+        String result = elementToText.get(element);
+        return result;
+    }
+    public void setElementToText(HashMap<Element, String> elementToCityname) {
+        this.elementToText = elementToCityname;
     }
 
     public float getMinX() {
@@ -134,4 +190,6 @@ public class MapData implements Serializable {
     public void setMaxY(float maxY) {
         this.maxY = maxY;
     }
+
+
 }

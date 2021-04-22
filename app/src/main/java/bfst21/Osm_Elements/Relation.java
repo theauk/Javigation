@@ -6,6 +6,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Relation extends NodeHolder implements Serializable {
@@ -20,7 +21,7 @@ public class Relation extends NodeHolder implements Serializable {
 
 
     private String restriction;
-    private Way to,from;
+    private Way to, from;
     private Node via;
 
     public Way getTo() {
@@ -55,6 +56,7 @@ public class Relation extends NodeHolder implements Serializable {
     public ArrayList<Way> getWays() {
         return ways;
     }
+
     public void addWay(Way way) {
         if (way != null) {
             ways.add(way);
@@ -105,11 +107,12 @@ public class Relation extends NodeHolder implements Serializable {
                 }
             }
         } else {
-            if(ways != null) {
+            if (ways != null) {
                 for (Way w : ways) {
                     w.draw(gc);
                 }
-            } if(nodes != null){
+            }
+            if (nodes != null && nodes.size() != 0) {
                 super.draw(gc);
             }
         }
@@ -119,7 +122,11 @@ public class Relation extends NodeHolder implements Serializable {
         isMultiPolygon = true;
     }
 
-    private ArrayList<Way> mergeWays(ArrayList<Way> ways) {
+    public void mergeWays() {
+        ways = mergeWays(ways);
+    }
+
+    private ArrayList<Way> mergeWays(ArrayList<Way> toMerge) {
         /*
          * Inner and outer rings are created from closed ways whenever possible,
          * except when these ways become very large (on the order of 2000 nodes). W
@@ -127,20 +134,43 @@ public class Relation extends NodeHolder implements Serializable {
          * From OSM wiki - mapping stype best practice with Relations
          */
         Map<Node, Way> pieces = new HashMap<>();
-        for (var way : ways) {
-            var before = pieces.remove(way.first());
-            var after = pieces.remove(way.last());
-            if (before == after) after = null;
-            var merged = Way.merge(before, way, after);
-            pieces.put(merged.first(), merged);
-            pieces.put(merged.last(), merged);
-        }
-        ArrayList<Way> merged = new ArrayList<>();
-        pieces.forEach((node, way) -> {
-            if (way.last() == node) {
-                merged.add(way);
+        ArrayList<Way> mergedList = new ArrayList<>();
+        for (Way way : toMerge) {
+            if (way.first() == way.last()) {
+                mergedList.add(way);
+            } else {
+                Way before = pieces.remove(way.first());
+                Way after = pieces.remove(way.last());
+                if (before == after) after = null;
+                Way merged = merge(before, way, after);
+                pieces.put(merged.first(), merged);
+                pieces.put(merged.last(), merged);
+
             }
-        });
+        }
+                pieces.forEach((node, way) -> {
+                    if (way.last() == node) {
+                        mergedList.add(way);
+                    }
+                });
+
+        return mergedList;
+    }
+
+
+    private Way merge(Way before, Way coast, Way after) {
+        return merge(merge(before, coast), after);
+    }
+
+    private Way merge(Way first, Way second) {
+        if (first == null) return second;
+        if (second == null) return first;
+        Way merged = new Way();
+        merged.nodes.addAll(first.nodes);
+        merged.nodes.addAll(second.nodes.subList(1, second.nodes.size()));
         return merged;
     }
+
+
+
 }

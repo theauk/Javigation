@@ -1,5 +1,6 @@
 package bfst21;
 
+import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
@@ -29,11 +30,13 @@ public class Creator extends Task<MapData> {
 
     private HashSet<String> nodesNotCreateKeys;
     private HashSet<String> nodesNotCreateValues;
-    private String city, streetName, houseNumber;
+    private String city, streetName, houseNumber, name;
     private Integer postcode;
     private boolean isAddress;
     private int bottomLayer, layerTwo, layerThree, layerFour, topLayer;
     private HashMap<String, Integer> typeToLayer;
+    private Relation coastLines;
+    private HashMap<Element, String> elementToText;
 
     private boolean isFoot = false; // TODO: 4/15/21 is there a better way?
     private final boolean[] touched = new boolean[3];
@@ -52,6 +55,9 @@ public class Creator extends Task<MapData> {
         layerFour = 3;
         topLayer = 4;
         typeToLayer = new HashMap<>();
+        coastLines = new Relation(0);
+        coastLines.setType("coastlines");
+        elementToText = new HashMap<>();
 
         setupNodesNotCreate();
         setUpTypeToLayer();
@@ -216,6 +222,7 @@ public class Creator extends Task<MapData> {
                                         node.setLayer(topLayer);
                                         nullifyAddress();
                                     } else {
+                                        if(node.hasType()) rTree.insert(node);
                                         idToNode.put(node);
                                     }
                                     node = null;
@@ -243,8 +250,8 @@ public class Creator extends Task<MapData> {
                                 if (relation != null) {
                                     if (relation.hasType()) {
                                         if (relation.getType().equals("restriction") ) {
-                                            // TODO: 14-04-2021 needs be bettter plz
-                                            if(relation.getVia() != null) nodeToRestriction.put(relation.getVia(), relation);
+                                            // TODO: 14-04-2021 needs be bettter plz plzx plz
+                                           if(relation.getVia() != null) nodeToRestriction.put(relation.getVia(), relation);
                                         } else {
                                             rTree.insert(relation);
                                         }
@@ -257,6 +264,9 @@ public class Creator extends Task<MapData> {
                 }
             }
         }
+        coastLines.mergeWays();
+        mapData.setCoastlines(coastLines);
+        mapData.setElementToText(elementToText);
         updateMessage("Finalizing...");
         mapData.addDataTrees(highWayRoadNodes, rTree, nodeToRestriction, addressTree, nodeToWayMap);
         reader.close();
@@ -311,8 +321,13 @@ public class Creator extends Task<MapData> {
     private void checkWay(String k, String v, Way way) {
         switch (k) {
             case "natural":
-                if (v.equals("coastline") ||v.equals("water") || v.equals("wetland")) {
+                if (v.equals("water") || v.equals("wetland")) {
                     way.setType((v),typeToLayer.get(v));
+                    break;
+                }
+                if (v.equals("coastline")) {
+                    //way.setType((v),typeToLayer.get(v));
+                    coastLines.addWay(way);
                     break;
                 }
                 if (v.equals("scrub") || v.equals("wood")) {
@@ -416,15 +431,31 @@ public class Creator extends Task<MapData> {
         }
     }
 
-    private void checkAddressNode(String k, String v, Node addressNode) {
+    private void checkAddressNode(String k, String v, Node node) {
         switch (k) {
-            case "addr:city" -> city = v;
-            case "addr:housenumber" -> {
+            case "addr:city" :
+                city = v;
+                break;
+            case "addr:housenumber":
                 houseNumber = v;
                 isAddress = true;
-            }
-            case "addr:postcode" -> postcode = Integer.parseInt(v.trim());
-            case "addr:street" -> streetName = v;
+                break;
+            case "addr:postcode" :
+                postcode = Integer.parseInt(v.trim());
+                break;
+            case "addr:street":
+                streetName = v;
+                break;
+            case "name" :
+                name = v;
+                break;
+            case "place":
+                if(v.equals("city") || v.equals("town") || v.equals("village")) {
+                    node.setType("text",typeToLayer.get("text"));
+                    elementToText.put(node, name);
+                }
+
+                break;
         }
     }
 
@@ -592,5 +623,7 @@ public class Creator extends Task<MapData> {
         typeToLayer.put("building",layerThree);
 
         typeToLayer.put("coastline",layerFour);
+
+        typeToLayer.put("text",topLayer);
     }
 }
