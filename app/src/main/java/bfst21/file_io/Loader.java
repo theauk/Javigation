@@ -1,6 +1,7 @@
-package bfst21;
+package bfst21.file_io;
 
 import bfst21.Exceptions.NoOSMInZipFileException;
+import bfst21.Exceptions.UnsupportedFileFormatException;
 import bfst21.view.Theme;
 
 import java.io.*;
@@ -19,10 +20,10 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 public class Loader {
-    public InputStream load(String file) throws IOException, NoOSMInZipFileException {
-        if(file.endsWith(".osm")) return loadOSM(file);
+    public InputStream load(String file) throws IOException, NoOSMInZipFileException, UnsupportedFileFormatException {
+        if(file.endsWith(".osm") || file.endsWith(".bmapdata")) return loadFile(file);
         else if(file.endsWith(".zip")) return loadZIP(file);
-        return null;
+        throw new UnsupportedFileFormatException(file);
     }
 
     /**
@@ -42,10 +43,10 @@ public class Loader {
             if(entry.getName().endsWith(".osm")) return zipInputStream;
         }
 
-        throw new NoOSMInZipFileException("Zip file does not contain a zipped OSM file.");
+        throw new NoOSMInZipFileException(file);
     }
 
-    private FileInputStream loadOSM(String file) throws IOException {
+    private FileInputStream loadFile(String file) throws IOException {
         return new FileInputStream(file);
     }
 
@@ -79,7 +80,7 @@ public class Loader {
             }
         }
 
-        throw new NoOSMInZipFileException("Zip file does not contain a zipped OSM file.");
+        throw new NoOSMInZipFileException(file);
     }
 
     public Theme loadTheme(String file) {
