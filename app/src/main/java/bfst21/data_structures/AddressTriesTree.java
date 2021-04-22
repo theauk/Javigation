@@ -2,6 +2,7 @@ package bfst21.data_structures;
 
 import bfst21.Osm_Elements.Node;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -11,27 +12,34 @@ import java.util.List;
 public class AddressTriesTree {
     private AddressTrieNode root;
     private AddressTrieNode addressNode;
+    private HashMap<Integer, String> postcodes;
+    private HashMap<String, Integer> cities;
 
     // TODO: 20-04-2021 auto-complete feature?
-    
+
     public AddressTriesTree() {
         root = new AddressTrieNode();
+        postcodes = new HashMap<>();
+
     }
 
 // TODO: 19-04-2021 A subtrie inside the trie?? or a radix tree for the streetnames???
+
     /**
-     *
-     * @param node -> a node, which contains the coordinates for the address.
-     * @param city -> the city which the address is located at. comes after the postcode when viewed - etc. postcode Jerslev sj
-     * @param streetname -> the name of the street which the address belongs to
-     * @param postcode -> The 4 digit number that tells in what part of the country the address is located.
-     *                 in Denmark it's how far they are from Copenhagen
+     * @param node        -> a node, which contains the coordinates for the address.
+     * @param city        -> the city which the address is located at. comes after the postcode when viewed - etc. postcode Jerslev sj
+     * @param streetname  -> the name of the street which the address belongs to
+     * @param postcode    -> The 4 digit number that tells in what part of the country the address is located.
+     *                    in Denmark it's how far they are from Copenhagen
      * @param houseNumber -> the housenumber or street-number, that the address has.
-     * @param method -> this number indicates wether the trie should insert the address with postcode or streetname.
+     * @param method      -> this number indicates wether the trie should insert the address with postcode or streetname.
      */
     public void put(Node node, String city, String streetname, int postcode, String houseNumber, int method) {
         addressNode = new AddressTrieNode(node, city, streetname, postcode, houseNumber);
         insert(root, addressNode, method);
+        postcodes.put(postcode, city);
+        cities.put(city, postcode);
+        System.out.println();
     }
 
     /**
@@ -51,6 +59,8 @@ public class AddressTriesTree {
         }
     }
 
+    // TODO: 21-04-2021 Prefix: auto complete måske spørge i studylap???
+    // TODO: 21-04-2021 Some solutions uses a Queue (like the algobook) and some recommends a dfs to traverse through the tree.
     /**
      * This will insert the address into the trie by using its postcode as key.
      * @param trieNode -> when called for the first time, this would be the root.
@@ -77,16 +87,16 @@ public class AddressTriesTree {
 
     private void insert_address_with_streetname(AddressTrieNode trieNode, AddressTrieNode addressNode, int index) {
         var streetname = addressNode.getStreetname();
-        if (index == streetname.length()) {
-            trieNode.addAddressNode(addressNode);
-        } else {
-            Character currentChar = streetname.charAt(index);
-            if (!trieNode.getChildren().containsKey(currentChar)) {
-                AddressTrieNode new_child = new AddressTrieNode();
-                trieNode.getChildren().put(currentChar, new_child);
+            if (index == streetname.length()) {
+                trieNode.addAddressNode(addressNode);
+            } else {
+                Character currentChar = streetname.charAt(index);
+                if (!trieNode.getChildren().containsKey(currentChar)) {
+                    AddressTrieNode new_child = new AddressTrieNode();
+                    trieNode.getChildren().put(currentChar, new_child);
+                }
+                insert_address_with_streetname(trieNode.getChildren().get(currentChar), addressNode, index + 1);
             }
-            insert_address_with_streetname(trieNode.getChildren().get(currentChar), addressNode, index + 1);
-        }
     }
 
     /**

@@ -156,7 +156,7 @@ public class Creator extends Task<Void> {
                             case "node":
                                 if (node != null) {
                                     if(isAddress()){
-                                        addressTree.put(node, city, streetName, postcode, houseNumber,1);
+                                        addressTree.put(node, city, streetName, postcode, houseNumber,2);
                                         node.setLayer(4);
                                         nullifyAddress();
                                     } else{
