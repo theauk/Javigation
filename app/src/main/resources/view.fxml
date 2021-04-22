@@ -54,7 +54,7 @@
                     <SeparatorMenuItem/>
                     <RadioMenuItem fx:id="dijkstraDebug" text="Dijkstra" onAction="#getDijkstraPath"/>
                     <SeparatorMenuItem/>
-                    <MenuItem fx:id="binaryItem" text="Dump MapData" onAction="#createBinary"/>
+                    <MenuItem fx:id="dumpItem" text="Dump MapData" onAction="#dumpBinary" accelerator="CTRL + D"/>
                 </Menu>
             </MenuBar>
         </top>
@@ -69,6 +69,8 @@
                                onMouseDragged="#onMouseDragged"
                                onMouseMoved="#onMouseMoved"
                                onMouseReleased="#onMouseReleased"
+                               onKeyPressed="#onKeyPressed"
+                               onKeyReleased="#onKeyReleased"
                     />
                 </Pane>
 
