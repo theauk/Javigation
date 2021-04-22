@@ -87,7 +87,7 @@ public class MapCanvas extends Canvas {
         Theme.ThemeElement themeElement = theme.get(element.getType());
         if(themeElement.isNode()){
             drawRoundNode(gc, element, themeElement);
-        }else if(element.getType().equals("text")){
+        }else if(themeElement.isText()){
             drawText(gc, element, themeElement);
         }
         else {

@@ -16,7 +16,7 @@ public class Theme {
     private String stylesheet;
     private boolean warned;
 
-    final String regex = "^ *(?:\"(?<key>[a-z_]*)\" = (?:\\{(?<iColor>iColor = \\[(?<red>\\d{1,3}), (?<green>\\d{1,3}), (?<blue>\\d{1,3})])(?:, (?<oColor>oColor = \\[(?<red2>\\d{1,3}), (?<green2>\\d{1,3}), (?<blue2>\\d{1,3})*]))*\\})*(?:, )?(?:\\{iWidth = (?<iWidth>\\d+)(?:, oWidth = (?<oWidth>\\d+))*\\})*(?:, )?(?:\\{style = \"(?<style>[a-z]+)\"\\})*(?:, )?(?:\\{filled = (?<fill>true|false)\\})*(?:, )?(?:\\{node = (?<node>true|false)\\})*(?:, )?(?:\\{showAt = (?<zoomLevel>\\d{1,2})\\})*;(?: *#.*)*)* *$|^#.*$|^name = \"(?<name>[A-Za-z0-9 ]+)\"; *$";
+    final String regex = "^ *(?:\"(?<key>[a-z_]*)\" = (?:\\{(?<iColor>iColor = \\[(?<red>\\d{1,3}), (?<green>\\d{1,3}), (?<blue>\\d{1,3})])(?:, (?<oColor>oColor = \\[(?<red2>\\d{1,3}), (?<green2>\\d{1,3}), (?<blue2>\\d{1,3})*]))*\\})*(?:, )?(?:\\{iWidth = (?<iWidth>\\d+)(?:, oWidth = (?<oWidth>\\d+))*\\})*(?:, )?(?:\\{style = \"(?<style>[a-z]+)\"\\})*(?:, )?(?:\\{filled = (?<fill>true|false)\\})*(?:, )?(?:\\{node = (?<node>true|false)\\})*(?:, )?(?:\\{text = (?<text>true|false)\\})*(?:, )?(?:\\{showAt = (?<zoomLevel>\\d{1,2})\\})*;(?: *#.*)*)* *$|^#.*$|^name = \"(?<name>[A-Za-z0-9 ]+)\"; *$";
     private final Pattern pattern = Pattern.compile(regex);
 
     public Theme()
@@ -62,6 +62,7 @@ public class Theme {
                 if (matchesGroup(matcher, "zoomLevel"))
                     themeElement.setZoomLevel(Byte.parseByte(matcher.group("zoomLevel")));
                 if (matchesGroup(matcher, "node")) themeElement.setNode(Boolean.parseBoolean(matcher.group("node")));
+                if (matchesGroup(matcher, "text")) themeElement.setText(Boolean.parseBoolean(matcher.group("text")));
 
                 put(matcher.group("key"), themeElement);
             }
@@ -134,6 +135,7 @@ public class Theme {
         private int outerWidth;
         private boolean fill;
         private boolean isNode;
+        private boolean isText;
 
 
         private byte zoomLevel;
@@ -151,6 +153,14 @@ public class Theme {
 
         public void setNode(boolean node) {
             isNode = node;
+        }
+
+        public boolean isText() {
+            return isText;
+        }
+
+        public void setText(boolean text) {
+            isText = text;
         }
 
         public void setMapColor(MapColor mapColor) {

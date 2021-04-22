@@ -430,8 +430,8 @@ public class Creator extends Task<Void> {
                 name = v;
                 break;
             case "place":
-                if(v.equals("city") || v.equals("town") || v.equals("village")) {
-                    node.setType("text",typeToLayer.get("text"));
+                if(v.equals("city") || v.equals("town") || v.equals("village") || v.equals("hamlet")) {
+                    node.setType(v,typeToLayer.get("text"));
                     elementToText.put(node, name);
                 }
 

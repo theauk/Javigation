@@ -17,12 +17,18 @@ name = "Default";
 "start_route_note" = {iColor = [255, 92, 92], oColor = [158, 0, 0]}, {iWidth = 7, oWidth = 4}, {node = true}, {showAt = 0};
 "end_route_note" = {iColor = [120, 120, 255], oColor = [0, 0, 158]}, {iWidth = 7, oWidth = 4}, {node = true}, {showAt = 0};
 "user_added" = {iColor = [247, 216, 62], oColor = [219, 191, 53]}, {iWidth = 10, oWidth = 4}, {node = true}, {showAt = 0};
-"text" = {iColor = [0, 0, 0]}, {showAt = 10};
+
+#Text
+"city" = {iColor = [0, 0, 0]}, {text = true}, {showAt = 0};
+"town" = {iColor = [0, 0, 0]}, {text = true}, {showAt = 5};
+"village" = {iColor = [0, 0, 0]}, {text = true}, {showAt = 8};
+"hamlet" = {iColor = [0, 0, 0]}, {text = true}, {showAt = 13};
+
 
 
 #Roads
-"motorway" = {iColor = [226, 122, 143], oColor = [213, 18, 88]}, {iWidth = 2, oWidth = 3}, {showAt = 5};
-"trunk" = {iColor = [249, 178, 156], oColor = [191, 62, 35]}, {iWidth = 2, oWidth = 3}, {showAt = 10};
+"motorway" = {iColor = [226, 122, 143], oColor = [213, 18, 88]}, {iWidth = 2, oWidth = 3}, {showAt = 0};
+"trunk" = {iColor = [249, 178, 156], oColor = [191, 62, 35]}, {iWidth = 2, oWidth = 3}, {showAt = 7};
 "primary" = {iColor = [252, 206, 144], oColor = [154, 105, 8]}, {iWidth = 2, oWidth = 3}, {showAt = 10};
 "secondary" = {iColor = [244, 251, 173], oColor = [105, 121, 0]}, {iWidth = 2, oWidth = 3}, {showAt = 12};
 "tertiary" = {iColor = [254, 254, 254], oColor = [157, 157, 157]}, {iWidth = 2, oWidth = 3}, {showAt = 12};
