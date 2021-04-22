@@ -16,8 +16,7 @@ public class KDTree<Value extends Element> {
     private final Comparator<KDTreeNode> comparatorY = new Comparator<KDTreeNode>() {
         @Override
         public int compare(KDTreeNode p1, KDTreeNode p2) {
-            int c = Float.compare(p1.node.getyMax(), p2.node.getyMax());
-            return c;
+            return Float.compare(p1.node.getyMax(), p2.node.getyMax());
         }
     };
     private KDTreeNode root;

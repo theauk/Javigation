@@ -229,7 +229,7 @@ public class Creator extends Task<Void> {
                                 if (relation != null) {
                                     if (relation.hasType()) {
                                         if (relation.getType().equals("restriction") ) {
-                                            // TODO: 14-04-2021 needs be bettter plz
+                                            // TODO: 14-04-2021 needs be bettter plz plzx plz
                                            if(relation.getVia() != null) nodeToRestriction.put(relation.getVia(), relation);
                                         } else {
                                             rTree.insert(relation);

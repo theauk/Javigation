@@ -18,7 +18,7 @@ public class Relation extends NodeHolder {
 
 
     private String restriction;
-    private Way to,from;
+    private Way to, from;
     private Node via;
 
     public Way getTo() {
@@ -53,6 +53,7 @@ public class Relation extends NodeHolder {
     public ArrayList<Way> getWays() {
         return ways;
     }
+
     public void addWay(Way way) {
         if (way != null) {
             ways.add(way);
@@ -103,11 +104,12 @@ public class Relation extends NodeHolder {
                 }
             }
         } else {
-            if(ways != null) {
+            if (ways != null) {
                 for (Way w : ways) {
                     w.draw(gc);
                 }
-            } if(nodes != null && nodes.size()!= 0){
+            }
+            if (nodes != null && nodes.size() != 0) {
                 super.draw(gc);
             }
         }
@@ -117,8 +119,10 @@ public class Relation extends NodeHolder {
         isMultiPolygon = true;
     }
 
-    public void mergeWays(){
+    public void mergeWays() {
+        System.out.println("ways before :" + ways.size());
         ways = mergeWays(ways);
+        System.out.println("ways after :" + ways.size());
     }
 
     private ArrayList<Way> mergeWays(ArrayList<Way> toMerge) {
@@ -129,36 +133,45 @@ public class Relation extends NodeHolder {
          * From OSM wiki - mapping stype best practice with Relations
          */
         Map<Node, Way> pieces = new HashMap<>();
+        ArrayList<Way> mergedList = new ArrayList<>();
         for (Way way : toMerge) {
-            Way before = pieces.remove(way.getNodes().get(0));
-            Way after = pieces.remove(way.getNodes().get(way.getNodes().size()-1));
-            if (before == after) after = null;
-            if(before != null){
-                way = mergeTwoWays(before, way);
-            }
-            if(after != null){
-                mergeTwoWays(way, after);
-            }
-            pieces.put(way.getNodes().get(0), way);
-            pieces.put(way.getNodes().get(way.getNodes().size()-1), way);
-        }
-        ArrayList<Way> merged = new ArrayList<>();
-        pieces.forEach((node, way) -> {
-            if (way.getNodes().get(way.getNodes().size()-1) == node) {
-                merged.add(way);
-            }
-        });
-        return merged;
-    }
-     private ArrayList<Way> mergeWaysTemp(ArrayList<Way> toMerge) {
-         Map<Node, Way> pieces = new HashMap<>();
-            for (Way way : toMerge) {
-                Way before = pieces.remove(way.getNodes().get(0));
-                Way after = pieces.remove(way.getNodes().get(way.getNodes().size()-1));
+            if (way.first() == way.last()) {
+                mergedList.add(way);
+            } else {
+                Way before = pieces.remove(way.first());
+                Way after = pieces.remove(way.last());
                 if (before == after) after = null;
+                Way merged = merge(before, way, after);
+                pieces.put(merged.first(), merged);
+                pieces.put(merged.last(), merged);
+
+            }
         }
-            return null;
-     }
+                pieces.forEach((node, way) -> {
+                    if (way.last() == node) {
+                        mergedList.add(way);
+                    }
+                });
+
+        return mergedList;
+    }
+
+    private ArrayList<Way> mergeWaysTemp(ArrayList<Way> toMerge) {
+        ArrayList<Way> mergedList = new ArrayList<>();
+        for (Way way : toMerge) {
+            if (way.first() == way.last()) {
+                mergedList.add(way);
+            } else {
+
+            }
+
+        }
+        return mergedList;
+    }
+
+
+
+
 
      private Way mergeTwoWays(Way w1, Way w2){
         List<Node> list = w2.getNodes();
@@ -167,5 +180,20 @@ public class Relation extends NodeHolder {
         return w1;
 
      }
+
+    private Way merge(Way before, Way coast, Way after) {
+        return merge(merge(before, coast), after);
+    }
+
+    private Way merge(Way first, Way second) {
+        if (first == null) return second;
+        if (second == null) return first;
+        Way merged = new Way();
+        merged.nodes.addAll(first.nodes);
+        merged.nodes.addAll(second.nodes.subList(1, second.nodes.size()));
+        return merged;
+    }
+
+
 
 }

@@ -23,18 +23,7 @@ public class Way extends NodeHolder {
         isHighway = false;
     }
 
-    public static Way merge(Way first, Way second) {
-        if (first == null) return second;
-        if (second == null) return first;
-        Way merged = new Way();
-        merged.nodes.addAll(first.nodes);
-        merged.nodes.addAll(second.nodes.subList(1, second.nodes.size()));
-        return merged;
-    }
 
-    public static Way merge(Way before, Way coast, Way after) {
-        return merge(merge(before, coast), after);
-    }
 
     public void setType(String type, boolean isHighway, boolean foot) {
         super.setType(type);
@@ -121,6 +110,14 @@ public class Way extends NodeHolder {
 
     public boolean isOnewayRoad() {
         return onewayRoad;
+    }
+
+    public Node first(){
+        return nodes.get(0);
+    }
+
+    public Node last(){
+        return nodes.get(nodes.size()-1);
     }
 
     @Override
