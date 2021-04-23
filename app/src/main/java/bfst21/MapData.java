@@ -25,7 +25,7 @@ public class MapData implements Serializable {
     private AddressTriesTree addressTree;
     private boolean rTreeDebug;
     private ElementToElementsTreeMap<Node, Way> nodeToHighWay;
-    private DijkstraSP dijkstra;
+    private RouteNavigation dijkstra;
     private ArrayList<Element> currentDijkstraRoute;
     private ArrayList<Node> userAddedPoints;
     private Relation coastlines;
@@ -40,7 +40,7 @@ public class MapData implements Serializable {
         this.closetRoadTree = highWayRoadNodes;
         this.addressTree = addressTree;
         nodeToHighWay = nodeToWayMap;
-        dijkstra = new DijkstraSP(nodeToHighWay, nodeToRestriction, wayToRestriction);
+        dijkstra = new RouteNavigation(nodeToHighWay, nodeToRestriction, wayToRestriction);
         currentDijkstraRoute = new ArrayList<>();
         userAddedPoints = new ArrayList<>();
         buildTrees();
