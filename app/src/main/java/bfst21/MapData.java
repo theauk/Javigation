@@ -43,7 +43,6 @@ public class MapData implements Serializable {
         dijkstra = new DijkstraSP(nodeToHighWay, nodeToRestriction, wayToRestriction);
         currentDijkstraRoute = new ArrayList<>();
         userAddedPoints = new ArrayList<>();
-
         buildTrees();
     }
 
@@ -170,8 +169,7 @@ public class MapData implements Serializable {
     }
 
     public String getTextFromElement(Element element) {
-        String result = elementToText.get(element);
-        return result;
+        return elementToText.get(element);
     }
 
     public void setElementToText(HashMap<Element, String> elementToCityname) {
