@@ -69,25 +69,24 @@ public class MapCanvas extends Canvas {
         fillCoastLines(gc);
 
         int layers = mapData.getMapSegment().size();
-        for (int layer = 0; layer < layers; layer++) {
+        for (int layer = 0; layer < layers-1; layer++) {
             for (Element element : mapData.getMapSegment().get(layer)) {
                 drawElement(gc, element);
             }
         }
+        for(Element element : mapData.getMapSegment().get(mapData.getMapSegment().size()-1)){ // toplayer is only text
+            drawText(gc, element);
+        }
 
-            for (Element route : mapData.getCurrentDjikstraRoute()) {
-                drawElement(gc, route);
-            }
+        for (Element route : mapData.getCurrentDjikstraRoute()) {
+            if(theme.get(route.getType()).isNode()) drawRoundNode(gc, route);
+            else drawElement(gc, route);
+        }
 
         for(Node point : mapData.getUserAddedPoints()){
             drawRectangleNode(gc, point);
         }
         gc.restore();
-    }
-
-    private byte getZoomLevelForElement(String type) {
-        if (zoomMap.get(type) != null) return zoomMap.get(type);
-        return MIN_ZOOM_LEVEL;
     }
 
     private void fillCoastLines(GraphicsContext gc) {
@@ -96,29 +95,24 @@ public class MapCanvas extends Canvas {
 
     private void drawElement(GraphicsContext gc, Element element) {
         Theme.ThemeElement themeElement = theme.get(element.getType());
-        if(themeElement.isNode()){
-            drawRoundNode(gc, element, themeElement);
-        }else if(themeElement.isText()){
-            drawText(gc, element, themeElement);
+
+        gc.setLineDashes(getStrokeStyle(themeElement)); //Apply stroke style
+
+        if (themeElement.isTwoColored()) {
+            drawOuterElement(gc, element, themeElement);
         }
-        else {
-            gc.setLineDashes(getStrokeStyle(themeElement)); //Apply stroke style
+        drawInnerElement(gc, element, themeElement);
 
-            if (themeElement.isTwoColored()) {
-                drawOuterElement(gc, element, themeElement);
-            }
-
-            drawInnerElement(gc, element, themeElement);
-
-            if (themeElement.fill()) {
-                fillElement(gc, themeElement);
-            }
+        if (themeElement.fill()) {
+            fillElement(gc, themeElement);
         }
+
     }
 
-    private void drawText(GraphicsContext gc, Element element, Theme.ThemeElement themeElement){
+    private void drawText(GraphicsContext gc, Element element){
+        Theme.ThemeElement themeElement = theme.get(element.getType());
         String text = mapData.getTextFromElement(element);
-        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextAlign(TextAlignment.CENTER);
         Font font = new Font(themeElement.getOuterWidth()/Math.sqrt(trans.determinant()));
         gc.setFont(font);
 
@@ -137,7 +131,8 @@ public class MapCanvas extends Canvas {
 
     }
 
-    private void drawRoundNode(GraphicsContext gc, Element element, Theme.ThemeElement themeElement){
+    private void drawRoundNode(GraphicsContext gc, Element element){
+        Theme.ThemeElement themeElement = theme.get(element.getType());
         double innerRadius = (themeElement.getInnerWidth()/Math.sqrt(trans.determinant()));
         double outerRadius = (themeElement.getOuterWidth()/Math.sqrt(trans.determinant()));
         gc.setFill(themeElement.getColor().getInner());

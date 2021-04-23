@@ -33,7 +33,6 @@ public class Creator extends Task<MapData> {
     private HashSet<String> nodesNotCreateValues;
     private String city, streetName, houseNumber, name;
     private Integer postcode;
-    private boolean isAddress;
     private int bottomLayer, layerTwo, layerThree, layerFour, topLayer;
     private HashMap<String, Integer> typeToLayer;
     private Relation coastLines;
@@ -442,7 +441,6 @@ public class Creator extends Task<MapData> {
                 break;
             case "addr:housenumber":
                 houseNumber = v;
-                isAddress = true;
                 break;
             case "addr:postcode" :
                 postcode = Integer.parseInt(v.trim());
@@ -464,7 +462,6 @@ public class Creator extends Task<MapData> {
     }
 
     private void nullifyAddress() {
-        isAddress = false;
         city = null;
         houseNumber = null;
         postcode = null;
