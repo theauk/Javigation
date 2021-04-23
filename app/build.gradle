@@ -43,6 +43,10 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+tasks.withType(JavaExec) {
+    jvmArgs = ['-Xmx6g']
+}
+
 run {
     //args = ['src/main/resources/map.osm']
 }
@@ -57,4 +61,8 @@ jar {
             it.isDirectory() ? it : zipTree(it)
         }
     }
+}
+
+tasks.withType(JavaExec) {
+    jvmArgs = ['-Xmx6g']
 }

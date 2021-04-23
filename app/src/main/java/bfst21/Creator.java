@@ -1,17 +1,20 @@
 package bfst21;
 
+import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.*;
-import bfst21.file_reading.ProgressInputStream;
+import bfst21.file_io.ProgressInputStream;
 import javafx.concurrent.Task;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -19,26 +22,29 @@ import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 
 /**
- * Creates Objects such as Nodes, Ways and Relations from the .osm file given from the Loader.
+ * Creates a complete MapData object containing Nodes, Ways and Relations from an InputStream containing either a .osm file or a binary {@link MapData}.
  */
-public class Creator extends Task<Void> {
+public class Creator extends Task<MapData> {
+    private final ProgressInputStream progressInputStream;
     private final boolean[] touched = new boolean[3];
+    private final boolean binary;
     private MapData mapData;
-    private ProgressInputStream progressInputStream;
     private HashSet<String> nodesNotCreateKeys;
     private HashSet<String> nodesNotCreateValues;
-    private String city, streetName, houseNumber;
+    private String city, streetName, houseNumber, name;
     private Integer postcode;
     private boolean isAddress;
     private int bottomLayer, layerTwo, layerThree, layerFour, topLayer;
     private HashMap<String, Integer> typeToLayer;
-
+    private Relation coastLines;
+    private HashMap<Element, String> elementToText;
     private boolean isFoot = false; // TODO: 4/15/21 is there a better way?
 
-    public Creator(MapData mapData, InputStream inputStream, long fileSize) {
-        this.mapData = mapData;
+    public Creator(InputStream inputStream, long fileSize, boolean binary) {
+        mapData = new MapData();
         progressInputStream = new ProgressInputStream(inputStream);
         progressInputStream.addInputStreamListener(totalBytes -> updateProgress(totalBytes, fileSize));
+        this.binary = binary;
         nodesNotCreateKeys = new HashSet<>();
         nodesNotCreateValues = new HashSet<>();
         bottomLayer = 0;
@@ -47,18 +53,37 @@ public class Creator extends Task<Void> {
         layerFour = 3;
         topLayer = 4;
         typeToLayer = new HashMap<>();
+        coastLines = new Relation(0);
+        coastLines.setType("coastlines");
+        elementToText = new HashMap<>();
 
         setupNodesNotCreate();
         setUpTypeToLayer();
     }
 
     @Override
-    protected Void call() throws Exception {
-        create();
-        return null;
+    protected MapData call() throws Exception {
+        if (!binary) createMapData();
+        else createBinaryMapData();
+
+        return mapData;
     }
 
-    public void create() throws XMLStreamException {
+    /**
+     * Creates a MapData object from a binary MapData file.
+     *
+     * @throws IOException            if the file is not found or the process is interrupted.
+     * @throws ClassNotFoundException if the serialized object recreation process can't find the corresponding class.
+     */
+    private void createBinaryMapData() throws IOException, ClassNotFoundException {
+        updateMessage("Loading...");
+        ObjectInputStream objectInputStream = new ObjectInputStream(new BufferedInputStream(progressInputStream));
+        mapData = (MapData) objectInputStream.readObject();
+        updateMessage("Finalizing...");
+        objectInputStream.close();
+    }
+
+    private void createMapData() throws XMLStreamException {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new BufferedInputStream(progressInputStream));
 
         BinarySearchTree<Node> idToNode = new BinarySearchTree<>();
@@ -71,8 +96,9 @@ public class Creator extends Task<Void> {
         KDTree<Node> highWayRoadNodes = new KDTree<>(2, 4);
         RTree rTree = new RTree(1, 30, 4, topLayer);
         AddressTriesTree addressTree = new AddressTriesTree();
-        ElementToElementsTreeMap<Node,Way> nodeToWayMap = new ElementToElementsTreeMap<>();
+        ElementToElementsTreeMap<Node, Way> nodeToWayMap = new ElementToElementsTreeMap<>();
         ElementToElementsTreeMap<Node, Relation> nodeToRestriction = new ElementToElementsTreeMap<>();
+        ElementToElementsTreeMap<Way, Relation> wayToRestriction = new ElementToElementsTreeMap<>();
 
         while (reader.hasNext()) {
             if (isCancelled()) return;   //Abort task
@@ -170,17 +196,17 @@ public class Creator extends Task<Void> {
                                         if (role.equals("inner")) {
                                             relation.addInnerOuterWay(idToWay.get(refR), true);
                                         }
-                                        if (role.equals("to")){
+                                        if (role.equals("to")) {
                                             relation.setTo(idToWay.get(refR));
                                         }
-                                        if (role.equals("from")){
+                                        if (role.equals("from")) {
                                             relation.setFrom(idToWay.get(refR));
                                         }
 
                                     }
-                                    if (role.equals("via")){
-                                        relation.setVia(idToNode.get(refR));
-                                        // TODO: 15-04-2021 Restrictions via kan be ways
+                                    if (role.equals("via")) {
+                                        if (idToNode.get(refR) != null) relation.setViaNode(idToNode.get(refR));
+                                        else if (idToWay.get(refR) != null) relation.setViaWay(idToWay.get(refR));
                                     }
                                 }
                                 break;
@@ -190,11 +216,12 @@ public class Creator extends Task<Void> {
                         switch (reader.getLocalName()) {
                             case "node":
                                 if (node != null) {
-                                    if (isAddress()) {
-                                        addressTree.put(node, city, streetName, postcode, houseNumber);
-                                        node.setLayer(topLayer);
+                                    if(isAddress()){
+                                        addressTree.put(node, city, streetName, postcode, houseNumber,2);
+                                        node.setLayer(4);
                                         nullifyAddress();
                                     } else {
+                                        if (node.hasType()) rTree.insert(node);
                                         idToNode.put(node);
                                     }
                                     node = null;
@@ -208,7 +235,7 @@ public class Creator extends Task<Void> {
                                         rTree.insert(way);
 
                                     }
-                                    if(way.isHighWay()) {
+                                    if (way.isHighWay()) {
                                         nodeToWayMap.putAll(way.getNodes(), way);
                                         if (way.hasName()) {
                                             highWayRoadNodes.addAll(way.getNodes());
@@ -221,9 +248,12 @@ public class Creator extends Task<Void> {
                             case "relation":
                                 if (relation != null) {
                                     if (relation.hasType()) {
-                                        if (relation.getType().equals("restriction") ) {
-                                            // TODO: 14-04-2021 needs be bettter plz
-                                           if(relation.getVia() != null) nodeToRestriction.put(relation.getVia(), relation);
+                                        if (relation.getType().equals("restriction")) {
+                                            // TODO: 14-04-2021 needs be bettter plz plzx plz
+                                            if (relation.getViaNode() != null)
+                                                nodeToRestriction.put(relation.getViaNode(), relation);
+                                            else if (relation.getViaWay() != null)
+                                                wayToRestriction.put(relation.getViaWay(), relation);
                                         } else {
                                             rTree.insert(relation);
                                         }
@@ -236,8 +266,11 @@ public class Creator extends Task<Void> {
                 }
             }
         }
+        coastLines.mergeWays();
+        mapData.setCoastlines(coastLines);
+        mapData.setElementToText(elementToText);
         updateMessage("Finalizing...");
-        mapData.addDataTrees(highWayRoadNodes, rTree, nodeToRestriction, addressTree, nodeToWayMap);
+        mapData.addDataTrees(highWayRoadNodes, rTree, nodeToRestriction, wayToRestriction, addressTree, nodeToWayMap);
         reader.close();
     }
 
@@ -253,50 +286,54 @@ public class Creator extends Task<Void> {
                 break;
             case "bridge":
             case "building":
-                relation.setType((k),typeToLayer.get(k));
+                relation.setType((k), typeToLayer.get(k));
                 break;
             case "type":
                 if (v.equals("multipolygon")) relation.setIsMultiPolygon();
                 break;
             case "natural":
                 if (v.equals("water")) {
-                    relation.setType((v),typeToLayer.get(v));
+                    relation.setType((v), typeToLayer.get(v));
                     break;
                 }
                 if (v.equals("scrub")) {
-                    relation.setType(("dark_green"),typeToLayer.get("dark_green"));
+                    relation.setType(("dark_green"), typeToLayer.get("dark_green"));
                     break;
                 }
                 break;
             case "leisure":
                 if (v.equals("park")) {
-                    relation.setType((v),typeToLayer.get(v));
+                    relation.setType((v), typeToLayer.get(v));
                 }
                 break;
 
             case "landuse":
                 if (v.equals("recreation_ground")) {
-                    relation.setType(("light_green"),typeToLayer.get("light_green"));
+                    relation.setType(("light_green"), typeToLayer.get("light_green"));
                     break;
                 }
                 if (v.equals("grass")) {
-                    relation.setType(("park"),typeToLayer.get("park"));;
+                    relation.setType(("park"), typeToLayer.get("park"));
                     break;
                 }
                 break;
         }
     }
 
-
     private void checkWay(String k, String v, Way way) {
         switch (k) {
             case "natural":
-                if (v.equals("coastline") ||v.equals("water") || v.equals("wetland")) {
-                    way.setType((v),typeToLayer.get(v));
+                if (v.equals("water") || v.equals("wetland")) {
+                    way.setType((v), typeToLayer.get(v));
+                    break;
+                }
+                if (v.equals("coastline")) {
+                    //way.setType((v),typeToLayer.get(v));
+                    coastLines.addWay(way);
                     break;
                 }
                 if (v.equals("scrub") || v.equals("wood")) {
-                    way.setType(("dark_green"),typeToLayer.get("dark_green"));
+                    way.setType(("dark_green"), typeToLayer.get("dark_green"));
                     break;
                 }
                 break;
@@ -306,7 +343,7 @@ public class Creator extends Task<Void> {
                 break;
 
             case "man_made":
-                if(v.equals("pier") || v.equals("bridge")) {
+                if (v.equals("pier") || v.equals("bridge")) {
                     way.setType(k, typeToLayer.get(k));
                     break;
                 }
@@ -314,7 +351,7 @@ public class Creator extends Task<Void> {
                 break;
 
             case "leisure":
-                if (v.equals("park") || v.equals("garden")|| v.equals("playground")) {
+                if (v.equals("park") || v.equals("garden") || v.equals("playground")) {
                     way.setType("park", typeToLayer.get("park"));
                     break;
                 }
@@ -322,11 +359,11 @@ public class Creator extends Task<Void> {
 
             case "landuse":
                 if (v.equals("forest")) {
-                    way.setType(("dark_green"),typeToLayer.get("dark_green"));
+                    way.setType(("dark_green"), typeToLayer.get("dark_green"));
                     break;
                 }
-                if (v.equals("grass")|| v.equals("meadow")) {
-                    way.setType(("park"),typeToLayer.get("park"));;
+                if (v.equals("grass") || v.equals("meadow")) {
+                    way.setType(("park"), typeToLayer.get("park"));
                     break;
                 }
                 if (v.equals("farmland")) {
@@ -335,7 +372,7 @@ public class Creator extends Task<Void> {
                 }
                 break;
             case "amenity":
-                if(v.equals("parking")){
+                if (v.equals("parking")) {
                     way.setType("asphalt", typeToLayer.get("asphalt"));
                 }
                 break;
@@ -356,6 +393,11 @@ public class Creator extends Task<Void> {
             case "oneway":
                 if (v.equals("yes")) way.setOnewayRoad();
                 break;
+
+            case "oneway:bicycle":
+                if (v.equals("yes")) way.setOnewayBikeRoad();
+                break;
+
             case "cycleway":
                 if (v.equals("no")) way.setNotCycleable();
                 break;
@@ -389,22 +431,35 @@ public class Creator extends Task<Void> {
                 if (v.equals("yes")) {
                     isFoot = true;
                 }
-
-            case "turn":
-                //The key turn can be used to specify the direction in which a way or a lane will lead.
-                // TODO: 06-04-2021 could be usefull? unsure
+                break;
         }
     }
 
-    private void checkAddressNode(String k, String v, Node addressNode) {
+    private void checkAddressNode(String k, String v, Node node) {
         switch (k) {
-            case "addr:city" -> city = v;
-            case "addr:housenumber" -> {
+            case "addr:city":
+                city = v;
+                break;
+            case "addr:housenumber":
                 houseNumber = v;
                 isAddress = true;
-            }
-            case "addr:postcode" -> postcode = Integer.parseInt(v.trim());
-            case "addr:street" -> streetName = v;
+                break;
+            case "addr:postcode" :
+                postcode = Integer.parseInt(v.trim());
+                break;
+            case "addr:street":
+                streetName = v;
+                break;
+            case "name" :
+                name = v;
+                break;
+            case "place":
+                if(v.equals("city") || v.equals("town") || v.equals("village") || v.equals("hamlet")) {
+                    node.setType(v,typeToLayer.get("text"));
+                    elementToText.put(node, name);
+                }
+
+                break;
         }
     }
 
@@ -556,23 +611,23 @@ public class Creator extends Task<Void> {
     private boolean checkNodesNotCreate(String k, String v) {
         return nodesNotCreateKeys.contains(k) || nodesNotCreateValues.contains(v);
     }
+
     private void setUpTypeToLayer() {
-        typeToLayer.put("water",bottomLayer);
-        typeToLayer.put("light_green",bottomLayer);
+        typeToLayer.put("water", bottomLayer);
+        typeToLayer.put("light_green", bottomLayer);
 
-        typeToLayer.put("park",layerTwo);
-        typeToLayer.put("wetland",layerTwo);
-        typeToLayer.put("man_made",layerTwo);
-        typeToLayer.put("farmland",layerTwo);
-        typeToLayer.put("asphalt",layerTwo);
+        typeToLayer.put("park", layerTwo);
+        typeToLayer.put("wetland", layerTwo);
+        typeToLayer.put("man_made", layerTwo);
+        typeToLayer.put("farmland", layerTwo);
+        typeToLayer.put("asphalt", layerTwo);
 
-        typeToLayer.put("dark_green",layerThree);
-        typeToLayer.put("bridge",layerThree);
-        typeToLayer.put("building",layerThree);
+        typeToLayer.put("dark_green", layerThree);
+        typeToLayer.put("bridge", layerThree);
+        typeToLayer.put("building", layerThree);
 
-        typeToLayer.put("coastline",layerFour);
+        typeToLayer.put("coastline", layerFour);
 
-
+        typeToLayer.put("text", topLayer);
     }
-
 }

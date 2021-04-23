@@ -35,7 +35,7 @@
                     <RadioMenuItem fx:id="navigationPane" text="Show Navigation Pane" selected="true"/>
                     <SeparatorMenuItem/>
                     <Menu fx:id="themeMenu" text="Change Theme...">
-                        <RadioMenuItem text="Default" selected="true">
+                        <RadioMenuItem text="Default" userData="default.mtheme" selected="true">
                             <toggleGroup>
                                 <ToggleGroup fx:id="themeGroup"/>
                             </toggleGroup>
@@ -53,6 +53,8 @@
                     <RadioMenuItem fx:id="rTreeDebug" text="R-tree" onAction="#setRTreeDebug"/>
                     <SeparatorMenuItem/>
                     <RadioMenuItem fx:id="dijkstraDebug" text="Dijkstra" onAction="#getDijkstraPath"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem fx:id="dumpItem" text="Dump MapData" onAction="#dumpBinary" accelerator="CTRL + D"/>
                 </Menu>
             </MenuBar>
         </top>
@@ -67,6 +69,8 @@
                                onMouseDragged="#onMouseDragged"
                                onMouseMoved="#onMouseMoved"
                                onMouseReleased="#onMouseReleased"
+                               onKeyPressed="#onKeyPressed"
+                               onKeyReleased="#onKeyReleased"
                     />
                 </Pane>
 
@@ -183,6 +187,16 @@
                             </RadioButton>
                         </HBox>
                         <Button fx:id="searchNav" text="Search" onAction="#searchNav"/>
+                        <Label fx:id="distanceAndTimeNav" visible="false"></Label>
+                        <VBox>
+                            <HBox.margin>
+                                <Insets right="30.0"/>
+                                <Insets bottom="10.0"/>
+                            </HBox.margin>
+                            <Button fx:id="addPointButton" text="Choose on map to add point" onAction="#addUserPoint"/>
+                            <TextField fx:id="textFieldPointName" promptText="Name your point"/>
+                            <ComboBox fx:id="dropDownPoints" onAction="#moveToPoint"/>
+                        </VBox>
                     </VBox>
                 </AnchorPane>
 

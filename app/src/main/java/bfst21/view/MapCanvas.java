@@ -1,54 +1,60 @@
 package bfst21.view;
 
 import bfst21.MapData;
-import bfst21.Osm_Elements.Element;
-import bfst21.Osm_Elements.Node;
-import bfst21.Osm_Elements.Way;
+import bfst21.Osm_Elements.*;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 
-import java.util.ArrayList;
+import javax.swing.tree.VariableHeightLayoutCache;
+import java.awt.*;
 import java.util.Map;
 
 public class MapCanvas extends Canvas {
-    public final static byte MIN_ZOOM_LEVEL = 1;
-    public final static byte MAX_ZOOM_LEVEL = 19;
-    private final int ZOOM_FACTOR = 2;
-    private final StringProperty ratio = new SimpleStringProperty("- - -");
     private MapData mapData;
     private Affine trans;
     private CanvasBounds bounds;
     private Theme theme;
+
+    public final static byte MIN_ZOOM_LEVEL = 1;
+    public final static byte MAX_ZOOM_LEVEL = 19;
+    private final int ZOOM_FACTOR = 2;
+    private final StringProperty ratio = new SimpleStringProperty("- - -");
+
     private boolean initialized;
     private byte zoomLevel = MIN_ZOOM_LEVEL;
-    private Map<String, Byte> zoomMap;
+    public static Map<String, Byte> zoomMap;
 
-    public void init(MapData mapData, Theme theme) {
+    public void init(MapData mapData) {
         this.mapData = mapData;
-        this.theme = theme;
         trans = new Affine();
         bounds = new CanvasBounds();
 
         if (!initialized) {
-            zoomMap = theme.createZoomMap();
             widthProperty().addListener((observable, oldValue, newValue) -> pan((newValue.doubleValue() - oldValue.doubleValue()) / 2, 0));
             heightProperty().addListener((observable, oldValue, newValue) -> pan(0, (newValue.doubleValue() - oldValue.doubleValue()) / 2));
+            initialized = true;
         }
-        initialized = true;
 
         updateMap();
     }
 
-    private byte getZoomLevelForElement(String type) {
-        if (zoomMap.get(type) != null) return zoomMap.get(type);
-        return MIN_ZOOM_LEVEL;
+    /**
+     * Initializes the default theme and creates a zoom map for each theme element.
+     * This method may only be run once!
+     *
+     * @param theme the default theme to create a zoom map from.
+     */
+    public void initTheme(Theme theme) {
+        this.theme = theme;
+        zoomMap = theme.createZoomMap();
     }
 
     public void repaint() {
@@ -60,68 +66,123 @@ public class MapCanvas extends Canvas {
         gc.fillRect(0, 0, getWidth(), getHeight());
 
         gc.setTransform(trans);
+        fillCoastLines(gc);
 
         int layers = mapData.getMapSegment().size();
         for (int layer = 0; layer < layers; layer++) {
             for (Element element : mapData.getMapSegment().get(layer)) {
-                if (zoomLevel >= getZoomLevelForElement(element.getType())) drawElement(gc, element);
+                drawElement(gc, element);
             }
         }
 
+            for (Element route : mapData.getCurrentDjikstraRoute()) {
+                drawElement(gc, route);
+            }
+
+        for(Node point : mapData.getUserAddedPoints()){
+            drawRectangleNode(gc, point);
+        }
         gc.restore();
     }
 
+    private byte getZoomLevelForElement(String type) {
+        if (zoomMap.get(type) != null) return zoomMap.get(type);
+        return MIN_ZOOM_LEVEL;
+    }
+
+    private void fillCoastLines(GraphicsContext gc) {
+        drawElement(gc, mapData.getCoastlines());
+    }
+
     private void drawElement(GraphicsContext gc, Element element) {
-        gc.setLineDashes(getStrokeStyle(element.getType())); //Apply stroke style
-
-        if (theme.get(element.getType()).isTwoColored()) {
-            drawOuterElement(gc, element);
+        Theme.ThemeElement themeElement = theme.get(element.getType());
+        if(themeElement.isNode()){
+            drawRoundNode(gc, element, themeElement);
+        }else if(themeElement.isText()){
+            drawText(gc, element, themeElement);
         }
+        else {
+            gc.setLineDashes(getStrokeStyle(themeElement)); //Apply stroke style
 
-        drawInnerElement(gc, element);
+            if (themeElement.isTwoColored()) {
+                drawOuterElement(gc, element, themeElement);
+            }
 
-        if (theme.get(element.getType()).fill()) {
-            fillElement(gc, element);
+            drawInnerElement(gc, element, themeElement);
+
+            if (themeElement.fill()) {
+                fillElement(gc, themeElement);
+            }
         }
     }
 
-    private void drawOuterElement(GraphicsContext gc, Element element) {
-        gc.setLineWidth(getStrokeWidth(element.getType(), false));
-        gc.setStroke(theme.get(element.getType()).getColor().getOuter());
+    private void drawText(GraphicsContext gc, Element element, Theme.ThemeElement themeElement){
+        String text = mapData.getTextFromElement(element);
+        gc.setTextAlign(TextAlignment.LEFT);
+        Font font = new Font(themeElement.getOuterWidth()/Math.sqrt(trans.determinant()));
+        gc.setFont(font);
+
+        gc.setFill(themeElement.getColor().getInner());
+        gc.fillText(text,element.getxMax(),element.getyMax());
+    }
+
+
+    private void drawRectangleNode(GraphicsContext gc, Node point) {
+        Theme.ThemeElement themeElement = theme.get(point.getType());
+        double length = (themeElement.getInnerWidth()/Math.sqrt(trans.determinant()));
+        gc.setFill(themeElement.getColor().getInner());
+        gc.fillRect(point.getxMax(),point.getyMax(),length, length);
+        gc.setStroke(themeElement.getColor().getOuter());
+        gc.strokeRect(point.getxMax(),point.getyMax(),length, length);
+
+    }
+
+    private void drawRoundNode(GraphicsContext gc, Element element, Theme.ThemeElement themeElement){
+        double innerRadius = (themeElement.getInnerWidth()/Math.sqrt(trans.determinant()));
+        double outerRadius = (themeElement.getOuterWidth()/Math.sqrt(trans.determinant()));
+        gc.setFill(themeElement.getColor().getInner());
+        gc.fillOval(element.getxMax(),element.getyMax(),innerRadius, innerRadius);
+        gc.setStroke(themeElement.getColor().getOuter());
+        gc.strokeOval(element.getxMax(),element.getyMax(),outerRadius, outerRadius);
+    }
+
+    private void drawOuterElement(GraphicsContext gc, Element element, Theme.ThemeElement themeElement) {
+        gc.setLineWidth(getStrokeWidth(false, themeElement));
+        gc.setStroke(themeElement.getColor().getOuter());
         gc.beginPath();
         element.draw(gc);
         gc.stroke();
     }
 
-    private void drawInnerElement(GraphicsContext gc, Element element) {
-        gc.setLineWidth(getStrokeWidth(element.getType(), true));
-        gc.setStroke(theme.get(element.getType()).getColor().getInner());   //Get and apply line color
+    private void drawInnerElement(GraphicsContext gc, Element element, Theme.ThemeElement themeElement) {
+        gc.setLineWidth(getStrokeWidth(true, themeElement));
+        gc.setStroke(themeElement.getColor().getInner());   //Get and apply line color
         gc.beginPath();
         element.draw(gc);
         gc.stroke();
     }
 
-    private void fillElement(GraphicsContext gc, Element element) {
-        gc.setFill(theme.get(element.getType()).getColor().getInner());
+    private void fillElement(GraphicsContext gc, Theme.ThemeElement themeElement) {
+        gc.setFill(themeElement.getColor().getInner());
         gc.setFillRule(FillRule.EVEN_ODD);
         gc.fill();
     }
 
-    private double[] getStrokeStyle(String type) {
+    private double[] getStrokeStyle(Theme.ThemeElement themeElement) {
         double[] strokeStyle = new double[2];
         for (int i = 0; i < strokeStyle.length; i++)
-            strokeStyle[i] = StrokeFactory.getStrokeStyle(theme.get(type).getStyle(), trans);
+            strokeStyle[i] = StrokeFactory.getStrokeStyle(themeElement.getStyle(), trans);
         return strokeStyle;
     }
 
-    private double getStrokeWidth(String type, boolean inner) {
-        if (inner) return StrokeFactory.getStrokeWidth(theme.get(type).getInnerWidth(), trans);
-        return StrokeFactory.getStrokeWidth(theme.get(type).getOuterWidth(), trans);
+    private double getStrokeWidth( boolean inner, Theme.ThemeElement themeElement) {
+        if (inner) return StrokeFactory.getStrokeWidth(themeElement.getInnerWidth(), trans);
+        return StrokeFactory.getStrokeWidth(themeElement.getOuterWidth(), trans);
     }
 
     private double getDistance(Point2D start, Point2D end) {
         //Adapted from https://www.movable-type.co.uk/scripts/latlong.html
-        //Calculations need y to be before x in a point.
+        //Calculations need y to be before x in a point, it is therefore switched below.
         double earthRadius = 6371e3; //in meters
 
         double lat1 = Math.toRadians(start.getY());
@@ -145,29 +206,21 @@ public class MapCanvas extends Canvas {
         double distance = getDistance(start, end);
         double pixels = getWidth();
         double dPerPixel = distance / pixels;
-        //System.out.println(start + "\n" + end);
-        //System.out.println("Distance: " + distance + " m");
-        //System.out.println(dPerPixel + " px/m");
-        //System.out.println("50 px = " + (dPerPixel * 50));
         int scale = (int) (dPerPixel * 50);
-        String toDisplay = scale >= 1000 ? (scale / 1000) + " km" : scale + " m";
+        String toDisplay = (scale >= 1000) ? (scale / 1000) + " km" : scale + " m";
         ratio.set(toDisplay);
     }
 
     public void zoom(boolean zoomIn, Point2D center) {
-        if (!validZoom(zoomIn)) return;
+        if (!isValidZoom(zoomIn)) return;
 
         if (zoomIn && zoomLevel < MAX_ZOOM_LEVEL) zoomLevel++;
         else if (!zoomIn && zoomLevel > MIN_ZOOM_LEVEL) zoomLevel--;
         zoom(zoomIn ? ZOOM_FACTOR : (float) ZOOM_FACTOR / 4, center);
     }
 
-    private boolean validZoom(boolean zoomIn) {
-        return (!zoomIn || zoomLevel != MAX_ZOOM_LEVEL) && (zoomIn || zoomLevel != MIN_ZOOM_LEVEL);
-    }
-
     public void zoom(boolean zoomIn, int levels) {
-        if (!validZoom(zoomIn)) return;
+        if (!isValidZoom(zoomIn)) return;
         int levelsToZoom = levels;
 
         if ((zoomLevel + levelsToZoom) > MAX_ZOOM_LEVEL) {
@@ -189,6 +242,10 @@ public class MapCanvas extends Canvas {
         }
     }
 
+    private boolean isValidZoom(boolean zoomIn) {
+        return (!zoomIn || zoomLevel != MAX_ZOOM_LEVEL) && (zoomIn || zoomLevel != MIN_ZOOM_LEVEL);
+    }
+
     private void zoom(double factor, Point2D center) {
         trans.prependScale(factor, factor, center);
         updateMap();
@@ -198,12 +255,11 @@ public class MapCanvas extends Canvas {
     public void pan(double dx, double dy) {
         trans.prependTranslation(dx, dy);
         repaint();
-        //updateMap();
     }
 
     public void updateMap() {
         setBounds();
-        mapData.searchInData(bounds);
+        mapData.searchInData(bounds, zoomLevel);
         repaint();
     }
 
@@ -256,9 +312,11 @@ public class MapCanvas extends Canvas {
         return theme;
     }
 
-    public void setTheme(Theme theme) {
-        this.theme = theme;
-        repaint();
+    public void changeTheme(Theme theme) {
+        if(initialized) {
+            this.theme = theme;
+            repaint();
+        } else this.theme = theme;
     }
 
     public StringProperty getRatio() {
@@ -284,27 +342,23 @@ public class MapCanvas extends Canvas {
         zoom(true, levels);
     }
 
-    public void rTreeDebugMode() {
-        mapData.searchInData(bounds);
-        repaint();
+    public void centerOnPoint(double x, double y){
+        double boundsWidth = (bounds.getMaxX() - bounds.getMinX());
+        double boundsHeight = (bounds.getMaxY() - bounds.getMinY());
+        Point2D center = new Point2D(bounds.getMaxX() -boundsWidth/2 ,bounds.getMaxY() - boundsHeight/2); // center koordinates
+
+        double dx = center.getX() - x;
+        double dy = center.getY()- y;
+        dx = dx * Math.sqrt(trans.determinant());
+        dy = dy * Math.sqrt(trans.determinant());
+
+        pan(dx,dy);
+
     }
 
-    public void drawDijkstra(ArrayList<Node> res) {
-        GraphicsContext gc = getGraphicsContext2D();
-        gc.save();
-        gc.setTransform(new Affine());
-
-        gc.setTransform(trans);
-        gc.setStroke(Color.RED);
-
-        for (int i = 0; i < res.size() - 1; i++) {
-            Way w = new Way(0);
-            w.addNode(res.get(i));
-            w.addNode(res.get(i + 1));
-            w.setType("navigation");
-            drawElement(gc, w);
-        }
-        gc.restore();
+    public void rTreeDebugMode() {
+        mapData.searchInData(bounds, zoomLevel);
+        repaint();
     }
 
     private static class StrokeFactory {

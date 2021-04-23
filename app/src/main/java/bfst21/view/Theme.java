@@ -10,14 +10,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Theme
-{
+public class Theme {
     private final Map<String, ThemeElement> palette;
     private final ThemeElement defaultThemeElement;
     private String stylesheet;
     private boolean warned;
 
-    private final String regex = "^ *(?:\"(?<key>[a-z_]*)\" = (?:\\{(?<iColor>iColor = \\[(?<red>\\d{1,3}), (?<green>\\d{1,3}), (?<blue>\\d{1,3})])(?:, (?<oColor>oColor = \\[(?<red2>\\d{1,3}), (?<green2>\\d{1,3}), (?<blue2>\\d{1,3})*]))*})*(?:, )?(?:\\{iWidth = (?<iWidth>\\d+)(?:, oWidth = (?<oWidth>\\d+))*})*(?:, )?(?:\\{style = \"(?<style>[a-z]+)\"})*(?:, )?(?:\\{filled = (?<fill>true|false)})*(?:, )?(?:\\{showAt = (?<zoomLevel>\\d{1,2})})*;(?: *#.*)*)* *$|^#.*$|^name = \"(?<name>[A-Za-z0-9 ]+)\"; *$";
+    final String regex = "^ *(?:\"(?<key>[a-z_]*)\" = (?:\\{(?<iColor>iColor = \\[(?<red>\\d{1,3}), (?<green>\\d{1,3}), (?<blue>\\d{1,3})])(?:, (?<oColor>oColor = \\[(?<red2>\\d{1,3}), (?<green2>\\d{1,3}), (?<blue2>\\d{1,3})*]))*\\})*(?:, )?(?:\\{iWidth = (?<iWidth>\\d+)(?:, oWidth = (?<oWidth>\\d+))*\\})*(?:, )?(?:\\{style = \"(?<style>[a-z]+)\"\\})*(?:, )?(?:\\{filled = (?<fill>true|false)\\})*(?:, )?(?:\\{node = (?<node>true|false)\\})*(?:, )?(?:\\{text = (?<text>true|false)\\})*(?:, )?(?:\\{showAt = (?<zoomLevel>\\d{1,2})\\})*;(?: *#.*)*)* *$|^#.*$|^name = \"(?<name>[A-Za-z0-9 ]+)\"; *$";
     private final Pattern pattern = Pattern.compile(regex);
 
     public Theme()
@@ -27,56 +26,50 @@ public class Theme
         defaultThemeElement.setMapColor(new MapColor(Color.rgb(0, 0, 0), Color.rgb(0, 0, 0)));
     }
 
-    private void put(String key, ThemeElement themeElement)
-    {
+    private void put(String key, ThemeElement themeElement) {
         palette.put(key, themeElement);
     }
 
-    public void parseData(String data, int line)
-    {
+    public void parseData(String data, int line) {
         Matcher matcher = pattern.matcher(data);
 
-        if(matcher.matches())
-        {
-            if(matchesGroup(matcher, "key"))
-            {
+        if (matcher.matches()) {
+            if (matchesGroup(matcher, "key")) {
                 ThemeElement themeElement = new ThemeElement();
 
-                if(matchesGroup(matcher, "iColor"))
-                {
+                if (matchesGroup(matcher, "iColor")) {
                     MapColor mapColor;
                     int r = Integer.parseInt(matcher.group("red"));
                     int g = Integer.parseInt(matcher.group("green"));
                     int b = Integer.parseInt(matcher.group("blue"));
 
-                    if(matchesGroup(matcher, "oColor"))
-                    {
+                    if (matchesGroup(matcher, "oColor")) {
                         int r2 = Integer.parseInt(matcher.group("red2"));
                         int g2 = Integer.parseInt(matcher.group("green2"));
                         int b2 = Integer.parseInt(matcher.group("blue2"));
                         mapColor = new MapColor(Color.rgb(r, g, b), Color.rgb(r2, g2, b2));
-                    }
-                    else mapColor = new MapColor(Color.rgb(r, g, b));
+                    } else mapColor = new MapColor(Color.rgb(r, g, b));
 
                     themeElement.setMapColor(mapColor);
                 }
-                if(matchesGroup(matcher, "iWidth"))
-                {
+                if (matchesGroup(matcher, "iWidth")) {
                     themeElement.setInnerWidth(Integer.parseInt(matcher.group("iWidth")));
-                    if(matchesGroup(matcher, "oWidth")) themeElement.setOuterWidth(Integer.parseInt(matcher.group("oWidth")));
+                    if (matchesGroup(matcher, "oWidth"))
+                        themeElement.setOuterWidth(Integer.parseInt(matcher.group("oWidth")));
                 }
-                if(matchesGroup(matcher, "style")) themeElement.setStyle(matcher.group("style"));
-                if(matchesGroup(matcher, "fill")) themeElement.setFill(Boolean.parseBoolean(matcher.group("fill")));
-                if(matchesGroup(matcher, "zoomLevel")) themeElement.setZoomLevel(Byte.parseByte(matcher.group("zoomLevel")));
+                if (matchesGroup(matcher, "style")) themeElement.setStyle(matcher.group("style"));
+                if (matchesGroup(matcher, "fill")) themeElement.setFill(Boolean.parseBoolean(matcher.group("fill")));
+                if (matchesGroup(matcher, "zoomLevel"))
+                    themeElement.setZoomLevel(Byte.parseByte(matcher.group("zoomLevel")));
+                if (matchesGroup(matcher, "node")) themeElement.setNode(Boolean.parseBoolean(matcher.group("node")));
+                if (matchesGroup(matcher, "text")) themeElement.setText(Boolean.parseBoolean(matcher.group("text")));
 
                 put(matcher.group("key"), themeElement);
             }
-        }
-        else System.err.println("Warning: Wrong syntax at: '" + data + "' (line: " + line + ")");
+        } else System.err.println("Warning: Wrong syntax at: '" + data + "' (line: " + line + ")");
     }
 
-    public static String parseName(String file)
-    {
+    public static String parseName(String file) {
         String regex = "^ *name = \"(?<name>[A-Za-z0-9 ]+)\";(?: *#.*)* *$";
         Pattern pattern = Pattern.compile(regex);
 
@@ -84,12 +77,11 @@ public class Theme
 
             String line;
             while ((line = reader.readLine()) != null) {
-                if(line.isBlank()) continue;
+                if (line.isBlank()) continue;
 
                 Matcher matcher = pattern.matcher(line);
 
-                if(matcher.matches())
-                {
+                if (matcher.matches()) {
                     line = matcher.group("name");
                     break;
                 }
@@ -106,23 +98,21 @@ public class Theme
     public Map<String, Byte> createZoomMap() {
         Map<String, Byte> zoomMap = new HashMap<>();
 
-        for(String key: palette.keySet()) {
-            zoomMap.put(key,  palette.get(key).getZoomLevel());
+        for (String key : palette.keySet()) {
+            zoomMap.put(key, palette.get(key).getZoomLevel());
         }
 
         return zoomMap;
     }
 
-    private boolean matchesGroup(Matcher matcher, String group)
-    {
+    private boolean matchesGroup(Matcher matcher, String group) {
         return matcher.group(group) != null;
     }
 
-    public ThemeElement get(String key)
-    {
-        if(palette.get(key) == null)
-        {
-            if(!warned) System.err.println("Warning: Key '" + key + "' is loaded but not supported by the theme. If you want to style the element, add it to the theme.");
+    public ThemeElement get(String key) {
+        if (palette.get(key) == null) {
+            if (!warned)
+                System.err.println("Warning: Key '" + key + "' is loaded but not supported by the theme. If you want to style the element, add it to the theme.");
             warned = true;
 
             return defaultThemeElement;
@@ -130,85 +120,90 @@ public class Theme
         return palette.get(key);
     }
 
-    public void setStylesheet(String stylesheet)
-    {
+    public void setStylesheet(String stylesheet) {
         this.stylesheet = stylesheet;
     }
 
-    public String getStylesheet()
-    {
+    public String getStylesheet() {
         return stylesheet;
     }
 
-    public class ThemeElement
-    {
+    public class ThemeElement {
         private MapColor mapColor;
         private String style;
         private int innerWidth;
         private int outerWidth;
         private boolean fill;
+        private boolean isNode;
+        private boolean isText;
+
+
         private byte zoomLevel;
 
-        public ThemeElement()
-        {
+        public ThemeElement() {
             style = "normal";
             innerWidth = 1;
             outerWidth = 1;
             zoomLevel = MapCanvas.MIN_ZOOM_LEVEL;
         }
 
-        public void setMapColor(MapColor mapColor)
-        {
+        public boolean isNode() {
+            return isNode;
+        }
+
+        public void setNode(boolean node) {
+            isNode = node;
+        }
+
+        public boolean isText() {
+            return isText;
+        }
+
+        public void setText(boolean text) {
+            isText = text;
+        }
+
+        public void setMapColor(MapColor mapColor) {
             this.mapColor = mapColor;
         }
 
-        public MapColor getColor()
-        {
+        public MapColor getColor() {
             return mapColor;
         }
 
-        public boolean isTwoColored()
-        {
+        public boolean isTwoColored() {
             return mapColor.hasOuter();
         }
 
-        public void setStyle(String style)
-        {
+        public void setStyle(String style) {
             this.style = style;
         }
 
-        public String getStyle()
-        {
+        public String getStyle() {
             return style;
         }
 
-        public void setInnerWidth(int innerWidth)
-        {
+        public void setInnerWidth(int innerWidth) {
             this.innerWidth = innerWidth;
         }
 
-        public int getInnerWidth()
-        {
+        public int getInnerWidth() {
             return innerWidth;
         }
 
-        public void setOuterWidth(int outerWidth)
-        {
+        public void setOuterWidth(int outerWidth) {
             this.outerWidth = outerWidth;
         }
 
-        public int getOuterWidth()
-        {
+        public int getOuterWidth() {
             return outerWidth;
         }
 
-        public void setFill(boolean fill)
-        {
+        public void setFill(boolean fill) {
             this.fill = fill;
         }
 
-        public boolean fill()
-        {
+        public boolean fill() {
             return fill;
         }
 
@@ -221,35 +216,29 @@ public class Theme
         }
     }
 
-    public class MapColor
-    {
+    public class MapColor {
         private final Color inner;
         private final Color outer;
 
-        public MapColor(Color inner)
-        {
+        public MapColor(Color inner) {
             this.inner = inner;
             outer = null;
         }
 
-        public MapColor(Color inner, Color outer)
-        {
+        public MapColor(Color inner, Color outer) {
             this.inner = inner;
             this.outer = outer;
         }
 
-        public boolean hasOuter()
-        {
+        public boolean hasOuter() {
             return outer != null;
         }
 
-        public Color getInner()
-        {
+        public Color getInner() {
             return inner;
         }
 
-        public Color getOuter()
-        {
+        public Color getOuter() {
             return outer;
         }
     }

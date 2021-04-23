@@ -2,10 +2,14 @@ package bfst21.Osm_Elements;
 
 import javafx.scene.canvas.GraphicsContext;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class NodeHolder extends Element {
+public abstract class NodeHolder extends Element implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 4506251123911227447L;
 
     protected List<Node> nodes = new ArrayList<>();
 
@@ -13,7 +17,7 @@ public abstract class NodeHolder extends Element {
         super(id);
     }
 
-    public NodeHolder(){
+    public NodeHolder() {
 
     }
 
@@ -65,7 +69,6 @@ public abstract class NodeHolder extends Element {
         for (var node : nodes) {
             gc.lineTo(node.getxMin(), node.getyMin());
         }
-
     }
 
     public List<Node> getNodes() {
@@ -99,5 +102,6 @@ public abstract class NodeHolder extends Element {
         }
         return previousNode;
     }
+
 
 }
