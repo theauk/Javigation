@@ -4,9 +4,10 @@ import bfst21.Osm_Elements.Node;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 // TODO: 16-04-2021 Works, but is anything but optimal in memory usage 
-// TODO: 16-04-2021 The 5 fields that has something to do with an address can be moved to a private class or something, so AddressTrieNode only holds one reference instead of 5 
+// TODO: 16-04-2021 The 5 fields that has something to do with an address can be moved to a private class or something, so AddressTSTNode only holds one reference instead of 5
 public class AddressTrieNode {
     private HashMap<Character, AddressTrieNode> children;
     private ArrayList<AddressTrieNode> addressNodes;
@@ -15,14 +16,25 @@ public class AddressTrieNode {
     private String streetname;
     private Integer postcode;
     private String houseNumber;
+    private char character;
+    private boolean isAddress;
 
     // for the root
-    public AddressTrieNode(){
+    public AddressTrieNode() {
         this.children = new HashMap<>();
         this.addressNodes = new ArrayList<>();
+        isAddress = false;
     }
+
+    public AddressTrieNode(char character) {
+        this.children = new HashMap<>();
+        this.addressNodes = new ArrayList<>();
+        this.character = character;
+        isAddress = false;
+    }
+
     // for the other trienodes
-    public AddressTrieNode(Node node, String city, String streetname, int postcode, String houseNumber){
+    public AddressTrieNode(Node node, String city, String streetname, int postcode, String houseNumber) {
         this.children = new HashMap<>();
         this.addressNodes = new ArrayList<>();
         this.node = node;
@@ -30,11 +42,19 @@ public class AddressTrieNode {
         this.streetname = streetname;
         this.postcode = postcode;
         this.houseNumber = houseNumber;
+        isAddress = true;
+    }
 
+    public char getCharacter() {
+        return character;
     }
 
     public ArrayList<AddressTrieNode> getAddressNodes() {
         return addressNodes;
+    }
+
+    public boolean isAddress() {
+        return isAddress;
     }
 
     public HashMap<Character, AddressTrieNode> getChildren(){
@@ -48,6 +68,7 @@ public class AddressTrieNode {
 
     public void addAddressNode(AddressTrieNode addressTrieNode){
         addressNodes.add(addressTrieNode);
+        isAddress = true;
     }
 
     public String getCity() {
@@ -67,6 +88,10 @@ public class AddressTrieNode {
     }
     public String getAddress(){
         return this.streetname + " " + this.houseNumber + ", " + this.postcode + " " + this.city;
+    }
+
+    public AddressTrieNode getAddressTrieNode(){
+        return this;
     }
 
 }

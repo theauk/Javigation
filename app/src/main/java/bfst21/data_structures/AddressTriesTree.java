@@ -4,6 +4,7 @@ import bfst21.Osm_Elements.Node;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Not yet implemented
@@ -11,15 +12,16 @@ import java.util.List;
 // TODO: 28-03-2021 implement
 public class AddressTriesTree {
     private AddressTrieNode root;
-    private AddressTrieNode addressNode;
+    //private AddressTrieNode addressNode;
     private HashMap<Integer, String> postcodes;
     private HashMap<String, Integer> cities;
 
-    // TODO: 20-04-2021 auto-complete feature?
+    // TODO: 20-04-2021 auto-complete feature? Update 23-04-2021 Virker næsten.
 
     public AddressTriesTree() {
         root = new AddressTrieNode();
         postcodes = new HashMap<>();
+        cities = new HashMap<>();
     }
 
 // TODO: 19-04-2021 A subtrie inside the trie?? or a radix tree for the streetnames???
@@ -34,11 +36,10 @@ public class AddressTriesTree {
      * @param method      -> this number indicates wether the trie should insert the address with postcode or streetname.
      */
     public void put(Node node, String city, String streetname, int postcode, String houseNumber, int method) {
-        addressNode = new AddressTrieNode(node, city, streetname, postcode, houseNumber);
+        AddressTrieNode addressNode = new AddressTrieNode(node, city, streetname, postcode, houseNumber);
         insert(root, addressNode, method);
         postcodes.put(postcode, city);
         cities.put(city, postcode);
-        System.out.println();
     }
 
     /**
@@ -51,15 +52,14 @@ public class AddressTriesTree {
      */
     public void insert(AddressTrieNode root, AddressTrieNode addressNode, int method) {
         if(method == 1){
-            insert_address_withPostCode(root, addressNode, 0);
+            //insert_address_withPostCode(root, addressNode, 0);
         }
         if(method == 2){
             insert_address_with_streetname(root, addressNode, 0);
         }
     }
 
-    // TODO: 21-04-2021 Prefix: auto complete måske spørge i studylap???
-    // TODO: 21-04-2021 Some solutions uses a Queue (like the algobook) and some recommends a dfs to traverse through the tree.
+
     /**
      * This will insert the address into the trie by using its postcode as key.
      * @param trieNode -> when called for the first time, this would be the root.
@@ -70,6 +70,8 @@ public class AddressTriesTree {
      * @param index -> the start index is always 0, since the method will start from the root, and go down through the tree.
      *              index could be omitted as well, but the method would need to be made iterative instead of recursive.
      */
+    // TODO: 23-04-2021 Udkommenteret grundet usikkerhed om metoden skal bruges
+    /*
     private void insert_address_withPostCode(AddressTrieNode trieNode, AddressTrieNode addressNode, int index) {
         var stringPostcode = Integer.toString(addressNode.getPostcode());
         if (index == stringPostcode.length()) {
@@ -83,15 +85,16 @@ public class AddressTriesTree {
             insert_address_withPostCode(trieNode.getChildren().get(currentChar), addressNode, index + 1);
         }
     }
+    */
 
     private void insert_address_with_streetname(AddressTrieNode trieNode, AddressTrieNode addressNode, int index) {
-        var streetname = addressNode.getStreetname();
+        String streetname = addressNode.getStreetname().toLowerCase(); // to make it easier to search in it.
             if (index == streetname.length()) {
                 trieNode.addAddressNode(addressNode);
             } else {
                 Character currentChar = streetname.charAt(index);
                 if (!trieNode.getChildren().containsKey(currentChar)) {
-                    AddressTrieNode new_child = new AddressTrieNode();
+                    AddressTrieNode new_child = new AddressTrieNode(currentChar);
                     trieNode.getChildren().put(currentChar, new_child);
                 }
                 insert_address_with_streetname(trieNode.getChildren().get(currentChar), addressNode, index + 1);
@@ -104,6 +107,7 @@ public class AddressTriesTree {
     public Node getAddressNode(String address) {
         return null;
     }
+
 
     /**
      *
@@ -123,10 +127,10 @@ public class AddressTriesTree {
      *        and streetnames. (if given as a string)
      */
     private List<AddressTrieNode> search(AddressTrieNode trieNode, String address, int index) {
-        // returns NULL if there is no user going by that name
+        address = address.toLowerCase();
+        // returns null if there is address going by that postcode
         if (index == address.length()) {
             return trieNode.getAddressNodes();
-            //return trieNode.getAddressNode().getPostcode(); // this works for one node
         } else {
             Character current_char = address.charAt(index);
             if (!trieNode.getChildren().containsKey(current_char)) {
@@ -137,19 +141,34 @@ public class AddressTriesTree {
         }
     }
 
-    // quick print test
-    public static void main(String[] args) {
-        Node node1 = new Node(340551927, 55.6786770f, 12.5694510f);
-        Node node2 = new Node(340551928, 55.6786400f, 12.5698360f);
-        AddressTriesTree addressTriesTree = new AddressTriesTree();
-        addressTriesTree.put(node1, "København K", "Studiestræde", 1455, "18",1);
-        addressTriesTree.put(node2, "København K", "Studiestræde", 1455, "19",1);
-        System.out.println(addressTriesTree.search(addressTriesTree.root, "1455",0).size());
-        System.out.println("adresser via postnummer:");
-        for (AddressTrieNode address: addressTriesTree.search(addressTriesTree.root, "1455",0)){
-            System.out.println(address.getAddress());
-        }
+    // Returns all streetnames in the trie.
+    public Iterable<String> keys(){
+        return keysWithPrefix("");
+    }
+    // Returns Streetnames that has the given prefix (taken from the algo book, however it has been modified.
+    public Iterable<String> keysWithPrefix(String prefix){
+        Queue<String> queue = new Queue<>();
+        collect(get(root, prefix,0),prefix,queue);
+        return queue;
+    }
 
+    private AddressTrieNode get(AddressTrieNode trieNode, String key, int index){
+        // retrun node associated with key in the subtrie rooted at x
+        if(trieNode == null) return null;
+        if(index == key.length()) return trieNode;
+        char character = key.charAt(index);
+        return get(trieNode.getChildren().get(character),key, index+1);
+    }
+
+    private void collect(AddressTrieNode trieNode, String prefix, Queue<String> queue){
+        if(trieNode == null) return;
+            if(trieNode.isAddress()){
+                queue.enqueue(prefix);
+            }
+
+        for (Map.Entry<Character, AddressTrieNode> child : trieNode.getChildren().entrySet()) {
+            collect(child.getValue(), prefix + child.getKey(), queue);
         }
+    }
 
         }
