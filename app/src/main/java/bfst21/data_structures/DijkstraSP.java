@@ -33,11 +33,13 @@ public class DijkstraSP implements Serializable {
     private boolean tryAgain;
     private double bikingSpeed;
     private double walkingSpeed;
+    private int maxSpeed;
 
     public DijkstraSP(ElementToElementsTreeMap<Node, Way> nodeToWayMap, ElementToElementsTreeMap<Node, Relation> nodeToRestriction, ElementToElementsTreeMap<Way, Relation> wayToRestriction) {
         this.nodeToRestriction = nodeToRestriction;
         this.wayToRestriction = wayToRestriction;
         this.nodeToWayMap = nodeToWayMap;
+        this.maxSpeed = 130;
     }
 
     private void setup(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest) {
@@ -51,16 +53,11 @@ public class DijkstraSP implements Serializable {
         unitsTo = new HashMap<>();
         nodeBefore = new HashMap<>();
         wayBefore = new HashMap<>();
-        pq = new PriorityQueue<>(new Comparator<Node>() {
-            @Override
-            public int compare(Node a, Node b) {
-                return Integer.compare(unitsTo.get(a).compareTo(unitsTo.get(b)), 0);
-            }
-        });
+        pq = new PriorityQueue<>((a, b) -> Integer.compare(unitsTo.get(a).compareTo(unitsTo.get(b)), 0)); // different comparator
         bikingSpeed = 16; // from Google Maps 16 km/h
         walkingSpeed = 5; // from Google Maps 5 km/h
         pq.add(from);
-        unitsTo.put(from, new DistanceAndTimeEntry(0, 0));
+        unitsTo.put(from, new DistanceAndTimeEntry(0, 0, 0));
     }
 
     public ArrayList<Node> getPath(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest) throws NoNavigationResultException {
@@ -143,20 +140,6 @@ public class DijkstraSP implements Serializable {
         return n;
     }
 
-    /*private Node temporaryRemoveAndGetMin() { // TODO: 4/15/21 make more efficient – probably tree
-        double minValue = Double.POSITIVE_INFINITY;
-        Node minNode = null;
-
-        for (Map.Entry<Node, Double> longDoubleEntry : pq.entrySet()) {
-            if (longDoubleEntry.getValue() < minValue) {
-                minValue = longDoubleEntry.getValue();
-                minNode = longDoubleEntry.getKey();
-            }
-        }
-        pq.remove(minNode);
-        return minNode;
-    }*/
-
     private ArrayList<Node> getTrack(ArrayList<Node> nodes, Node currentNode) {
         if (currentNode != null) {
             nodes.add(currentNode);
@@ -185,7 +168,7 @@ public class DijkstraSP implements Serializable {
                     }
                     getNextNode(adjacentNodes, w, currentFrom);
                 }
-            } else if (walk) {
+            } else {
                 if (w.isWalkable()) {
                     getPreviousNode(adjacentNodes, w, currentFrom);
                     getNextNode(adjacentNodes, w, currentFrom);
@@ -195,7 +178,7 @@ public class DijkstraSP implements Serializable {
                 for (Node n : adjacentNodes) {
                     boolean[] doAdjacentNodesHaveRestrictions = new boolean[adjacentNodes.size()]; // TODO: 4/23/21 delete?
                     if (!isThereARestriction(wayBefore.get(currentFrom), currentFrom, w)) {
-                        checkDistance(currentFrom, n, w);
+                        checkDistanceAStar(currentFrom, n, w);
                     }
                 }
             }
@@ -237,7 +220,7 @@ public class DijkstraSP implements Serializable {
 
                         if (wayBefore.get(beforeNode) == restriction.getFrom()) { // walk back until you reach a different Way – then check if that is the from way
                             if (tryAgain)
-                                unitsTo.put(viaNode, new DistanceAndTimeEntry(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
+                                unitsTo.put(viaNode, new DistanceAndTimeEntry(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
                             return true;
                         }
                     } else if (restriction.getRestriction().contains("only_")) { // TODO: 4/20/21 ja....
@@ -249,7 +232,30 @@ public class DijkstraSP implements Serializable {
         return false;
     }
 
-    private void checkDistance(Node currentFrom, Node currentTo, Way w) {
+    private void checkDistanceAStar(Node currentFrom, Node currentTo, Way w) {
+        double currentCost = unitsTo.get(currentTo) == null ? Double.POSITIVE_INFINITY : unitsTo.get(currentTo).cost;
+
+        double distanceBetweenFromTo = getDistanceBetweenTwoNodes(currentFrom, currentTo);
+        double timeBetweenFromTo = getTravelTime(distanceBetweenFromTo, w);
+
+        if (fastest) {
+            double unitsToCurrentTo = unitsTo.get(currentFrom).time + timeBetweenFromTo;
+            double unitsCurrentToToFinalTo = getDistanceBetweenTwoNodes(currentTo, to) / maxSpeed;
+            double newCost = unitsToCurrentTo + unitsCurrentToToFinalTo;
+            if (newCost < currentCost) {
+                updateMapsAndPQ(currentTo, currentFrom, w, distanceBetweenFromTo, timeBetweenFromTo, newCost);
+            }
+        } else {
+            double unitsToCurrentTo = unitsTo.get(currentFrom).distance + distanceBetweenFromTo;
+            double unitsCurrentToToFinalTo = getDistanceBetweenTwoNodes(currentTo, to);
+            double newCost = unitsToCurrentTo + unitsCurrentToToFinalTo;
+            if (newCost < currentCost) {
+                updateMapsAndPQ(currentTo, currentFrom, w, distanceBetweenFromTo, timeBetweenFromTo, newCost);
+            }
+        }
+    }
+
+    private void checkDistanceDijkstra(Node currentFrom, Node currentTo, Way w) {
         double currentDistanceTo = unitsTo.get(currentTo) == null ? Double.POSITIVE_INFINITY : unitsTo.get(currentTo).distance;
         double currentTimeTo = unitsTo.get(currentTo) == null ? Double.POSITIVE_INFINITY : unitsTo.get(currentTo).time;
 
@@ -259,17 +265,17 @@ public class DijkstraSP implements Serializable {
 
         if (fastest) {
             if (unitsTo.get(currentFrom).time + timeBetweenFromTo < currentTimeTo) {
-                updateMapsAndPQ(currentTo, currentFrom, w, distanceBetweenFromTo, timeBetweenFromTo);
+                updateMapsAndPQ(currentTo, currentFrom, w, distanceBetweenFromTo, timeBetweenFromTo, 0);
             }
         } else {
             if (unitsTo.get(currentFrom).distance + distanceBetweenFromTo < currentDistanceTo) {
-                updateMapsAndPQ(currentTo, currentFrom, w, distanceBetweenFromTo, timeBetweenFromTo);
+                updateMapsAndPQ(currentTo, currentFrom, w, distanceBetweenFromTo, timeBetweenFromTo, 0);
             }
         }
     }
 
-    private void updateMapsAndPQ(Node currentTo, Node currentFrom, Way w, double distanceBetweenFromTo, double timeBetweenFromTo) {
-        unitsTo.put(currentTo, new DistanceAndTimeEntry(unitsTo.get(currentFrom).distance + distanceBetweenFromTo, unitsTo.get(currentFrom).time + timeBetweenFromTo));
+    private void updateMapsAndPQ(Node currentTo, Node currentFrom, Way w, double distanceBetweenFromTo, double timeBetweenFromTo, double newCost) {
+        unitsTo.put(currentTo, new DistanceAndTimeEntry(unitsTo.get(currentFrom).distance + distanceBetweenFromTo, unitsTo.get(currentFrom).time + timeBetweenFromTo, newCost));
         nodeBefore.put(currentTo, currentFrom);
         wayBefore.put(currentTo, w);
         if (unitsTo.containsKey(currentTo)) pq.remove(currentTo); //TODO: 4/23/21 før var check + tilføj til pq O(1) fordi det var HM. NU: check er O(1) mens remove og add er log
@@ -325,19 +331,17 @@ public class DijkstraSP implements Serializable {
     private class DistanceAndTimeEntry implements Comparable<DistanceAndTimeEntry> {
         private double distance;
         private double time;
+        private double cost;
 
-        public DistanceAndTimeEntry(double distance, double time) {
+        public DistanceAndTimeEntry(double distance, double time, double cost) {
             this.distance = distance;
             this.time = time;
+            this.cost = cost;
         }
 
         @Override
         public int compareTo(DistanceAndTimeEntry o) {
-            if (fastest) {
-                return Double.compare(time, o.time);
-            } else {
-                return Double.compare(distance, o.distance);
-            }
+            return Double.compare(cost, o.cost);
         }
     }
 }
