@@ -536,7 +536,6 @@ public class Controller {
     private Alert createAlert(Alert.AlertType alertType, String title, String header, String text, ButtonType... buttons) {
         Alert alert = new Alert(alertType, text, buttons);
         alert.setTitle(title);
-        alert.setHeaderText(header);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         return alert;
     }
@@ -548,7 +547,7 @@ public class Controller {
             setDistanceAndTimeNav(mapData.getDistanceNav(), mapData.getTimeNav());
             mapCanvas.repaint();
         } catch (NoNavigationResultException e) {
-            e.printStackTrace();
+            showDialogBox("No Route Found", "It was not possible to find a route between the two points");
         }
     }
 

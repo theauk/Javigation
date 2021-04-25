@@ -40,15 +40,4 @@ public class ElementToElementsTreeMap<Key extends Element, Value extends Element
         return map.get(key.getId());
     }
 
-    public ArrayList<Value> getElementsFromId(long id) {
-        return map.get(id);
-    }
-    
-    public int getSize() {
-        return map.size();
-    }
-
-    public Set<Long> getSet() {
-        return map.keySet();
-    }
 }

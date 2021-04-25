@@ -239,7 +239,6 @@ public class Creator extends Task<MapData> {
                                         nodeToWayMap.putAll(way.getNodes(), way);
                                         if (way.hasName()) {
                                             highWayRoadNodes.addAll(way.getNodes());
-                                            highWayRoadNodes.addAllAsNodes(way.getNodes()); // TODO: 4/23/21 delete (for nav test)
                                         }
                                     }
                                     way = null;

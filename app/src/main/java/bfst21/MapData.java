@@ -40,7 +40,7 @@ public class MapData implements Serializable {
         this.closetRoadTree = highWayRoadNodes;
         this.addressTree = addressTree;
         nodeToHighWay = nodeToWayMap;
-        routeNavigation = new RouteNavigation(highWayRoadNodes, nodeToHighWay, nodeToRestriction, wayToRestriction);
+        routeNavigation = new RouteNavigation(nodeToHighWay, nodeToRestriction, wayToRestriction);
         currentRoute = new ArrayList<>();
         userAddedPoints = new ArrayList<>();
         buildTrees();
@@ -66,7 +66,7 @@ public class MapData implements Serializable {
         rTreeDebug = selected;
     }
 
-    /*public String getNearestRoad(float x, float y) {
+    public String getNearestRoad(float x, float y) {
         String names = "";
         try {
             Node node = closetRoadTree.getNearestNode(x, y);
@@ -76,15 +76,15 @@ public class MapData implements Serializable {
             names = e.getMessage();
         }
         return names;
-    }*/
+    }
 
-    public String getNearestRoad(float x, float y) { // TODO: 4/22/21 in progress
+    /*public String getNearestRoad(float x, float y) { // TODO: 4/22/21 in progress
         Way way = rTree.getNearestRoad(x, y);
         if (way.getName() != null) {
             return way.getName();
         }
         return "";
-    }
+    }*/
 
     public String getNodeHighWayNames(Node node) {
         String names = "";
@@ -111,9 +111,6 @@ public class MapData implements Serializable {
     }
 
     public void setRoute(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest, boolean aStar) throws NoNavigationResultException {
-
-        //routeNavigation.test();
-
         ArrayList<Node> path = routeNavigation.getPath(from, to, car, bike, walk, fastest, aStar);
         currentRoute = new ArrayList<>();
         if (path.size() > 0) {
