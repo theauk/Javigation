@@ -14,8 +14,7 @@ import java.util.PriorityQueue;
 public class RouteNavigation implements Serializable {
     @Serial
     private static final long serialVersionUID = -488598808136557757L;
-    // TODO: 4/10/21 Add restrictions 
-    // TODO: 4/10/21 Improve remove min
+    // TODO: 4/10/21 Add restrictions
     // TODO: 4/19/21 Hide fastest for bike/walk in the view.
 
     private Node to;
@@ -32,7 +31,7 @@ public class RouteNavigation implements Serializable {
     private boolean bike;
     private boolean walk;
     private boolean fastest;
-    private boolean tryAgain;
+    private boolean needToCheckUTurns;
     private boolean aStar;
     private double bikingSpeed;
     private double walkingSpeed;
@@ -52,7 +51,7 @@ public class RouteNavigation implements Serializable {
         this.walk = walk;
         this.fastest = fastest;
         this.aStar = aStar;
-        tryAgain = false;
+        needToCheckUTurns = false;
         routeDescription = new ArrayList<>();
         unitsTo = new HashMap<>();
         nodeBefore = new HashMap<>();
@@ -64,13 +63,25 @@ public class RouteNavigation implements Serializable {
         unitsTo.put(from, new DistanceAndTimeEntry(0, 0, 0));
     }
 
+    /**
+     * Gets either the fastest or the shortest path between two Nodes.
+     * @param from The from Node.
+     * @param to The to Node.
+     * @param car True if travelling by car. Otherwise, false.
+     * @param bike True if travelling by bike. Otherwise, false.
+     * @param walk True if walking. Otherwise, false.
+     * @param fastest True if fastest route needs to be found. False if shortest route should be found.
+     * @param aStar True if the A* algorithm should be used. False if Dijkstra should be used.
+     * @return An ArrayList with Nodes that make up the path in reverse order.
+     * @throws NoNavigationResultException If no route can be found.
+     */
     public ArrayList<Node> getPath(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest, boolean aStar) throws NoNavigationResultException {
         setup(from, to, car, bike, walk, fastest, aStar);
         Node n = checkNode();
 
         if (n != to) {
             setup(from, to, car, bike, walk, fastest, aStar);
-            tryAgain = true; // TODO: 4/19/21 really not the most beautiful thing...
+            needToCheckUTurns = true; // TODO: 4/19/21 really not the most beautiful thing...
             n = checkNode();
 
             if (n != to) throw new NoNavigationResultException();
@@ -86,11 +97,19 @@ public class RouteNavigation implements Serializable {
         }
     }
 
+    /**
+     * Get the total distance for the path.
+     * @return The total distance.
+     */
     public double getTotalDistance() {
-        if (unitsTo.get(to) != null) return unitsTo.get(to).distance; // TODO: 4/23/21 change these two back?
+        if (unitsTo.get(to) != null) return unitsTo.get(to).distance; // TODO: 4/26/21 back to exception instead
         else return 0;
     }
 
+    /**
+     * Gets the total travelling time for the path.
+     * @return The total travelling time.
+     */
     public double getTotalTime() {
         if (unitsTo.get(to) != null) return unitsTo.get(to).time;
         else return 0;
@@ -136,6 +155,10 @@ public class RouteNavigation implements Serializable {
         return "";
     }*/
 
+    /**
+     * Checks the next node in the priority queue with the smallest units/cost.
+     * @return The final Node found for the path.
+     */
     private Node checkNode() {
         Node n = null;
         while (!pq.isEmpty()) {
@@ -146,6 +169,12 @@ public class RouteNavigation implements Serializable {
         return n;
     }
 
+    /**
+     * Gets a list of the Nodes that make up the path.
+     * @param nodes A list of the Nodes making up the path.
+     * @param currentNode The Node which should be checked for the Node before it.
+     * @return A list of the Nodes making up the path.
+     */
     private ArrayList<Node> getTrack(ArrayList<Node> nodes, Node currentNode) {
         if (currentNode != null) {
             nodes.add(currentNode);
@@ -154,6 +183,10 @@ public class RouteNavigation implements Serializable {
         return nodes;
     }
 
+    /**
+     * Relaxes the Nodes adjacent to the current Node.
+     * @param currentFrom The current Node to examine.
+     */
     private void relax(Node currentFrom) {
         ArrayList<Way> waysWithFromNode = nodeToWayMap.getElementsFromNode(currentFrom);
 
@@ -195,53 +228,99 @@ public class RouteNavigation implements Serializable {
         }
     }
 
+    /**
+     * Gets the Node before a specified Node on a certain Way.
+     * @param adjacentNodes The list of adjacent Nodes to the current from Node.
+     * @param w The current Way.
+     * @param currentFrom The current from Node.
+     */
     private void getPreviousNode(ArrayList<Node> adjacentNodes, Way w, Node currentFrom) {
         Node previousNode = w.getPreviousNode(currentFrom);
         if (previousNode != null) adjacentNodes.add(previousNode);
     }
 
+    /**
+     * Gets the next Node after a specified Node on a certain Way.
+     * @param adjacentNodes The list of adjacent Nodes to the current from Node.
+     * @param w The current Way.
+     * @param currentFrom The current from Node.
+     */
     private void getNextNode(ArrayList<Node> adjacentNodes, Way w, Node currentFrom) {
         Node nextNode = w.getNextNode(currentFrom);
         if (nextNode != null) adjacentNodes.add(nextNode);
     }
 
+    /**
+     * Checks if is a _no restriction (e.g. no left-turn).
+     * @param fromWay The Way the path is coming from.
+     * @param viaNode The Node the path is trying to go via.
+     * @param toWay The Way the path is trying to go to.
+     * @return True if there is a restriction. False if not.
+     */
     private boolean isThereARestriction(Way fromWay, Node viaNode, Way toWay) {
-        ArrayList<Relation> restrictionsViaNode = nodeToRestriction.getElementsFromNode(viaNode);
+        if (checkRestrictionViaNode(fromWay, viaNode, toWay)) return true;
+        if (fromWay != null) return checkRestrictionViaWay(fromWay, viaNode, toWay);
+        return false;
+    }
 
+    /**
+     * Checks if there is a _no restriction via a specified Node.
+     * @param fromWay The Way the path is coming from.
+     * @param viaNode The Node the path is trying to go via.
+     * @param toWay The Way the path is trying to go to.
+     * @return True if there is a restriction. False if not.
+     */
+    private boolean checkRestrictionViaNode(Way fromWay, Node viaNode, Way toWay) {
+        ArrayList<Relation> restrictionsViaNode = nodeToRestriction.getElementsFromNode(viaNode);
         if (restrictionsViaNode != null) {
             for (Relation restriction : restrictionsViaNode) {
                 if (restriction.getRestriction().contains("no_") && restriction.getFrom() == fromWay && restriction.getViaNode() == viaNode && restriction.getTo() == toWay) { // TODO: 4/19/21 er check med viaNode nødvendigt grundet nodeToorest lookup? same nedenunder for viaWay
                     return true;
-                } else if (restriction.getRestriction().contains("only_")) { // TODO: 4/20/21 ja....
+                } else if (restriction.getRestriction().contains("only_")) { // TODO: 4/20/21 FIX
                     //System.out.println(fromWay.getName() + " " + viaNode.getId() + " " + toWay.getName());
-                }
-            }
-        }
-        if (fromWay != null) { // TODO: 4/19/21 re-organize
-            ArrayList<Relation> restrictionsViaWay = wayToRestriction.getElementsFromNode(fromWay);
-            if (restrictionsViaWay != null) {
-                for (Relation restriction : restrictionsViaWay) {
-                    if (restriction.getRestriction().contains("no_") && restriction.getViaWay() == fromWay && restriction.getTo() == toWay) {
-                        Node beforeNode = nodeBefore.get(viaNode);
-
-                        while (wayBefore.get(beforeNode) == fromWay) { // while we are "walking back" on the same Way
-                            beforeNode = nodeBefore.get(beforeNode);
-                        }
-
-                        if (wayBefore.get(beforeNode) == restriction.getFrom()) { // walk back until you reach a different Way – then check if that is the from way
-                            if (tryAgain)
-                                unitsTo.put(viaNode, new DistanceAndTimeEntry(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-                            return true;
-                        }
-                    } //else if (restriction.getRestriction().contains("only_")) { // TODO: 4/20/21 ja....
-
-                    //}
                 }
             }
         }
         return false;
     }
 
+    /**
+     * Checks if there is a _no restriction via a specified Way.
+     * @param fromWay The Way the path is coming from.
+     * @param viaNode The Node the path is trying to go via.
+     * @param toWay The Way the path is trying to go to.
+     * @return True if there is a restriction. False if not.
+     */
+    private boolean checkRestrictionViaWay(Way fromWay, Node viaNode, Way toWay) {
+        ArrayList<Relation> restrictionsViaWay = wayToRestriction.getElementsFromNode(fromWay);
+        if (restrictionsViaWay != null) {
+            for (Relation restriction : restrictionsViaWay) {
+                if (restriction.getRestriction().contains("no_") && restriction.getViaWay() == fromWay && restriction.getTo() == toWay) {
+                    Node beforeNode = nodeBefore.get(viaNode);
+
+                    while (wayBefore.get(beforeNode) == fromWay) { // "walk back" until finding a Node on a different Way
+                        beforeNode = nodeBefore.get(beforeNode);
+                    }
+
+                    if (wayBefore.get(beforeNode) == restriction.getFrom()) { // find the Way with the Node – then check if that is the restriction's from Way
+                        if (needToCheckUTurns)
+                            unitsTo.put(viaNode, new DistanceAndTimeEntry(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
+                        return true;
+                    }
+                } //else if (restriction.getRestriction().contains("only_")) { // TODO: 4/20/21 ja....
+
+                //}
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Find the cost between two Nodes to update the priority queue.
+     * @param currentFrom The from Node.
+     * @param currentTo The to Node.
+     * @param w The Way between the two Nodes.
+     */
     private void checkDistanceAStar(Node currentFrom, Node currentTo, Way w) {
         double currentCost = unitsTo.get(currentTo) == null ? Double.POSITIVE_INFINITY : unitsTo.get(currentTo).cost;
 
@@ -265,6 +344,12 @@ public class RouteNavigation implements Serializable {
         }
     }
 
+    /**
+     * Find the units between two Nodes to update the priority queue.
+     * @param currentFrom The from Node.
+     * @param currentTo The to Node.
+     * @param w The Way between the Nodes.
+     */
     private void checkDistanceDijkstra(Node currentFrom, Node currentTo, Way w) {
         double currentDistanceTo = unitsTo.get(currentTo) == null ? Double.POSITIVE_INFINITY : unitsTo.get(currentTo).distance;
         double currentTimeTo = unitsTo.get(currentTo) == null ? Double.POSITIVE_INFINITY : unitsTo.get(currentTo).time;
@@ -285,6 +370,15 @@ public class RouteNavigation implements Serializable {
         }
     }
 
+    /**
+     * Update the maps with new distance and time along with the unit/cost priority queue.
+     * @param currentTo The from Node.
+     * @param currentFrom The to Node.
+     * @param w The Way between the Nodes.
+     * @param distanceBetweenFromTo The distance between the two Nodes.
+     * @param timeBetweenFromTo The travelling time between the two Nodes.
+     * @param newCost The cost between the two Nodes.
+     */
     private void updateMapsAndPQ(Node currentTo, Node currentFrom, Way w, double distanceBetweenFromTo, double timeBetweenFromTo, double newCost) {
         nodeBefore.put(currentTo, currentFrom);
         wayBefore.put(currentTo, w);
@@ -317,6 +411,12 @@ public class RouteNavigation implements Serializable {
         return -value * 0.56f;
     }
 
+    /**
+     * Gets the travel time for a given distance and speed.
+     * @param distance The distance to be used for the calculation.
+     * @param w The Way used to find the speed if travelling by car.
+     * @return The travelling time.
+     */
     private double getTravelTime(double distance, Way w) {
         double speed;
         if (bike) speed = bikingSpeed;
