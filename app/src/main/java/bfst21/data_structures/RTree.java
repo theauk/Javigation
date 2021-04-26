@@ -47,21 +47,19 @@ public class RTree implements Serializable {
      * @param xMax  The maximum x-coordinate of the canvas.
      * @param yMin  The minimum y-coordinate of the canvas.
      * @param yMax  The maximum y-coordinate of the canvas.
-     * @param debug True if debug mode is selected. Otherwise, false. // TODO: 4/21/21 fix
+     * @param debug True if debug mode is selected. Otherwise, false.
+     * @param currentZoomLevel The current zoom level for the GUI.
      * @return An ArrayList with the Element objects that intersect with the search bounds.
      */
     public ArrayList<ArrayList<Element>> search(float xMin, float xMax, float yMin, float yMax, boolean debug, int currentZoomLevel) {
         Map<String, Byte> zoomMap = MapCanvas.zoomMap;
         if (root != null) {
             float[] searchCoordinates = new float[]{xMin, xMax, yMin, yMax};
-            ArrayList<ArrayList<Element>> results = new ArrayList<>();
-            while (results.size() <= returnListSize) {
-                results.add(new ArrayList<>());
-            }
+            ArrayList<ArrayList<Element>> results = prepareResultArray();
             if (debug) {
-                float change = xMin * 0.0005f;
-                searchCoordinates = new float[]{xMin + change, xMax + (-change), yMin + change, yMax + (-change)};
-                results.get(0).addAll(createDebugCanvasBoundsRectangle(searchCoordinates));
+                float coordinateChange = xMin * 0.0005f;
+                searchCoordinates = new float[]{xMin + coordinateChange, xMax + (-coordinateChange), yMin + coordinateChange, yMax + (-coordinateChange)};
+                results.get(0).addAll(createDebugRectangle(searchCoordinates, "motorway"));
                 searchDebug(searchCoordinates, root, results, currentZoomLevel, zoomMap);
             } else {
                 search(searchCoordinates, root, results, currentZoomLevel, zoomMap);
@@ -72,6 +70,26 @@ public class RTree implements Serializable {
         }
     }
 
+    /**
+     * Make a list with as many lists as layers for the map.
+     * @return An ArrayList with empty nested Arraylists.
+     */
+    private ArrayList<ArrayList<Element>> prepareResultArray() {
+        ArrayList<ArrayList<Element>> results = new ArrayList<>();
+        while (results.size() <= returnListSize) {
+            results.add(new ArrayList<>());
+        }
+        return results;
+    }
+
+    /**
+     * Search for elements in the R-tree based on search coordinates.
+     * @param searchCoordinates The coordinates to search for elements within where the minimum coordinate is followed by maximum for each dimension.
+     * @param node The current Node to check.
+     * @param results List with elements that are within the search coordinates.
+     * @param currentZoomLevel The current zoom level for the GUI.
+     * @param zoomMap A map with types as keys and the layers where the types should be drawn as values.
+     */
     private void search(float[] searchCoordinates, RTreeNode node, ArrayList<ArrayList<Element>> results, int currentZoomLevel, Map<String, Byte> zoomMap) {
         if (node.isLeaf()) {
             for (RTreeNode r : node.getChildren()) {
@@ -92,14 +110,23 @@ public class RTree implements Serializable {
         }
     }
 
-    private void searchDebug(float[] searchCoordinates, RTreeNode node, ArrayList<ArrayList<Element>> results, int currentZoomLevel, Map<String, Byte> zoomMap) { // TODO: 4/21/21 fix if keeping new zoomLevel functionality
+    /**
+     * Search for elements in the R-tree based on search coordinates and add elements which visualize the r-tree. Separate method from
+     * search to avoid extra checks in the original method.
+     * @param searchCoordinates The coordinates to search for elements within where the minimum coordinate is followed by maximum for each dimension.
+     * @param node The current Node to check.
+     * @param results List with elements that are within the search coordinates.
+     * @param currentZoomLevel The current zoom level for the GUI.
+     * @param zoomMap A map with types as keys and the layers where the types should be drawn as values.
+     */
+    private void searchDebug(float[] searchCoordinates, RTreeNode node, ArrayList<ArrayList<Element>> results, int currentZoomLevel, Map<String, Byte> zoomMap) {
         if (node.isLeaf()) {
             for (RTreeNode r : node.getChildren()) {
                 for (Element e : r.getElementEntries()) {
                     String type = e.getType();
                     if (zoomMap.get(type) != null && zoomMap.get(type) <= currentZoomLevel && intersects(searchCoordinates, e.getCoordinates())) {
                         int layer = e.getLayer();
-                        results.get(layer).addAll(createDebugElementRectangle(e.getCoordinates()));
+                        results.get(layer).addAll(createDebugRectangle(e.getCoordinates(), "residential"));
                         results.get(layer).add(e);
                     }
                 }
@@ -114,6 +141,12 @@ public class RTree implements Serializable {
         }
     }
 
+    /**
+     * Determine if two coordinate bounding boxes intersect.
+     * @param coordinates1 The first coordinate set with minimum followed by maximum for each dimension.
+     * @param coordinates2 The second coordinate set with minimum followed by maximum for each dimension.
+     * @return True if the bounding boxes intersect. False if not.
+     */
     private Boolean intersects(float[] coordinates1, float[] coordinates2) {
         for (int i = 0; i < numberOfCoordinates; i += 2) {
             if (specificCoordinatesDoesNotIntersect(coordinates1[i], coordinates2[i + 1])) {
@@ -125,10 +158,24 @@ public class RTree implements Serializable {
         return true;
     }
 
+    /**
+     * Check if the minimum coordinate from the first element and the maximum coordinate for the second element of a certain dimension do not intersect.
+     * @param minCoordinateFirstElement The first element's minimum coordinate for the current dimension.
+     * @param maxCoordinateSecondElement The second element's minimum coordinate for the current dimension.
+     * @return True if the coordinates do not intersect. False if they intersect.
+     */
     private boolean specificCoordinatesDoesNotIntersect(float minCoordinateFirstElement, float maxCoordinateSecondElement) {
         return minCoordinateFirstElement >= maxCoordinateSecondElement;
     }
 
+    /**
+     * Creates a Way for the debug visualization mode.
+     * @param firstCoordinate The first coordinate for the start of the way.
+     * @param secondCoordinate The second coordinate for the start of the way.
+     * @param thirdCoordinate The first coordinate for the end of the way.
+     * @param fourthCoordinate The second coordinate for the end of the way.
+     * @return A Way with two Nodes.
+     */
     private Way createDebugWay(float firstCoordinate, float secondCoordinate, float thirdCoordinate, float fourthCoordinate) {
         Way w = new Way();
         w.addNode(new Node(firstCoordinate, secondCoordinate));
@@ -136,26 +183,19 @@ public class RTree implements Serializable {
         return w;
     }
 
-    private ArrayList<Way> createDebugCanvasBoundsRectangle(float[] searchCoordinates) {
+    /**
+     * Creates a rectangle which acts as pseudo canvas bounds when using the debug mode.
+     * @param searchCoordinates The coordinates for the rectangle.
+     * @return A list with four ways which make up the rectangle.
+     */
+    private ArrayList<Way> createDebugRectangle(float[] searchCoordinates, String type) {
         ArrayList<Way> ways = new ArrayList<>();
         ways.add(createDebugWay(searchCoordinates[0], searchCoordinates[2], searchCoordinates[0], searchCoordinates[3]));
         ways.add(createDebugWay(searchCoordinates[0], searchCoordinates[2], searchCoordinates[1], searchCoordinates[2]));
         ways.add(createDebugWay(searchCoordinates[1], searchCoordinates[2], searchCoordinates[1], searchCoordinates[3]));
         ways.add(createDebugWay(searchCoordinates[0], searchCoordinates[3], searchCoordinates[1], searchCoordinates[3]));
         for (Way w : ways) {
-            w.setType("motorway");
-        }
-        return ways;
-    }
-
-    private ArrayList<Way> createDebugElementRectangle(float[] coordinates) {
-        ArrayList<Way> ways = new ArrayList<>();
-        ways.add(createDebugWay(coordinates[0], coordinates[2], coordinates[1], coordinates[2]));
-        ways.add(createDebugWay(coordinates[0], coordinates[2], coordinates[0], coordinates[3]));
-        ways.add(createDebugWay(coordinates[1], coordinates[2], coordinates[1], coordinates[3]));
-        ways.add(createDebugWay(coordinates[0], coordinates[3], coordinates[1], coordinates[3]));
-        for (Way w : ways) {
-            w.setType("residential");
+            w.setType(type);
         }
         return ways;
     }
