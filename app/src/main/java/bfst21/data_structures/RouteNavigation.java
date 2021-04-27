@@ -1,7 +1,7 @@
 package bfst21.data_structures;
 
 import bfst21.Exceptions.NoNavigationResultException;
-import bfst21.MapMath;
+import bfst21.utils.MapMath;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
@@ -94,7 +94,7 @@ public class RouteNavigation implements Serializable {
 
         } else {
             path = getTrack(new ArrayList<>(), n);
-            //getRouteDescription();
+            getRouteDescription();
             return path;
         }
     }
@@ -116,46 +116,6 @@ public class RouteNavigation implements Serializable {
         if (unitsTo.get(to) != null) return unitsTo.get(to).time;
         else return 0;
     }
-
-    /*public String getRouteDescription() {
-        for (int i = path.size() - 1; i >= 2; i--) {
-            Node from = path.get(i);
-            Node via = path.get(i - 1);
-            Node to = path.get(i - 2);
-
-            double distanceFromAndVia = getDistanceBetweenTwoNodes(from, via);
-            double distanceViaAndTo = getDistanceBetweenTwoNodes(via, to);
-            double distanceFromAndTo = getDistanceBetweenTwoNodes(from, to);
-
-            double cosTurnAngle = (Math.pow(distanceViaAndTo, 2) + Math.pow(distanceFromAndVia, 2) - Math.pow(distanceFromAndTo, 2)) / (2 * distanceViaAndTo * distanceFromAndVia);
-            double turnAngle = Math.acos(cosTurnAngle);
-
-            double result = Math.atan2(to.getyMax() - via.getyMax(), to.getxMax() - via.getxMax()) - Math.atan2(from.getyMax() - via.getyMax(), from.getxMax() - via.getxMax());
-
-
-            double v1x = from.getxMax() - via.getxMax();
-            double v1y = from.getyMax() - via.getyMax();
-            double v2x = to.getxMax() - via.getxMax();
-            double v2y = to.getyMax() - via.getyMax();
-
-            double angle = Math.atan2(v1x, v1y) - Math.atan2(v2x, v2y);
-            double degreeAngle = Math.toDegrees(angle);
-
-            //System.out.println(turnAngle * (180f / Math.PI));
-
-            if (degreeAngle > 0) {
-                if (degreeAngle < 175 || degreeAngle > 185) {
-                    System.out.println("You turned right, by: " + degreeAngle + " " + Math.toDegrees(result));
-                }
-            } else {
-                if (degreeAngle > -175 || degreeAngle < -185) {
-                    System.out.println("You turned left, by: " + degreeAngle + " " + Math.toDegrees(result));
-                }
-            }
-        }
-        System.out.println("");
-        return "";
-    }*/
 
     /**
      * Checks the next node in the priority queue with the smallest units/cost.
