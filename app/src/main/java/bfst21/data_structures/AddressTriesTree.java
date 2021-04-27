@@ -2,13 +2,9 @@ package bfst21.data_structures;
 
 import bfst21.Osm_Elements.Node;
 
-import java.util.HashMap;
+import java.util.*;
 import java.io.Serial;
 import java.io.Serializable;
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Not yet implemented
@@ -19,7 +15,6 @@ public class AddressTriesTree implements Serializable {
     private static final long serialVersionUID = 5713923887785799744L;
 
     private AddressTrieNode root;
-    //private AddressTrieNode addressNode;
     private HashMap<Integer, String> postcodes;
     private HashMap<String, Integer> cities;
 
@@ -97,11 +92,17 @@ public class AddressTriesTree implements Serializable {
     private void insert_address_with_streetname(AddressTrieNode trieNode, AddressTrieNode addressNode, int index) {
         String streetname = addressNode.getStreetname().toLowerCase(); // to make it easier to search in it.
             if (index == streetname.length()) {
-                trieNode.addAddressNode(addressNode);
-            } else {
+                if(!trieNode.getCityMap().containsKey(addressNode.getCity())){
+                    trieNode.getCityMap().put(addressNode.getCity(), new ArrayList<>());
+                    trieNode.getCityMap().get(addressNode.getCity()).add(addressNode); // adds the address to the arraylist
+                } else if(trieNode.getCityMap().containsKey(addressNode.getCity())){
+                    trieNode.getCityMap().get(addressNode.getCity()).add(addressNode);
+                }
+                }
+            else {
                 Character currentChar = streetname.charAt(index);
                 if (!trieNode.getChildren().containsKey(currentChar)) {
-                    AddressTrieNode new_child = new AddressTrieNode(currentChar);
+                    AddressTrieNode new_child = new AddressTrieNode();
                     trieNode.getChildren().put(currentChar, new_child);
                 }
                 insert_address_with_streetname(trieNode.getChildren().get(currentChar), addressNode, index + 1);
@@ -121,7 +122,7 @@ public class AddressTriesTree implements Serializable {
      * @param address -> postcode or name of the street which the address has been inserted with.
      * @return returns the list from the private search method to the given user class.
      */
-    public List<AddressTrieNode> search(String address){
+    public ArrayList<ArrayList<AddressTrieNode>> search(String address){
         return search(root, address,0);
     }
 
@@ -133,12 +134,30 @@ public class AddressTriesTree implements Serializable {
      * @return if there is a search-hit, it will return the given ArrayList for the serach-hit (currently tested on postcodes
      *        and streetnames. (if given as a string)
      */
-    private List<AddressTrieNode> search(AddressTrieNode trieNode, String address, int index) {
+    private List<AddressTrieNode> oldsearch(AddressTrieNode trieNode, String address, int index) {
         address = address.toLowerCase();
         // returns null if there is address going by that postcode
         if (index == address.length()) {
-            return trieNode.getAddressNodes();
+            return trieNode.getCityMap().get(address);
         } else {
+            Character current_char = address.charAt(index);
+            if (!trieNode.getChildren().containsKey(current_char)) {
+                return null;
+            } else {
+                return oldsearch(trieNode.getChildren().get(current_char), address, index + 1);
+            }
+        }
+    }
+
+    // TODO: 27-04-2021 Test this search method + eidt it so you can search with street, then city
+    private ArrayList<ArrayList<AddressTrieNode>> search(AddressTrieNode trieNode, String address, int index) {
+        address = address.toLowerCase();
+        // returns null if there is address going by that postcode
+        if (index == address.length()) {
+                ArrayList<ArrayList<AddressTrieNode>> addressList = new ArrayList<>(trieNode.getCityMap().values());
+                return addressList;
+            }
+         else {
             Character current_char = address.charAt(index);
             if (!trieNode.getChildren().containsKey(current_char)) {
                 return null;
@@ -178,4 +197,22 @@ public class AddressTriesTree implements Serializable {
         }
     }
 
+    // quick print test
+    public static void main(String[] args) {
+        Node node1 = new Node(340551927, 55.6786770f, 12.5694510f);
+        Node node2 = new Node(340551928, 55.6786400f, 12.5698360f);
+        Node node3 = new Node(340551929,55.6786500f,12.5698370f);
+        Node node4 = new Node(340551930,55.6783500f,12.5693370f);
+
+        AddressTriesTree trie = new AddressTriesTree();
+        trie.put(node1, "København K", "Studiestræde", 1455, "18",2);
+        trie.put(node2, "København K", "Studiestræde", 1455, "19",2);
+        trie.put(node3, "København K", "Studievej", 1455, "25",2);
+        trie.put(node4, "Roskilde", "Studiestræde", 4000, "4", 2);
+
+        
+
+        //System.out.println(trie.keysWithPrefix("studie"));
+
+    }
         }

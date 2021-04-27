@@ -7,17 +7,19 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+// TODO: 25-04-2021 implement HashMap<city(String), Arraylist<AddressTrieNodes> 
+
 public class AddressTrieNode implements Serializable {
     @Serial
     private static final long serialVersionUID = -9059402923966729263L;
     private HashMap<Character, AddressTrieNode> children;
     private ArrayList<AddressTrieNode> addressNodes;
+    private HashMap<String,ArrayList<AddressTrieNode>> cityMap;
     private Node node;
     private String city;
     private String streetname;
     private Integer postcode;
     private String houseNumber;
-    private char character;
     private boolean isAddress;
 
 
@@ -26,13 +28,7 @@ public class AddressTrieNode implements Serializable {
         this.children = new HashMap<>();
         this.addressNodes = new ArrayList<>();
         isAddress = false;
-    }
-
-    public AddressTrieNode(char character) {
-        this.children = new HashMap<>();
-        this.addressNodes = new ArrayList<>();
-        this.character = character;
-        isAddress = false;
+        this.cityMap = new HashMap<>();
     }
 
     // for the other trienodes
@@ -44,15 +40,16 @@ public class AddressTrieNode implements Serializable {
         this.streetname = streetname;
         this.postcode = postcode;
         this.houseNumber = houseNumber;
+        this.cityMap = new HashMap<>();
         isAddress = true;
-    }
-
-    public char getCharacter() {
-        return character;
     }
 
     public ArrayList<AddressTrieNode> getAddressNodes() {
         return addressNodes;
+    }
+
+    public HashMap<String, ArrayList<AddressTrieNode>> getCityMap() {
+        return cityMap;
     }
 
     public boolean isAddress() {
