@@ -173,6 +173,7 @@ public class AddressTriesTree implements Serializable {
     }
     // Returns Streetnames that has the given prefix (taken from the algo book, however it has been modified.
     public Iterable<String> keysWithPrefix(String prefix){
+        prefix = prefix.toLowerCase();
         Queue<String> queue = new Queue<>();
         collect(get(root, prefix,0),prefix,queue);
         return queue;
@@ -188,7 +189,7 @@ public class AddressTriesTree implements Serializable {
 
     private void collect(AddressTrieNode trieNode, String prefix, Queue<String> queue){
         if(trieNode == null) return;
-            if(trieNode.isAddress()){
+            if(!trieNode.getCityMap().isEmpty()){
                 queue.enqueue(prefix);
             }
 
@@ -210,14 +211,16 @@ public class AddressTriesTree implements Serializable {
         trie.put(node3, "København K", "Studievej", 1455, "25",2);
         trie.put(node4, "Roskilde", "Studiestræde", 4000, "4", 2);
 
-        for(List<AddressTrieNode> innerList : trie.search("studiestræde")) {
+        /*for(List<AddressTrieNode> innerList : trie.search("studiestræde")) {
             for(AddressTrieNode address : innerList) {
                 System.out.println(innerList.size());
                 System.out.println(address.getAddress());
             }
         }
 
-        //System.out.println(trie.keysWithPrefix("studie"));
+         */
+
+        System.out.println(trie.keysWithPrefix("studie"));
 
     }
         }
