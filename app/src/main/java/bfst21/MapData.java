@@ -113,7 +113,7 @@ public class MapData implements Serializable {
             setRouteElementType(route, start, end);
 
             route.setType("navigation");
-            for (int i = 0; i < path.size() - 1; i++) {
+            for (int i = 0; i < path.size(); i++) {
                 route.addNode(path.get(i));
             }
             currentDijkstraRoute.add(route);
@@ -162,8 +162,22 @@ public class MapData implements Serializable {
     }
 
     public String getTextFromElement(Element element) {
-        String result = elementToText.get(element);
-        return result;
+        return elementToText.get(element);
+    }
+
+    public String getAddress(){
+        //Node address =
+        // TODO: 24-04-2021  needs addres as string but also the coordinates to show on map
+        return null;
+    }
+
+    public ArrayList<String> getAutoCompleteAdresses(String prefix){
+        // TODO: 24-04-2021 needs list of possible adresses for gui
+        ArrayList<String> list = new ArrayList<>();
+        list.add("hello");
+        list.add("also");
+        //ArrayList<String> list = addressTree.getPossibleAddresses(prefix);
+        return list;
     }
 
     public void setElementToText(HashMap<Element, String> elementToCityname) {

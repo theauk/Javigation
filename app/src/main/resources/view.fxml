@@ -132,7 +132,7 @@
                 <AnchorPane id="navigationControl" visible="${navigationPane.selected}" pickOnBounds="false">
                     <VBox alignment="BASELINE_LEFT" AnchorPane.leftAnchor="5" AnchorPane.topAnchor="5">
                         <HBox>
-                            <TextField fx:id="textFieldFromNav" promptText="From"/>
+                            <TextField fx:id="textFieldFromNav" promptText="From" onAction="#autoCompleteTextField"/>
                             <Button fx:id="chooseCorButtonFromNav" text="Choose on map" onAction="#getPointNavFrom"/>
                         </HBox>
                         <HBox>

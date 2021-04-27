@@ -477,6 +477,14 @@ public class Controller {
     }
 
     @FXML
+    private void autoCompleteTextField(ActionEvent actionEvent){
+        if(textFieldFromNav.getText().length() >2){
+
+        }
+
+    }
+
+    @FXML
     private void setRTreeDebug() {
         mapData.setRTreeDebug(rTreeDebug.isSelected());
         mapCanvas.rTreeDebugMode();
