@@ -1,9 +1,11 @@
 package bfst21.data_structures;
 
 import bfst21.Exceptions.NoNavigationResultException;
+import bfst21.MapMath;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
+import javafx.geometry.Point2D;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -423,6 +425,79 @@ public class RouteNavigation implements Serializable {
         else if (walk) speed = walkingSpeed;
         else speed = w.getMaxSpeed();
         return distance / (speed * (5f / 18f));
+    }
+
+    public void dumpPath() {
+        for(int j = 0; j < path.size(); j++) {
+            System.out.println("(" + path.get(j).getxMax() + ", " + convertToGeo(path.get(j).getyMax()) + ")");
+        }
+    }
+
+    private String lastDirection;
+    private String currentDirection;
+    private double turnAngleThreshold = 5.0;
+
+    private String getDirection(Point2D from, Point2D via, Point2D to) {
+        double angle = MapMath.turnAngle(from, via, to);
+
+        System.out.println("Angle: " + angle);
+
+        //LEFT NEGATIVE
+        //RIGHT POSITIVE
+        if(angle > turnAngleThreshold) return "RIGHT";
+        if(angle < -turnAngleThreshold) return "LEFT";
+        else return "STRAIGHT";
+    }
+
+    public void calculateResult(Point2D from, Point2D via, Point2D to) {
+        System.out.println("Calculate Result");
+
+        System.out.println("F = (" + from.getX() + ", " + from.getY() + ")");
+        System.out.println("V = (" + via.getX() + ", " + via.getY() + ")");
+        System.out.println("T = (" + to.getX() + ", " + to.getY() + ")");
+
+        currentDirection = getDirection(from, via, to);
+
+        if(!currentDirection.equals(lastDirection)) {
+            //if(lastDirection == null) System.out.println("Go " + MapMath.compassDirection(from, via));   //START POINT
+        }
+
+        if(currentDirection.equals("LEFT")) {
+            System.out.println("Go LEFT");
+        }
+        else if(currentDirection.equals("RIGHT")) {
+            System.out.println("Go RIGHT");
+        }
+        else if(currentDirection.equals("STRAIGHT")) {
+            System.out.println("Go STRAIGHT");
+        }
+
+        lastDirection = currentDirection;
+    }
+
+    public void getRouteDescription() {
+        System.err.println("Size: " + path.size());
+        if(path.size() % 3 != 0) System.err.println("Warning can't do 3 each time!");
+        lastDirection = null;
+
+        for (int i = path.size() - 1; i >= 0; i--) {
+            if(i - 2 < 0) {
+                System.err.println("SKIPPING 2");
+                break;
+            }
+
+            Node f = path.get(i);
+            Node v = path.get(i - 1);
+            Node t = path.get(i - 2);
+
+            Point2D from = MapMath.convertToGeoCoords(new Point2D(f.getxMax(), f.getyMax()));
+            Point2D via = MapMath.convertToGeoCoords(new Point2D(v.getxMax(), v.getyMax()));
+            Point2D to = MapMath.convertToGeoCoords(new Point2D(t.getxMax(), t.getyMax()));
+
+            calculateResult(from, via, to);
+
+            System.out.println();
+        }
     }
 
     /**
