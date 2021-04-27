@@ -1,16 +1,15 @@
 package bfst21.data_structures;
 
 import bfst21.Exceptions.NoNavigationResultException;
+import bfst21.MapMath;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
+import javafx.geometry.Point2D;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DijkstraSP implements Serializable {
     @Serial
@@ -78,7 +77,7 @@ public class DijkstraSP implements Serializable {
 
         } else {
             path = getTrack(new ArrayList<>(), n);
-            //getRouteDescription();
+            getRouteDescription();
             return path;
         }
     }
@@ -91,44 +90,168 @@ public class DijkstraSP implements Serializable {
         return unitsTo.get(to.getId()).time;
     }
 
-    public String getRouteDescription() {
-        for (int i = path.size() - 1; i >= 2; i--) {
-            Node from = path.get(i);
-            Node via = path.get(i - 1);
-            Node to = path.get(i - 2);
-
-            double distanceFromAndVia = getDistanceBetweenTwoNodes(from, via);
-            double distanceViaAndTo = getDistanceBetweenTwoNodes(via, to);
-            double distanceFromAndTo = getDistanceBetweenTwoNodes(from, to);
-
-            double cosTurnAngle = (Math.pow(distanceViaAndTo, 2) + Math.pow(distanceFromAndVia, 2) - Math.pow(distanceFromAndTo, 2)) / (2 * distanceViaAndTo * distanceFromAndVia);
-            double turnAngle = Math.acos(cosTurnAngle);
-
-            double result = Math.atan2(to.getyMax() - via.getyMax(), to.getxMax() - via.getxMax()) - Math.atan2(from.getyMax() - via.getyMax(), from.getxMax() - via.getxMax());
 
 
-            double v1x = from.getxMax() - via.getxMax();
-            double v1y = from.getyMax() - via.getyMax();
-            double v2x = to.getxMax() - via.getxMax();
-            double v2y = to.getyMax() - via.getyMax();
+    private double getAngle(Node p1, Node p2, Node p3) {
+        return Math.toDegrees(Math.atan2(p3.getyMax() - p1.getyMax(), p3.getxMax() - p1.getxMax()) - Math.atan2(p2.getyMax() - p1.getyMax(), p2.getxMax() - p1.getxMax()));
+    }
 
-            double angle = Math.atan2(v1x, v1y) - Math.atan2(v2x, v2y);
-            double degreeAngle = Math.toDegrees(angle);
+    private static void getTurnDirection(Point2D p1, Point2D p2, Point2D p3) {
+        Point2D v1 = new Point2D((p2.getX() - p1.getX()), (p2.getY() - p1.getY()));
+        Point2D v2 = new Point2D((p3.getX() - p2.getX()), (p3.getY() - p2.getY()));
+        double cross = v1.getX() * v2.getX() - v1.getY() * v2.getX();
+        System.out.println("Cross: " + cross);
+        //if(cross > 0) return "Left";
+        //if(cross < 0) return "Right";
 
-            //System.out.println(turnAngle * (180f / Math.PI));
+        //double dot = v1.getX() * v2.getX() + v1.getY() * v2.getY();
+        //if(dot > 0) return "Straight";
+        //return "UTurn";
+    }
 
-            if (degreeAngle > 0) {
-                if (degreeAngle < 175 || degreeAngle > 185) {
-                    //System.out.println("You turned right, by: " + degreeAngle + " " + Math.toDegrees(result));
-                }
-            } else {
-                if (degreeAngle > -175 || degreeAngle < -185) {
-                    //System.out.println("You turned left, by: " + degreeAngle + " " + Math.toDegrees(result));
-                }
+    public void dumpPath() {
+        for(int j = 0; j < path.size(); j++) {
+            System.out.println("(" + path.get(j).getxMax() + ", " + convertToGeo(path.get(j).getyMax()) + ")");
+        }
+    }
+
+    private String lastDirection;
+    private String currentDirection;
+    private double turnAngleThreshold = 6;
+
+    private String getDirection(Node from, Node via, Node to) {
+        double angle = getAngle(from, via, to);
+        double cross = MapMath.crossProduct(from, via, to);
+        double dot = MapMath.dotProduct(from, via, to);
+
+        if(cross > 0) {
+            if(angle > turnAngleThreshold) return "LEFT";
+            else return "STRAIGHT";
+        } else if(cross < 0) { ;
+            if(angle < -turnAngleThreshold) return "RIGHT";
+            else return "STRAIGHT";
+        } else {
+            if(dot > 0) return "STRAIGHT";
+            return "U-TURN";
+        }
+    }
+
+    public void calculateResult(Node from, Node via, Node to) {
+        System.out.println("Calculate Result");
+
+        System.out.println("F = (" + from.getxMax() + ", " + convertToGeo(from.getyMax()) + ")");
+        System.out.println("V = (" + via.getxMax() + ", " + convertToGeo(via.getyMax()) + ")");
+        System.out.println("T = (" + to.getxMax() + ", " + to.getyMax() + ")");
+
+        currentDirection = getDirection(from, via, to);
+
+        if(!currentDirection.equals(lastDirection)) {
+            if(lastDirection == null) System.out.println("Go " + MapMath.compassDirection(from, via));   //START POINT
+        }
+
+        if(currentDirection.equals("LEFT")) {
+            System.out.println("Go LEFT");
+        }
+        else if(currentDirection.equals("RIGHT")) {
+            System.out.println("Go RIGHT");
+        }
+        else if(currentDirection.equals("STRAIGHT")) {
+            System.out.println("Go STRAIGHT");
+        }
+
+        lastDirection = currentDirection;
+    }
+
+    public void getRouteDescription() {
+        System.err.println("Size: " + path.size());
+        if(path.size() % 3 != 0) System.err.println("Warning can't do 3 each time!");
+        lastDirection = null;
+
+        for (int i = path.size() - 1; i >= 0; i--) {
+            if(i - 2 < 0) {
+                System.err.println("SKIPPING 2");
+                break;
             }
+
+            calculateResult(path.get(i), path.get(i - 1), path.get(i - 2));
+
+
+            //System.out.println("----");
+            //dumpPath();
+            //System.out.println("----");
+
+//            if(i - 2 < 0) break;
+//
+//            Node f = path.get(i);
+//            Node v = path.get(i - 1);
+//            Node t = path.get(i - 2);
+//
+//            Point2D from = new Point2D(f.getxMax(), f.getyMax());
+//            Point2D via = new Point2D(v.getxMax(), v.getyMax());
+//            Point2D to = new Point2D(t.getxMax(), t.getyMax());
+//
+//            System.out.println("F = (" + from.getX() + ", " + from.getY() + ")");
+//            System.out.println("V = (" + via.getX() + ", " + via.getY() + ")");
+//            System.out.println("T = (" + to.getX() + ", " + to.getY() + ")");
+//
+//            double cross = getCrossProduct(from, via, to);
+//            double angle = getAngle(from, via, to);
+//            System.out.println("Angle: " + angle + " degrees");
+//            System.out.println("Cross: " + cross);
+//
+//            if(angle < -180) {
+//                System.out.println("Recalculating angle from " + angle + " to " + (angle + 360));
+//                angle += 360;
+//            } else if(angle > 180) {
+//                System.out.println("Recalculating angle from " + angle + " to " + (angle - 360));
+//                angle -= 360;
+//            }
+//
+//            if(cross > 0) {
+//                System.out.println("Left tilt detected");
+//                if(angle > 10) System.out.println("DIRECTION: Left");
+//                else System.out.println("DIRECTION: Straight");
+//            } else if(cross < 0) {
+//                System.out.println("Right tilt detected");
+//                if(angle < -10) System.out.println("DIRECTION: Right");
+//                else System.out.println("DIRECTION: Straight");
+//            } else {
+//                System.out.println("Straight detected");
+//            }
+//
+//            System.out.println("----");
+
+//            double distanceFromAndVia = getDistanceBetweenTwoNodes(from, via);
+//            double distanceViaAndTo = getDistanceBetweenTwoNodes(via, to);
+//            double distanceFromAndTo = getDistanceBetweenTwoNodes(from, to);
+//
+            //double cosTurnAngle = (Math.pow(distanceViaAndTo, 2) + Math.pow(distanceFromAndVia, 2) - Math.pow(distanceFromAndTo, 2)) / (2 * distanceViaAndTo * distanceFromAndVia);
+//            double turnAngle = Math.acos(cosTurnAngle);
+//
+//            double result = Math.atan2(to.getyMax() - via.getyMax(), to.getxMax() - via.getxMax()) - Math.atan2(from.getyMax() - via.getyMax(), from.getxMax() - via.getxMax());
+//
+//
+//            double v1x = from.getxMax() - via.getxMax();
+//            double v1y = from.getyMax() - via.getyMax();
+//            double v2x = to.getxMax() - via.getxMax();
+//            double v2y = to.getyMax() - via.getyMax();
+//
+//            double angle = Math.atan2(v1x, v1y) - Math.atan2(v2x, v2y);
+//            double degreeAngle = Math.toDegrees(angle);
+//
+//            //System.out.println(turnAngle * (180f / Math.PI));
+//
+//            if (degreeAngle > 0) {
+//                if (degreeAngle < 175 || degreeAngle > 185) {
+//                    //System.out.println("You turned right, by: " + degreeAngle + " " + Math.toDegrees(result));
+//                }
+//            } else {
+//                if (degreeAngle > -175 || degreeAngle < -185) {
+//                    //System.out.println("You turned left, by: " + degreeAngle + " " + Math.toDegrees(result));
+//                }
+//            }
         }
         //System.out.println("");
-        return "";
     }
 
     private Node checkNode() {

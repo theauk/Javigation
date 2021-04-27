@@ -427,35 +427,30 @@ public class Controller {
 
     private void setLabels(Point2D point) {
         Point2D coords = mapCanvas.getTransCoords(point.getX(), point.getY());
-        Point2D geoCoords = mapCanvas.getGeoCoords(point.getX(), point.getY());
+        Point2D geoCoords = MapMath.convertToGeoCoords(mapCanvas.getTransCoords(point.getX(), point.getY()));
         setCoordsLabel((float) coords.getX(), (float) coords.getY());
         setGeoCoordsLabel((float) geoCoords.getX(), (float) geoCoords.getY());
-        setNearestRoadLabel(geoCoords.getX(), geoCoords.getY());
+        setNearestRoadLabel(coords.getX(), coords.getY());
     }
 
     private void setCoordsLabel(float x, float y) {
-        coordsLabel.setText("Coordinates: (" + round(x, 1) + ", " + round(y, 1) + ")");
+        coordsLabel.setText("Coordinates: (" + MapMath.round(x, 1) + ", " + MapMath.round(y, 1) + ")");
     }
 
     private void setGeoCoordsLabel(float x, float y) {
-        geoCoordsLabel.setText("Geo-coordinates: (" + round(x, 7) + ", " + round(y, 7) + ")");
+        geoCoordsLabel.setText("Geo-coordinates: (" + MapMath.round(x, 7) + ", " + MapMath.round(y, 7) + ")");
     }
 
     private void setNearestRoadLabel(double x, double y) {
-        nearestRoadLabel.setText("Nearest Road: " + mapData.getNearestRoad((float) x, (float) -y / 0.56f));
+        nearestRoadLabel.setText("Nearest Road: " + mapData.getNearestRoad((float) x, (float) y));
     }
 
     private void setBoundsLabels() {
         CanvasBounds bounds = mapCanvas.getBounds();
-        boundsTL.setText("(" + round(bounds.getMinX(), 1) + ", " + round(bounds.getMinY(), 1) + ")");
-        boundsTR.setText("(" + round(bounds.getMaxX(), 1) + ", " + round(bounds.getMinY(), 1) + ")");
-        boundsBL.setText("(" + round(bounds.getMinX(), 1) + ", " + round(bounds.getMaxY(), 1) + ")");
-        boundsBR.setText("(" + round(bounds.getMaxX(), 1) + ", " + round(bounds.getMaxY(), 1) + ")");
-    }
-
-    private double round(double number, int digits) {
-        double scale = Math.pow(10, digits);
-        return Math.round(number * scale) / scale;
+        boundsTL.setText("(" + MapMath.round(bounds.getMinX(), 1) + ", " + MapMath.round(bounds.getMinY(), 1) + ")");
+        boundsTR.setText("(" + MapMath.round(bounds.getMaxX(), 1) + ", " + MapMath.round(bounds.getMinY(), 1) + ")");
+        boundsBL.setText("(" + MapMath.round(bounds.getMinX(), 1) + ", " + MapMath.round(bounds.getMaxY(), 1) + ")");
+        boundsBR.setText("(" + MapMath.round(bounds.getMaxX(), 1) + ", " + MapMath.round(bounds.getMaxY(), 1) + ")");
     }
 
     private FileChooser showFileChooser(String option) {
@@ -497,8 +492,8 @@ public class Controller {
             @Override
             public void handle(MouseEvent e) {
                 Point2D cursorPoint = new Point2D(e.getX(), e.getY());
-                Point2D geoCoords = mapCanvas.getGeoCoords(cursorPoint.getX(), cursorPoint.getY());
-                Node nearestRoadNode = mapData.getNearestRoadNode((float) geoCoords.getX(), (float) -geoCoords.getY() / 0.56f);
+                Point2D coords = mapCanvas.getTransCoords(e.getX(), e.getY());
+                Node nearestRoadNode = mapData.getNearestRoadNode((float) coords.getX(), (float) coords.getY());
 
                 String names = mapData.getNodeHighWayNames(nearestRoadNode);
                 if (fromSelected) {
@@ -555,15 +550,15 @@ public class Controller {
         String s = "Total distance: ";
 
         if (distance < 1000) {
-            s += round(distance, 0) + " m";
+            s += MapMath.round(distance, 0) + " m";
         } else {
-            s += round(distance / 1000f, 2) + " km";
+            s += MapMath.round(distance / 1000f, 2) + " km";
         }
 
         if (time < 60) {
-            s += " , Total time: " + round(time, 0) + " s";
+            s += " , Total time: " + MapMath.round(time, 0) + " s";
         } else {
-            s += " , Total time: " + round(time / 60f, 2) + " min";
+            s += " , Total time: " + MapMath.round(time / 60f, 2) + " min";
         }
         distanceAndTimeNav.setText(s);
     }
@@ -590,7 +585,7 @@ public class Controller {
                     //// TODO: 20-04-2021 make this work
 
                     Point2D cursorPoint = new Point2D(e.getX(), e.getY());
-                    Point2D geoCoords = mapCanvas.getGeoCoords(cursorPoint.getX(), cursorPoint.getY());
+                    Point2D geoCoords = MapMath.convertToGeoCoords(mapCanvas.getTransCoords(cursorPoint.getX(), cursorPoint.getY()));
                     Node node = new Node((float) geoCoords.getX(), (float) -geoCoords.getY() / 0.56f);
                     String nodeName = textFieldPointName.getText();
                     mapData.addToUserPointList(node);
