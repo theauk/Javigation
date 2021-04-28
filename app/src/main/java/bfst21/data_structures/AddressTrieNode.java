@@ -6,79 +6,63 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+
+// TODO: 25-04-2021 implement HashMap<city(String), Arraylist<AddressTrieNodes>
 
 public class AddressTrieNode implements Serializable {
     @Serial
     private static final long serialVersionUID = -9059402923966729263L;
     private HashMap<Character, AddressTrieNode> children;
-    private ArrayList<AddressTrieNode> addressNodes;
-    private Node node;
-    private String city;
-    private String streetName;
+    private HashMap<String, City> citiesWithThisStreet;
+    private String streetname;
     private Integer postcode;
-    private String houseNumber;
-    private char character;
     private boolean isAddress;
 
 
     // for the root
     public AddressTrieNode() {
         this.children = new HashMap<>();
-        this.addressNodes = new ArrayList<>();
         isAddress = false;
     }
 
-    public AddressTrieNode(char character) {
-        this.children = new HashMap<>();
-        this.addressNodes = new ArrayList<>();
-        this.character = character;
-        isAddress = false;
-    }
 
-    // for the other trienodes
-    public AddressTrieNode(Node node, String city, String streetname, int postcode, String houseNumber) {
-        this.children = new HashMap<>();
-        this.addressNodes = new ArrayList<>();
-        this.node = node;
-        this.city = city;
-        this.streetName = streetname;
+    public void setAddress(Node node, String city, String streetname, int postcode, String houseNumber){
+        citiesWithThisStreet = new HashMap<>();
+        citiesWithThisStreet.put(city, new City(city, node, houseNumber));
+        this.streetname = streetname;
         this.postcode = postcode;
-        this.houseNumber = houseNumber;
         isAddress = true;
     }
 
-    public char getCharacter() {
-        return character;
-    }
-
-    public ArrayList<AddressTrieNode> getAddressNodes() {
-        return addressNodes;
-    }
-
-    public boolean isAddress() {
+    public boolean isAddress(){
         return isAddress;
+    }
+
+    public void addHouseNumber(String city, Node node, String houseNumber){
+        if(citiesWithThisStreet.containsKey(city)){
+            citiesWithThisStreet.get(city).houseNumberNodes.add(new HouseNumberNode(node, houseNumber));
+        } else {
+            citiesWithThisStreet.put(city, new City(city, node, houseNumber));
+        }
+    }
+
+    public HashMap<String, City> getCitiesWithThisStreet() {
+        return citiesWithThisStreet;
     }
 
     public HashMap<Character, AddressTrieNode> getChildren(){
         return children;
     }
 
-    // does this trienode contain an address?
-    public boolean hasNode(){
-        return this.addressNodes !=null;
-    }
-
-    public void addAddressNode(AddressTrieNode addressTrieNode){
-        addressNodes.add(addressTrieNode);
-        isAddress = true;
-    }
 
     public Node getNode(){
         return node;
     }
 
     public String getCity() {
-        return this.city;
+        //return this.city;
+        return null;
     }
 
     public String getStreetname() {
@@ -90,14 +74,37 @@ public class AddressTrieNode implements Serializable {
     }
 
     public String getHouseNumber() {
-        return this.houseNumber;
+        //return this.houseNumber;
+        return null;
     }
     public String getAddress(){
-        return this.streetName + " " + this.houseNumber + ", " + this.postcode + " " + this.city;
+        //return this.streetname + " " + this.houseNumber + ", " + this.postcode + " " + this.city;
+        return null;
     }
 
     public AddressTrieNode getAddressTrieNode(){
         return this;
+    }
+
+
+
+    public class City{
+        String city;
+        ArrayList<HouseNumberNode> houseNumberNodes;
+        public City(String city, Node node, String houseNumber){
+            this.city = city;
+            houseNumberNodes = new ArrayList<>();
+            houseNumberNodes.add(new HouseNumberNode(node, houseNumber));
+        }
+    }
+    private class HouseNumberNode{
+        Node node;
+        String houseNumber;
+
+        public HouseNumberNode(Node _node, String _houseNumber){
+            node = _node;
+            houseNumber = _houseNumber;
+        }
     }
 
 }
