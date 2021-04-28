@@ -14,13 +14,9 @@ public class AddressTrieNode implements Serializable {
     @Serial
     private static final long serialVersionUID = -9059402923966729263L;
     private HashMap<Character, AddressTrieNode> children;
-    private ArrayList<AddressTrieNode> addressNodes;
-    private HashMap<String,ArrayList<AddressTrieNode>> cityMap;
-    private Node node;
-    private String city;
+    private HashMap<String, City> citiesWithThisStreet;
     private String streetname;
     private Integer postcode;
-    private String houseNumber;
     private boolean isAddress;
 
 
@@ -59,15 +55,6 @@ public class AddressTrieNode implements Serializable {
         return children;
     }
 
-    // does this trienode contain an address?
-    public boolean hasNode(){
-        return this.addressNodes !=null;
-    }
-
-    public void addAddressNode(AddressTrieNode addressTrieNode){
-        addressNodes.add(addressTrieNode);
-        isAddress = true;
-    }
 
     public String getCity() {
         //return this.city;
