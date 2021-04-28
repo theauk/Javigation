@@ -639,6 +639,7 @@ public class Controller {
         int i = dropDownPoints.getSelectionModel().getSelectedIndex();
         Node node = mapData.getUserAddedPoints().get(i);
         mapCanvas.centerOnPoint(node.getxMin(), node.getyMin());
+        mapCanvas.repaint();
 
     }
 
@@ -649,8 +650,6 @@ public class Controller {
             EventHandler<MouseEvent> event = new EventHandler<>() {
                 @Override
                 public void handle(MouseEvent e) {
-                    //// TODO: 20-04-2021 make this work
-
                     Point2D cursorPoint = new Point2D(e.getX(), e.getY());
                     Point2D geoCoords = mapCanvas.getGeoCoords(cursorPoint.getX(), cursorPoint.getY());
                     Node node = new Node((float) geoCoords.getX(), (float) -geoCoords.getY() / 0.56f);

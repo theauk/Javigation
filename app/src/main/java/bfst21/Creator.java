@@ -248,7 +248,6 @@ public class Creator extends Task<MapData> {
                                 if (relation != null) {
                                     if (relation.hasType()) {
                                         if (relation.getType().equals("restriction")) {
-                                            // TODO: 14-04-2021 needs be bettter plz plzx plz
                                             if (relation.getViaNode() != null)
                                                 nodeToRestriction.put(relation.getViaNode(), relation);
                                             else if (relation.getViaWay() != null)
