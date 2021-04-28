@@ -405,8 +405,14 @@ public class Creator extends Task<MapData> {
                 way.setName(v);
                 break;
 
+            case "railway":
+                way.setType(v, typeToLayer.get("railway"));
+
+            case "tunnel":
+                if (v.equals("yes")) way.setType(null);
+
             case "ref":
-                if (way.getName() == null && !way.getType().equals("roundabout")) way.setName(fixNumberWayName(v));
+                if (way.getName() == null && way.getType() != null && !way.getType().equals("roundabout")) way.setName(fixNumberWayName(v));
 
         }
         checkHighWayAttributes(k, v, way);
@@ -417,8 +423,9 @@ public class Creator extends Task<MapData> {
         String[] names = new String[wayNumbers.length];
 
         for (int i = 0; i < wayNumbers.length; i++) {
-            if (wayNumbers[i].length() < 3) names[i] = "Hovedvej " + wayNumbers[i];
-            else names[i] = "Sekundærvej " + wayNumbers[i];
+            if (wayNumbers[i].length() < 3) names[i] = "Main Road " + wayNumbers[i];
+            else if (wayNumbers[i].matches(".*[0-9]+.*") && wayNumbers[i].matches(".*[A-Za-z]+.*")) names[i] = "Highway " + wayNumbers[i];
+            else names[i] = "Secondary Road " + wayNumbers[i];
         }
 
         return String.join("/", names);
@@ -665,6 +672,7 @@ public class Creator extends Task<MapData> {
         typeToLayer.put("man_made", layerTwo);
         typeToLayer.put("farmland", layerTwo);
         typeToLayer.put("asphalt", layerTwo);
+        typeToLayer.put("railway", layerTwo);
 
         typeToLayer.put("dark_green", layerThree);
         typeToLayer.put("bridge", layerThree);

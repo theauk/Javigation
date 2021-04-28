@@ -24,8 +24,6 @@ name = "Default";
 "village" = {iColor = [0, 0, 0]}, {iWidth = 9, oWidth = 10}, {text = true}, {showAt = 11};
 "hamlet" = {iColor = [0, 0, 0]}, {iWidth = 9, oWidth = 10}, {text = true}, {showAt = 13};
 
-
-
 #Roads
 "motorway" = {iColor = [226, 122, 143], oColor = [213, 18, 88]}, {iWidth = 2, oWidth = 3}, {showAt = 0};
 "trunk" = {iColor = [249, 178, 156], oColor = [191, 62, 35]}, {iWidth = 2, oWidth = 3}, {showAt = 7};
@@ -52,6 +50,11 @@ name = "Default";
 "steps" = {iColor = [250, 128, 114]}, {style = "dotted"}, {showAt = 16};
 "path" = {iColor = [250, 128, 114]}, {style = "dotted"}, {showAt = 16};
 "cycleway" = {iColor = [0, 0, 255]}, {style = "dotted"}, {showAt = 16};
+
+#Public transport
+"rail" = {iColor = [213, 216, 219]}, {showAt = 12};
+"light_rail" = {iColor = [213, 216, 219]}, {showAt = 12};
+"subway" = {iColor = [213, 216, 219]}, {showAt = 12};
 
 #Nature
 "park" = {iColor = [205, 247, 201], oColor = [0, 0, 0]}, {filled = true}, {showAt = 13};
