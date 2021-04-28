@@ -6,6 +6,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 // TODO: 25-04-2021 implement HashMap<city(String), Arraylist<AddressTrieNodes> 
 
@@ -26,34 +27,32 @@ public class AddressTrieNode implements Serializable {
     // for the root
     public AddressTrieNode() {
         this.children = new HashMap<>();
-        this.addressNodes = new ArrayList<>();
         isAddress = false;
-        this.cityMap = new HashMap<>();
     }
 
-    // for the other trienodes
-    public AddressTrieNode(Node node, String city, String streetname, int postcode, String houseNumber) {
-        this.children = new HashMap<>();
-        this.addressNodes = new ArrayList<>();
-        this.node = node;
-        this.city = city;
+
+    public void setAddress(Node node, String city, String streetname, int postcode, String houseNumber){
+        citiesWithThisStreet = new HashMap<>();
+        citiesWithThisStreet.put(city, new City(city, node, houseNumber));
         this.streetname = streetname;
         this.postcode = postcode;
-        this.houseNumber = houseNumber;
-        this.cityMap = new HashMap<>();
         isAddress = true;
     }
 
-    public ArrayList<AddressTrieNode> getAddressNodes() {
-        return addressNodes;
-    }
-
-    public HashMap<String, ArrayList<AddressTrieNode>> getCityMap() {
-        return cityMap;
-    }
-
-    public boolean isAddress() {
+    public boolean isAddress(){
         return isAddress;
+    }
+
+    public void addHouseNumber(String city, Node node, String houseNumber){
+        if(citiesWithThisStreet.containsKey(city)){
+            citiesWithThisStreet.get(city).houseNumberNodes.add(new HouseNumberNode(node, houseNumber));
+        } else {
+            citiesWithThisStreet.put(city, new City(city, node, houseNumber));
+        }
+    }
+
+    public HashMap<String, City> getCitiesWithThisStreet() {
+        return citiesWithThisStreet;
     }
 
     public HashMap<Character, AddressTrieNode> getChildren(){
@@ -71,7 +70,8 @@ public class AddressTrieNode implements Serializable {
     }
 
     public String getCity() {
-        return this.city;
+        //return this.city;
+        return null;
     }
 
     public String getStreetname() {
@@ -83,14 +83,37 @@ public class AddressTrieNode implements Serializable {
     }
 
     public String getHouseNumber() {
-        return this.houseNumber;
+        //return this.houseNumber;
+        return null;
     }
     public String getAddress(){
-        return this.streetname + " " + this.houseNumber + ", " + this.postcode + " " + this.city;
+        //return this.streetname + " " + this.houseNumber + ", " + this.postcode + " " + this.city;
+        return null;
     }
 
     public AddressTrieNode getAddressTrieNode(){
         return this;
+    }
+
+
+
+    public class City{
+        String city;
+        ArrayList<HouseNumberNode> houseNumberNodes;
+        public City(String city, Node node, String houseNumber){
+            this.city = city;
+            houseNumberNodes = new ArrayList<>();
+            houseNumberNodes.add(new HouseNumberNode(node, houseNumber));
+        }
+    }
+    private class HouseNumberNode{
+        Node node;
+        String houseNumber;
+
+        public HouseNumberNode(Node _node, String _houseNumber){
+            node = _node;
+            houseNumber = _houseNumber;
+        }
     }
 
 }

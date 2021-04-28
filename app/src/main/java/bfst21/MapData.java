@@ -157,9 +157,6 @@ public class MapData implements Serializable {
         return mapSegment;
     }
 
-    public Node getAddressNode(String address) {
-        return addressTree.getAddressNode(address);
-    }
 
     public String getTextFromElement(Element element) {
         String result = elementToText.get(element);
