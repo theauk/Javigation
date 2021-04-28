@@ -226,7 +226,7 @@ public class Creator extends Task<MapData> {
                                     }
 
                                     if(isAddress()){
-                                        addressTree.put(node, city, streetName, postcode, houseNumber,2);
+                                        addressTree.put(node, city, streetName, postcode, houseNumber);
                                         node.setLayer(4);
                                         nullifyAddress();
                                     } else {
@@ -258,7 +258,6 @@ public class Creator extends Task<MapData> {
                                 if (relation != null) {
                                     if (relation.hasType()) {
                                         if (relation.getType().equals("restriction")) {
-                                            // TODO: 14-04-2021 needs be bettter plz plzx plz
                                             if (relation.getViaNode() != null)
                                                 nodeToRestriction.put(relation.getViaNode(), relation);
                                             else if (relation.getViaWay() != null)

@@ -4,13 +4,13 @@ import bfst21.Exceptions.NoNavigationResultException;
 import bfst21.Exceptions.NoOSMInZipFileException;
 import bfst21.Exceptions.UnsupportedFileFormatException;
 import bfst21.Osm_Elements.Node;
+import bfst21.data_structures.AddressTrieNode;
 import bfst21.file_io.Loader;
 import bfst21.file_io.Serializer;
-import bfst21.view.CanvasBounds;
-import bfst21.view.CustomKeyCombination;
-import bfst21.view.MapCanvas;
-import bfst21.view.Theme;
+import bfst21.view.*;
 import javafx.animation.FadeTransition;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -35,11 +35,11 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class Controller {
     private MapData mapData;
@@ -60,6 +60,8 @@ public class Controller {
 
     private Node currentFromNode;
     private Node currentToNode;
+
+    private ArrayList<AddressTrieNode> currentAutoCompleteList;
 
     @FXML private MapCanvas mapCanvas;
     @FXML private Scene scene;
@@ -96,6 +98,10 @@ public class Controller {
 
     @FXML private TextField textFieldFromNav;
     @FXML private TextField textFieldToNav;
+    @FXML private VBox autoCompleteFromNav;
+    @FXML private ScrollPane ScrollpaneAutoCompleteToNav;
+    @FXML private VBox autoCompleteToNav;
+    @FXML private ScrollPane ScrollpaneAutoCompleteFromNav;
 
     @FXML private RadioButton radioButtonCarNav;
     @FXML private RadioButton radioButtonBikeNav;
@@ -128,6 +134,8 @@ public class Controller {
         });
         disableMenus();
         CustomKeyCombination.setTarget(mapCanvas);
+        addListenerToSearchFields();
+        testMethod();
     }
 
     private void initMapCanvas() {
@@ -148,6 +156,32 @@ public class Controller {
                 themeMenu.getItems().add(item);
             }
         }
+    }
+
+    private void addListenerToSearchFields() {
+        textFieldFromNav.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable,
+                                String oldValue, String newValue) {
+                if(newValue.length()>2) fillAutoCompleteText(autoCompleteFromNav, true);
+            }
+        });
+
+    }
+
+    private void testMethod(){
+        textFieldToNav.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable,
+                                String oldValue, String newValue) {
+                if(newValue.length()>2) fillAutoCompleteText(autoCompleteToNav, false);
+            }
+        });
+
+    }
+
+    private void removeChildren(){
+        // TODO: 28-04-2021 Remove search when under 2 charachters
     }
 
     /**
@@ -480,6 +514,69 @@ public class Controller {
         return fileChooser;
     }
 
+    private void fillAutoCompleteText(VBox autoComplete, boolean fromNav){
+        autoComplete.getChildren().removeAll(autoComplete.getChildren());
+
+        fillAutoCompleteText(fromNav);
+    }
+
+
+    private void fillAutoCompleteText(boolean fromNav){
+        if(mapData.getAutoCompleteAdresses(textFieldFromNav.getText()) != null){
+        for(AddressTrieNode addressNode : mapData.getAutoCompleteAdresses(textFieldFromNav.getText())) {
+
+            if (fromNav) {
+                labelForAutoComplete(addressNode, autoCompleteFromNav, textFieldFromNav, ScrollpaneAutoCompleteFromNav, fromNav);
+                ScrollpaneAutoCompleteFromNav.setVisible(true);
+            } else {
+                System.out.println("here");
+                labelForAutoComplete(addressNode, autoCompleteToNav, textFieldToNav, ScrollpaneAutoCompleteToNav, fromNav);
+                ScrollpaneAutoCompleteToNav.setVisible(true);
+            }
+            }
+        }
+    }
+
+    private void labelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav){
+
+        for (Map.Entry<String, String> entry : addressNode.getAddresses().entrySet()){
+            String address = entry.getValue();
+            Label label = new Label(address);
+            autoComplete.getChildren().add(label);
+            label.prefWidth(autoComplete.getWidth());
+            label.setOnMouseClicked((ActionEvent) -> {
+                autoComplete.getChildren().removeAll(autoComplete.getChildren());
+
+                fullAddressLabelForAutoComplete(addressNode, autoComplete, textField,  scrollPane,  fromNav, entry.getKey());
+
+
+
+
+            });
+        }
+    }
+
+    private void fullAddressLabelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav, String city) {
+
+        for (Map.Entry<String, Node> houserNumber : addressNode.getHouseNumbersOnStreet(city).entrySet()) {
+            String addressWithHouseNumber = houserNumber.getKey();
+            Node node = houserNumber.getValue();
+            Label labelHouseNumber = new Label(addressWithHouseNumber);
+            autoComplete.getChildren().add(labelHouseNumber);
+            labelHouseNumber.prefWidth(autoComplete.getWidth());
+            labelHouseNumber.setOnMouseClicked((ActionEvent2) -> {
+                System.out.println("here");
+                textField.setText(addressWithHouseNumber);
+                if (fromNav) currentFromNode = node;
+                else currentToNode = node;
+                autoComplete.getChildren().removeAll(autoComplete.getChildren());
+                scrollPane.setVisible(false);
+
+            });
+        }
+    }
+
+
     @FXML
     private void setRTreeDebug() {
         mapData.setRTreeDebug(rTreeDebug.isSelected());
@@ -597,7 +694,7 @@ public class Controller {
         int i = dropDownPoints.getSelectionModel().getSelectedIndex();
         Node node = mapData.getUserAddedPoints().get(i);
         mapCanvas.centerOnPoint(node.getxMin(), node.getyMin());
-
+        mapCanvas.repaint();
     }
 
     @FXML
@@ -607,8 +704,6 @@ public class Controller {
             EventHandler<MouseEvent> event = new EventHandler<>() {
                 @Override
                 public void handle(MouseEvent e) {
-                    //// TODO: 20-04-2021 make this work
-
                     Point2D cursorPoint = new Point2D(e.getX(), e.getY());
                     Point2D geoCoords = MapMath.convertToGeoCoords(mapCanvas.getTransCoords(cursorPoint.getX(), cursorPoint.getY()));
                     Node node = new Node((float) geoCoords.getX(), (float) -geoCoords.getY() / 0.56f);

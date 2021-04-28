@@ -13,6 +13,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class MapData implements Serializable {
     @Serial
@@ -125,7 +126,7 @@ public class MapData implements Serializable {
             setRouteElementType(route, start, end);
 
             route.setType("navigation");
-            for (int i = 0; i < path.size() - 1; i++) {
+            for (int i = 0; i < path.size(); i++) {
                 route.addNode(path.get(i));
             }
             currentRoute.add(route);
@@ -173,12 +174,13 @@ public class MapData implements Serializable {
         return mapSegment;
     }
 
-    public Node getAddressNode(String address) {
-        return addressTree.getAddressNode(address);
-    }
 
     public String getTextFromElement(Element element) {
         return elementToText.get(element);
+    }
+
+    public List<AddressTrieNode> getAutoCompleteAdresses(String prefix){
+        return addressTree.searchWithPrefix(prefix);
     }
 
     public void setElementToText(HashMap<Element, String> elementToCityname) {

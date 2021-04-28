@@ -81,7 +81,6 @@ public abstract class NodeHolder extends Element implements Serializable {
 
     @Override
     public void draw(GraphicsContext gc) {
-        //TODO Should check for one way.....
         gc.moveTo(nodes.get(0).getxMin(), nodes.get(0).getyMin());
         for (var node : nodes) {
             gc.lineTo(node.getxMin(), node.getyMin());
