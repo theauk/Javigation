@@ -17,15 +17,14 @@ public class AddressTriesTree implements Serializable {
         root = new AddressTrieNode();
     }
 
-    // TODO: 29-04-2021 eidt the javadoc 
 
     /**
-     * @param node        -> a node, which contains the coordinates for the address.
-     * @param city        -> the city which the address is located at. comes after the postcode when viewed - etc. postcode Jerslev sj
-     * @param streetname  -> the name of the street which the address belongs to
+     * @param node        -> contains the coordinates for the address.
+     * @param city        -> the city which the address is located at.
+     * @param streetname  -> the name of the street which the address belongs to.
      * @param postcode    -> The 4 digit number that tells in what part of the country the address is located.
      *                    in Denmark it's how far they are from Copenhagen
-     * @param houseNumber -> the housenumber or street-number, that the address had
+     * @param houseNumber -> the housenumber that the address has.
      *
      *                    calls insert that inserts the node into the trie via its streetname and city.
      */
@@ -42,11 +41,12 @@ public class AddressTriesTree implements Serializable {
     /**
      *
      * @param trieNode -> when called for the first time, this would be the root.
-     *      *                 afterwards in the recursive calls inside the method will call the method with the next node (a child), and proceed
-     *      *                 to the bottom of the trie, where the addressNode will be added to the Arraylist in that last node's arraylist.
-     *      *                 this @param trieNode could be omitted, but then the methods needs to be iterative instead of recursive.
+     *                     afterwards in the recursive calls inside the method will call the method with the next node (a child), and proceed
+     *                     to the bottom of the trie, where the addressNode will be added to the Arraylist in that last node's arraylist.
+     *                     this @param trieNode could be omitted, but then the methods needs to be iterative instead of recursive.
      * @param index -> the start index is always 0, since the method will start from the root, and go down through the tree.
-     *      *              index could be omitted as well, but the method would need to be made iterative instead of recursive.
+     *
+     *                 index could be omitted as well, but the method would need to be made iterative instead of recursive.
      * @param node -> the node that contains the coordinates for the address
      * @param city -> the name of the city given by the .osm file.
      * @param streetname -> the name of the street given by the .osm file.
