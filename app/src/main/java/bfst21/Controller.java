@@ -1,5 +1,7 @@
 package bfst21;
 
+import bfst21.Creator;
+import bfst21.MapData;
 import bfst21.Osm_Elements.Node;
 import bfst21.data_structures.RouteNavigation;
 import bfst21.exceptions.NoOSMInZipFileException;
@@ -37,7 +39,6 @@ import java.io.InputStream;
 
 public class Controller {
     private MapData mapData;
-    private Loader loader;
     private Creator creator;
     private RouteNavigation routeNavigation;
 
@@ -107,7 +108,6 @@ public class Controller {
 
     public void init() {
         mapData = new MapData();
-        loader = new Loader();
         routeNavigation = new RouteNavigation();
         loadThemes();
         initView();
@@ -116,7 +116,7 @@ public class Controller {
 
     private void initView() {
         themeGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> setTheme(((RadioMenuItem) newValue.getToggleGroup().getSelectedToggle()).getUserData().toString()));
-        mapCanvas.initTheme(loader.loadTheme(themeGroup.getSelectedToggle().getUserData().toString()));
+        mapCanvas.initTheme(Loader.loadTheme(themeGroup.getSelectedToggle().getUserData().toString()));
         scaleLabel.textProperty().bind(mapCanvas.getRatio());
         zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (viaZoomSlider) zoom(newValue.intValue() - oldValue.intValue());
@@ -133,7 +133,7 @@ public class Controller {
     }
 
     private void loadThemes() {
-        for (String file : loader.getFilesIn("/themes", ".mtheme")) {
+        for (String file : Loader.getFilesIn("/themes", ".mtheme")) {
             String themeName = Theme.parseName(file);
 
             if (!file.equals("default.mtheme")) {
@@ -300,11 +300,11 @@ public class Controller {
         try {
             if (file != null) {
                 if(file.getName().endsWith(".bmapdata")) binary = true;
-                inputStream = loader.load(file.getPath());
-                fileSize = file.getName().endsWith(".zip") ? loader.getZipFileEntrySize(file.getPath()) : file.length();    //If it's a zip file get the size of the entry else use the default file size.
+                inputStream = Loader.load(file.getPath());
+                fileSize = file.getName().endsWith(".zip") ? Loader.getZipFileEntrySize(file.getPath()) : file.length();    //If it's a zip file get the size of the entry else use the default file size.
             } else {
-                inputStream = loader.loadResource(BINARY_FILE);
-                fileSize = loader.getResourceFileSize(BINARY_FILE);
+                inputStream = Loader.loadResource(BINARY_FILE);
+                fileSize = Loader.getResourceFileSize(BINARY_FILE);
                 binary = true;
             }
 
@@ -424,7 +424,7 @@ public class Controller {
     }
 
     private void setTheme(String themeFile) {
-        Theme theme = loader.loadTheme(themeFile);
+        Theme theme = Loader.loadTheme(themeFile);
         scene.getStylesheets().remove(mapCanvas.getTheme().getStylesheet());
         if (theme.getStylesheet() != null) {
             scene.getStylesheets().add(theme.getStylesheet());
