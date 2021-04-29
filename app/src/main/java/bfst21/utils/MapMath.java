@@ -4,9 +4,10 @@ import bfst21.Osm_Elements.Node;
 import javafx.geometry.Point2D;
 
 /**
- * The MapMath class is a collection of useful math operations used when working with geographical maps.
+ * The MapMath class is a collection of useful math operations used when working with maps.
+ * It cannot be extended! (Hence final).
  */
-public class MapMath {
+public final class MapMath {
 
     private MapMath() {
 
@@ -112,7 +113,7 @@ public class MapMath {
     }
 
     /**
-     * Calculates and returns the distance between two geographical points on earth using the <a href="https://en.wikipedia.org/wiki/Haversine_formula">Haversine</a> formula.
+     * Calculates and returns the distance between two geo points on earth using the <a href="https://en.wikipedia.org/wiki/Haversine_formula">Haversine formula</a>.
      * Result is in meters.
      *
      * @param p1 the start point.
