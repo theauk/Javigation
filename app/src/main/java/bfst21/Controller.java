@@ -1,14 +1,15 @@
 package bfst21;
 
-import bfst21.Exceptions.NoNavigationResultException;
-import bfst21.Exceptions.NoOSMInZipFileException;
-import bfst21.Exceptions.UnsupportedFileFormatException;
 import bfst21.Osm_Elements.Node;
+import bfst21.data_structures.RouteNavigation;
+import bfst21.exceptions.NoOSMInZipFileException;
+import bfst21.exceptions.UnsupportedFileFormatException;
 import bfst21.file_io.Loader;
 import bfst21.file_io.Serializer;
-import bfst21.utils.MapMath;
-import bfst21.view.CanvasBounds;
 import bfst21.utils.CustomKeyCombination;
+import bfst21.utils.MapMath;
+import bfst21.utils.VehicleType;
+import bfst21.view.CanvasBounds;
 import bfst21.view.MapCanvas;
 import bfst21.view.Theme;
 import javafx.animation.FadeTransition;
@@ -38,6 +39,7 @@ public class Controller {
     private MapData mapData;
     private Loader loader;
     private Creator creator;
+    private RouteNavigation routeNavigation;
 
     private static final String BINARY_FILE = "/small.bmapdata";
 
@@ -73,6 +75,7 @@ public class Controller {
     @FXML private Slider zoomSlider;
 
     @FXML private ToggleGroup themeGroup;
+    @FXML private ToggleGroup vehicleNavGroup;
 
     @FXML private Menu themeMenu;
     @FXML private MenuItem openItem;
@@ -92,9 +95,6 @@ public class Controller {
     @FXML private TextField textFieldFromNav;
     @FXML private TextField textFieldToNav;
 
-    @FXML private RadioButton radioButtonCarNav;
-    @FXML private RadioButton radioButtonBikeNav;
-    @FXML private RadioButton radioButtonWalkNav;
     @FXML private RadioButton radioButtonFastestNav;
     @FXML private RadioButton radioButtonShortestNav;
     @FXML private Label distanceAndTimeNav;
@@ -108,6 +108,7 @@ public class Controller {
     public void init() {
         mapData = new MapData();
         loader = new Loader();
+        routeNavigation = new RouteNavigation();
         loadThemes();
         initView();
         openFile();
@@ -338,6 +339,9 @@ public class Controller {
 
     private void loadSuccess() {
         mapData = creator.getValue();
+        routeNavigation.setNodeToWayMap(mapData.getNodeToHighWay());
+        routeNavigation.setNodeToRestriction(mapData.getNodeToRestriction());
+        routeNavigation.setWayToRestriction(mapData.getWayToRestriction());
         taskSuccess();
         initMapCanvas();
         resetView();
@@ -516,7 +520,7 @@ public class Controller {
     public void searchNav() {
         if (currentToNode == null || currentFromNode == null) {
             showDialogBox("Navigation Error", "Please enter both from and to");
-        } else if (!radioButtonCarNav.isSelected() && !radioButtonBikeNav.isSelected() && !radioButtonWalkNav.isSelected()) {
+        } else if (vehicleNavGroup.getSelectedToggle() == null) {
             showDialogBox("Navigation Error", "Please select a vehicle type");
         } else if (!radioButtonFastestNav.isSelected() && !radioButtonShortestNav.isSelected()) {
             showDialogBox("Navigation Error", "Please select either fastest or shortest");
@@ -536,15 +540,17 @@ public class Controller {
         return alert;
     }
 
-    @FXML
     public void getDijkstraPath() {
-        try {
-            mapData.setRoute(currentFromNode, currentToNode, radioButtonCarNav.isSelected(), radioButtonBikeNav.isSelected(), radioButtonWalkNav.isSelected(), radioButtonFastestNav.isSelected(), aStarNav.isSelected());
-            setDistanceAndTimeNav(mapData.getDistanceNav(), mapData.getTimeNav());
+        routeNavigation.setupRoute(currentFromNode, currentToNode, (VehicleType) vehicleNavGroup.getSelectedToggle().getUserData(), radioButtonFastestNav.isSelected(), aStarNav.isSelected());
+        routeNavigation.startRouting();
+
+        routeNavigation.setOnSucceeded(e -> {
+            mapData.setCurrentRoute(routeNavigation.getValue());
+            setDistanceAndTimeNav(routeNavigation.getTotalDistance(), routeNavigation.getTotalTime());
             mapCanvas.repaint();
-        } catch (NoNavigationResultException e) {
-            showDialogBox("No Route Found", "It was not possible to find a route between the two points");
-        }
+        });
+        routeNavigation.setOnFailed(e -> showDialogBox("No Route Found", routeNavigation.getException().getMessage()));
+        mapCanvas.repaint();
     }
 
     public void setDistanceAndTimeNav(double distance, double time) {
@@ -586,9 +592,8 @@ public class Controller {
                 public void handle(MouseEvent e) {
                     //// TODO: 20-04-2021 make this work
 
-                    Point2D cursorPoint = new Point2D(e.getX(), e.getY());
-                    Point2D geoCoords = MapMath.convertToGeoCoords(mapCanvas.getTransCoords(cursorPoint.getX(), cursorPoint.getY()));
-                    Node node = new Node((float) geoCoords.getX(), (float) -geoCoords.getY() / 0.56f);
+                    Point2D cursorPoint = mapCanvas.getTransCoords(e.getX(), e.getY());
+                    Node node = new Node((float) cursorPoint.getX(), (float) cursorPoint.getY());
                     String nodeName = textFieldPointName.getText();
                     mapData.addToUserPointList(node);
                     dropDownPoints.getItems().add(nodeName);
