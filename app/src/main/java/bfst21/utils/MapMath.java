@@ -1,6 +1,7 @@
 package bfst21.utils;
 
 import bfst21.Osm_Elements.Node;
+import bfst21.Osm_Elements.NodeHolder;
 import javafx.geometry.Point2D;
 
 import java.util.List;
@@ -208,6 +209,11 @@ public final class MapMath {
         return hours;
     }
 
+    /**
+     * Gets the total distance between a list of nodes.
+     * @param nodes A list of nodes.
+     * @return The distance between all the nodes in kilometers.
+     */
     public static double getTotalDistance(List<Node> nodes) {
         double distance = 0;
         for (int i = 0; i < nodes.size() - 1; i++) {
@@ -215,4 +221,28 @@ public final class MapMath {
         }
         return distance / 1000;
     }
+
+    /**
+     * Finds the shortest distance between a point and a line.
+     * @param queryX The x-coordinate for the point.
+     * @param queryY The y-coordinate for the point.
+     * @param nodeHolder The line.
+     * @return The shortest distance.
+     */
+    public static double shortestDistanceToElement(float queryX, float queryY, NodeHolder nodeHolder) {
+        double minDistance = Double.POSITIVE_INFINITY;
+        List<Node> nodes = nodeHolder.getNodes();
+
+        for (int i = 0; i < nodes.size() - 1; i++) {
+            Point2D firstNode = new Point2D(nodes.get(i).getxMin(), nodes.get(i).getyMin());
+            Point2D lastNode = new Point2D(nodes.get(i + 1).getxMin(), nodes.get(i + 1).getyMin());
+
+            double numerator = Math.abs(((lastNode.getX() - firstNode.getX() ) * (firstNode.getY() - queryY)) - ((firstNode.getX() - queryX) * (lastNode.getY() - firstNode.getY())));
+            double denominator = Math.sqrt(Math.pow(lastNode.getX() - firstNode.getX(), 2) + Math.pow(lastNode.getY() - firstNode.getY(), 2));
+            double distance = numerator / denominator;
+            if (distance < minDistance) minDistance = distance;
+        }
+        return minDistance;
+    }
+
 }
