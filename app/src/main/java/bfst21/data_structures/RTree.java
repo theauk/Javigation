@@ -563,7 +563,7 @@ public class RTree implements Serializable {
                 }
                 if (elementsToSplit.get(j).getCoordinates()[i + 1] < leftmostRightSide) { // for the leftmost right side
                     leftmostRightSide = elementsToSplit.get(j).getCoordinates()[i + 1];
-                    currentFurthestPairIndices[1] = j;
+                    if (currentFurthestPairIndices[0] != j) currentFurthestPairIndices[1] = j; // to avoid getting the same element twice
                 }
                 if (elementsToSplit.get(j).getCoordinates()[i] < leftmostSide) { // for the greatest width
                     leftmostSide = elementsToSplit.get(j).getCoordinates()[i];
@@ -580,10 +580,6 @@ public class RTree implements Serializable {
                 furthestSeparation = normalizedWidth;
                 furthestPair = currentFurthestPairIndices;
             }
-        }
-
-        if (elementsToSplit.get(furthestPair[0]) == elementsToSplit.get(furthestPair[1])) {
-            throw new RuntimeException("Same element exists twice"); // Can only happen if two elements are completely on top of each other. // TODO: 4/27/21 FIXXXXXX 
         }
         return distributeNodesLinearCost(node, furthestPair, elementsToSplit);
     }
