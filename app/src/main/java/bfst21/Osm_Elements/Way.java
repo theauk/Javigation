@@ -10,7 +10,7 @@ public class Way extends NodeHolder implements Serializable {
     private static final long serialVersionUID = 8806015478559051293L;
 
     private String name;
-    private int maxSpeed;
+    private double maxSpeed;
     private boolean onewayRoad = false;
     private boolean onewayBikeRoad = false;
     private boolean isDriveable = true;
@@ -18,13 +18,13 @@ public class Way extends NodeHolder implements Serializable {
     private boolean isWalkable = true;
     private boolean isHighway = false;
 
-    public Way(long id) {
-        super(id);
+    public Way() {
+        super();
         isHighway = false;
     }
 
-    public Way() {
-        super();
+    public Way(long id) {
+        super(id);
         isHighway = false;
     }
 
@@ -81,7 +81,7 @@ public class Way extends NodeHolder implements Serializable {
         onewayBikeRoad = true;
     }
 
-    public int getMaxSpeed() {
+    public double getMaxSpeed() {
         if (isDriveable && maxSpeed == 0) {
             return 50;
         } else {
@@ -89,7 +89,7 @@ public class Way extends NodeHolder implements Serializable {
         }
     }
 
-    public void setMaxSpeed(int maxSpeed) {
+    public void setMaxSpeed(double maxSpeed) {
         this.maxSpeed = maxSpeed;
     }
 

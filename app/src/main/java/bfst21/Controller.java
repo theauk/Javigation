@@ -1,16 +1,25 @@
 package bfst21;
 
-import bfst21.Exceptions.NoNavigationResultException;
-import bfst21.Exceptions.NoOSMInZipFileException;
-import bfst21.Exceptions.UnsupportedFileFormatException;
 import bfst21.Osm_Elements.Node;
+import bfst21.data_structures.AddressTrieNode;
+import bfst21.data_structures.RouteNavigation;
+import bfst21.exceptions.NoOSMInZipFileException;
+import bfst21.exceptions.UnsupportedFileFormatException;
 import bfst21.file_io.Loader;
 import bfst21.file_io.Serializer;
+import bfst21.utils.CustomKeyCombination;
+import bfst21.utils.MapMath;
+import bfst21.utils.VehicleType;
+import bfst21.view.CanvasBounds;
+import bfst21.view.MapCanvas;
+import bfst21.view.Theme;
 import bfst21.view.CanvasBounds;
 import bfst21.view.CustomKeyCombination;
 import bfst21.view.MapCanvas;
 import bfst21.view.Theme;
 import javafx.animation.FadeTransition;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -32,11 +41,14 @@ import javafx.util.Duration;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Map;
 
 public class Controller {
     private MapData mapData;
-    private Loader loader;
     private Creator creator;
+    private RouteNavigation routeNavigation;
 
     private static final String BINARY_FILE = "/small.bmapdata";
 
@@ -52,6 +64,8 @@ public class Controller {
 
     private Node currentFromNode;
     private Node currentToNode;
+
+    private ArrayList<AddressTrieNode> currentAutoCompleteList;
 
     @FXML private MapCanvas mapCanvas;
     @FXML private Scene scene;
@@ -72,6 +86,7 @@ public class Controller {
     @FXML private Slider zoomSlider;
 
     @FXML private ToggleGroup themeGroup;
+    @FXML private ToggleGroup vehicleNavGroup;
 
     @FXML private Menu themeMenu;
     @FXML private MenuItem openItem;
@@ -81,22 +96,25 @@ public class Controller {
     @FXML private MenuItem zoomOutItem;
     @FXML private MenuItem dumpItem;
     @FXML private RadioMenuItem rTreeDebug;
+    @FXML private RadioMenuItem kdTreeNearestNode;
 
     @FXML private Button zoomInButton;
     @FXML private Button zoomOutButton;
-    @FXML private Button chooseCorButtonFromNav;
-    @FXML private Button chooseCorButtonToNav;
-    @FXML private Button searchNav;
 
     @FXML private TextField textFieldFromNav;
     @FXML private TextField textFieldToNav;
+    @FXML private VBox autoCompleteFromNav;
+    @FXML private ScrollPane ScrollpaneAutoCompleteToNav;
+    @FXML private VBox autoCompleteToNav;
+    @FXML private ScrollPane ScrollpaneAutoCompleteFromNav;
 
-    @FXML private RadioButton radioButtonCarNav;
-    @FXML private RadioButton radioButtonBikeNav;
-    @FXML private RadioButton radioButtonWalkNav;
     @FXML private RadioButton radioButtonFastestNav;
     @FXML private RadioButton radioButtonShortestNav;
     @FXML private Label distanceAndTimeNav;
+    @FXML private RadioMenuItem aStarNav;
+    @FXML private VBox directionsBox;
+    @FXML private ScrollPane directionsScrollPane;
+    @FXML private Label specialPathFeaturesNav;
 
     @FXML private ComboBox<String> dropDownPoints;
     @FXML private TextField textFieldPointName;
@@ -104,7 +122,7 @@ public class Controller {
 
     public void init() {
         mapData = new MapData();
-        loader = new Loader();
+        routeNavigation = new RouteNavigation();
         loadThemes();
         initView();
         openFile();
@@ -112,13 +130,14 @@ public class Controller {
 
     private void initView() {
         themeGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> setTheme(((RadioMenuItem) newValue.getToggleGroup().getSelectedToggle()).getUserData().toString()));
-        mapCanvas.initTheme(loader.loadTheme(themeGroup.getSelectedToggle().getUserData().toString()));
+        mapCanvas.initTheme(Loader.loadTheme(themeGroup.getSelectedToggle().getUserData().toString()));
         scaleLabel.textProperty().bind(mapCanvas.getRatio());
         zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (viaZoomSlider) zoom(newValue.intValue() - oldValue.intValue());
         });
         disableMenus();
         CustomKeyCombination.setTarget(mapCanvas);
+        addListenerToSearchFields();
     }
 
     private void initMapCanvas() {
@@ -126,10 +145,12 @@ public class Controller {
         //TODO MOVE LISTENERS
         mapCanvas.widthProperty().addListener((observable, oldValue, newValue) -> setBoundsLabels());
         mapCanvas.heightProperty().addListener((observable, oldValue, newValue) -> setBoundsLabels());
+
+        // TODO: 29-04-2021 textfields should remove text og user added points
     }
 
     private void loadThemes() {
-        for (String file : loader.getFilesIn("/themes", ".mtheme")) {
+        for (String file : Loader.getFilesIn("/themes", ".mtheme")) {
             String themeName = Theme.parseName(file);
 
             if (!file.equals("default.mtheme")) {
@@ -139,6 +160,28 @@ public class Controller {
                 themeMenu.getItems().add(item);
             }
         }
+    }
+
+    private void addListenerToSearchFields() {
+        textFieldFromNav.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable,
+                                String oldValue, String newValue) {
+                if (newValue.length() > 2) fillAutoCompleteText(autoCompleteFromNav, true);
+            }
+        });
+        textFieldToNav.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable,
+                                String oldValue, String newValue) {
+                if (newValue.length() > 2) fillAutoCompleteText(autoCompleteToNav, false);
+            }
+        });
+
+    }
+
+    private void removeChildren(){
+        // TODO: 28-04-2021 Remove search when under 2 charachters
     }
 
     /**
@@ -158,8 +201,10 @@ public class Controller {
      */
     @FXML
     private void zoom(ActionEvent e) {
-        if (e.getSource().equals(zoomInItem) || e.getSource().equals(zoomInButton)) zoom(true, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
-        else if (e.getSource().equals(zoomOutItem) || e.getSource().equals(zoomOutButton)) zoom(false, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
+        if (e.getSource().equals(zoomInItem) || e.getSource().equals(zoomInButton))
+            zoom(true, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
+        else if (e.getSource().equals(zoomOutItem) || e.getSource().equals(zoomOutButton))
+            zoom(false, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
     }
 
     /**
@@ -227,19 +272,19 @@ public class Controller {
     private void onKeyPressed(KeyEvent e) {
         int acceleration = 50;
 
-        if(upLeftCombination.match(e)) mapCanvas.pan(acceleration, acceleration);
-        else if(upRightCombination.match(e)) mapCanvas.pan(-acceleration, acceleration);
-        else if(downLeftCombination.match(e)) mapCanvas.pan(acceleration, -acceleration);
-        else if(downRightCombination.match(e)) mapCanvas.pan(-acceleration, -acceleration);
-        else if(e.getCode().equals(KeyCode.UP)) mapCanvas.pan(0, acceleration);
-        else if(e.getCode().equals(KeyCode.DOWN)) mapCanvas.pan(0, -acceleration);
-        else if(e.getCode().equals(KeyCode.LEFT)) mapCanvas.pan(acceleration, 0);
-        else if(e.getCode().equals(KeyCode.RIGHT)) mapCanvas.pan(-acceleration, 0);
+        if (upLeftCombination.match(e)) mapCanvas.pan(acceleration, acceleration);
+        else if (upRightCombination.match(e)) mapCanvas.pan(-acceleration, acceleration);
+        else if (downLeftCombination.match(e)) mapCanvas.pan(acceleration, -acceleration);
+        else if (downRightCombination.match(e)) mapCanvas.pan(-acceleration, -acceleration);
+        else if (e.getCode().equals(KeyCode.UP)) mapCanvas.pan(0, acceleration);
+        else if (e.getCode().equals(KeyCode.DOWN)) mapCanvas.pan(0, -acceleration);
+        else if (e.getCode().equals(KeyCode.LEFT)) mapCanvas.pan(acceleration, 0);
+        else if (e.getCode().equals(KeyCode.RIGHT)) mapCanvas.pan(-acceleration, 0);
     }
 
     @FXML
     private void onKeyReleased() {
-        if(CustomKeyCombination.keyCodes.size() == 0) mapCanvas.updateMap();
+        if (CustomKeyCombination.keyCodes.size() == 0) mapCanvas.updateMap();
     }
 
     @FXML
@@ -257,9 +302,9 @@ public class Controller {
         Alert warning = createAlert(Alert.AlertType.WARNING, "Dump MapData", "MapData Dump", contentText, ButtonType.YES, ButtonType.NO);
         warning.showAndWait();
 
-        if(warning.getResult() == ButtonType.YES) {
+        if (warning.getResult() == ButtonType.YES) {
             File file = showFileChooser("save").showSaveDialog(scene.getWindow());
-            if(file != null) {
+            if (file != null) {
                 Serializer serializer = new Serializer(mapData, file);
                 showLoaderPane(true);
 
@@ -296,11 +341,11 @@ public class Controller {
         try {
             if (file != null) {
                 if(file.getName().endsWith(".bmapdata")) binary = true;
-                inputStream = loader.load(file.getPath());
-                fileSize = file.getName().endsWith(".zip") ? loader.getZipFileEntrySize(file.getPath()) : file.length();    //If it's a zip file get the size of the entry else use the default file size.
+                inputStream = Loader.load(file.getPath());
+                fileSize = file.getName().endsWith(".zip") ? Loader.getZipFileEntrySize(file.getPath()) : file.length();    //If it's a zip file get the size of the entry else use the default file size.
             } else {
-                inputStream = loader.loadResource(BINARY_FILE);
-                fileSize = loader.getResourceFileSize(BINARY_FILE);
+                inputStream = Loader.loadResource(BINARY_FILE);
+                fileSize = Loader.getResourceFileSize(BINARY_FILE);
                 binary = true;
             }
 
@@ -335,6 +380,9 @@ public class Controller {
 
     private void loadSuccess() {
         mapData = creator.getValue();
+        routeNavigation.setNodeToWayMap(mapData.getNodeToHighWay());
+        routeNavigation.setNodeToRestriction(mapData.getNodeToRestriction());
+        routeNavigation.setWayToRestriction(mapData.getWayToRestriction());
         taskSuccess();
         initMapCanvas();
         resetView();
@@ -347,14 +395,14 @@ public class Controller {
     }
 
     private void taskFailed(Task<?> task, boolean showMap) {
-        if(showMap) {
+        if (showMap) {
             state = State.MAP;
             showLoaderPane(false);
         }
         else state = State.MENU;
+        cleanupTask();
         task.exceptionProperty().getValue().printStackTrace();
         statusLabel.setText("Failed: " + task.exceptionProperty().getValue().getMessage());
-        cleanupTask();
     }
 
     private void taskCancelled() {
@@ -417,7 +465,7 @@ public class Controller {
     }
 
     private void setTheme(String themeFile) {
-        Theme theme = loader.loadTheme(themeFile);
+        Theme theme = Loader.loadTheme(themeFile);
         scene.getStylesheets().remove(mapCanvas.getTheme().getStylesheet());
         if (theme.getStylesheet() != null) {
             scene.getStylesheets().add(theme.getStylesheet());
@@ -427,47 +475,42 @@ public class Controller {
 
     private void setLabels(Point2D point) {
         Point2D coords = mapCanvas.getTransCoords(point.getX(), point.getY());
-        Point2D geoCoords = mapCanvas.getGeoCoords(point.getX(), point.getY());
+        Point2D geoCoords = MapMath.convertToGeoCoords(mapCanvas.getTransCoords(point.getX(), point.getY()));
         setCoordsLabel((float) coords.getX(), (float) coords.getY());
         setGeoCoordsLabel((float) geoCoords.getX(), (float) geoCoords.getY());
-        setNearestRoadLabel(geoCoords.getX(), geoCoords.getY());
+        setNearestRoadLabel(coords.getX(), coords.getY());
     }
 
     private void setCoordsLabel(float x, float y) {
-        coordsLabel.setText("Coordinates: (" + round(x, 1) + ", " + round(y, 1) + ")");
+        coordsLabel.setText("Coordinates: (" + MapMath.round(x, 1) + ", " + MapMath.round(y, 1) + ")");
     }
 
     private void setGeoCoordsLabel(float x, float y) {
-        geoCoordsLabel.setText("Geo-coordinates: (" + round(x, 7) + ", " + round(y, 7) + ")");
+        geoCoordsLabel.setText("Geo-coordinates: (" + MapMath.round(x, 7) + ", " + MapMath.round(y, 7) + ")");
     }
 
     private void setNearestRoadLabel(double x, double y) {
-        nearestRoadLabel.setText("Nearest Road: " + mapData.getNearestRoad((float) x, (float) -y / 0.56f));
+        nearestRoadLabel.setText("Nearest Road: " + mapData.getNearestRoad((float) x, (float) y, kdTreeNearestNode.isSelected()));
     }
 
     private void setBoundsLabels() {
         CanvasBounds bounds = mapCanvas.getBounds();
-        boundsTL.setText("(" + round(bounds.getMinX(), 1) + ", " + round(bounds.getMinY(), 1) + ")");
-        boundsTR.setText("(" + round(bounds.getMaxX(), 1) + ", " + round(bounds.getMinY(), 1) + ")");
-        boundsBL.setText("(" + round(bounds.getMinX(), 1) + ", " + round(bounds.getMaxY(), 1) + ")");
-        boundsBR.setText("(" + round(bounds.getMaxX(), 1) + ", " + round(bounds.getMaxY(), 1) + ")");
-    }
-
-    private double round(double number, int digits) {
-        double scale = Math.pow(10, digits);
-        return Math.round(number * scale) / scale;
+        boundsTL.setText("(" + MapMath.round(bounds.getMinX(), 1) + ", " + MapMath.round(bounds.getMinY(), 1) + ")");
+        boundsTR.setText("(" + MapMath.round(bounds.getMaxX(), 1) + ", " + MapMath.round(bounds.getMinY(), 1) + ")");
+        boundsBL.setText("(" + MapMath.round(bounds.getMinX(), 1) + ", " + MapMath.round(bounds.getMaxY(), 1) + ")");
+        boundsBR.setText("(" + MapMath.round(bounds.getMaxX(), 1) + ", " + MapMath.round(bounds.getMaxY(), 1) + ")");
     }
 
     private FileChooser showFileChooser(String option) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Desktop"));
 
-        if(option.equals("open")) {
+        if (option.equals("open")) {
             fileChooser.setTitle("Open File");
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All OSM Files", "*.osm", "*zip", "*.bmapdata"));
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("OSM File", "*.osm"));
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Zipped OSM File", "*zip"));
-        } else if(option.equals("save")) {
+        } else if (option.equals("save")) {
             fileChooser.setTitle("Save File");
             fileChooser.setInitialFileName("binary_map_data");
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Binary MapData", "*.bmapdata"));
@@ -475,6 +518,67 @@ public class Controller {
 
         return fileChooser;
     }
+
+    private void fillAutoCompleteText(VBox autoComplete, boolean fromNav) {
+        autoComplete.getChildren().removeAll(autoComplete.getChildren());
+        fillAutoCompleteText(fromNav);
+    }
+
+
+    private void fillAutoCompleteText(boolean fromNav){
+        //if(mapData.getAutoCompleteAdresses(textFieldFromNav.getText()) != null){
+
+
+            if (fromNav) {
+                for(AddressTrieNode addressNode : mapData.getAutoCompleteAdresses(textFieldFromNav.getText())) {
+                    labelForAutoComplete(addressNode, autoCompleteFromNav, textFieldFromNav, ScrollpaneAutoCompleteFromNav, fromNav);
+                    ScrollpaneAutoCompleteFromNav.setVisible(true);
+                }
+            } else {
+                for(AddressTrieNode addressNode : mapData.getAutoCompleteAdresses(textFieldToNav.getText())) {
+                    labelForAutoComplete(addressNode, autoCompleteToNav, textFieldToNav, ScrollpaneAutoCompleteToNav, fromNav);
+                    ScrollpaneAutoCompleteToNav.setVisible(true);
+                }
+            }
+    }
+
+
+    private void labelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav) {
+
+        for (Map.Entry<String, String> entry : addressNode.getAddresses().entrySet()) {
+            String address = entry.getValue();
+            Label label = new Label(address);
+            autoComplete.getChildren().add(label);
+            label.prefWidth(autoComplete.getWidth());
+            label.setOnMouseClicked((ActionEvent) -> {
+                autoComplete.getChildren().removeAll(autoComplete.getChildren());
+
+                fullAddressLabelForAutoComplete(addressNode, autoComplete, textField, scrollPane, fromNav, entry.getKey());
+
+            });
+        }
+    }
+
+    private void fullAddressLabelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav, String city) {
+
+        for (Map.Entry<String, Node> houserNumber : addressNode.getHouseNumbersOnStreet(city).entrySet()) {
+            String addressWithHouseNumber = houserNumber.getKey();
+            Node node = houserNumber.getValue();
+            Label labelHouseNumber = new Label(addressWithHouseNumber);
+            autoComplete.getChildren().add(labelHouseNumber);
+            labelHouseNumber.prefWidth(autoComplete.getWidth());
+            labelHouseNumber.setOnMouseClicked((ActionEvent2) -> {
+                System.out.println("here");
+                textField.setText(addressWithHouseNumber);
+                if (fromNav) currentFromNode = node;
+                else currentToNode = node;
+                autoComplete.getChildren().removeAll(autoComplete.getChildren());
+                scrollPane.setVisible(false);
+
+            });
+        }
+    }
+
 
     @FXML
     private void setRTreeDebug() {
@@ -497,8 +601,8 @@ public class Controller {
             @Override
             public void handle(MouseEvent e) {
                 Point2D cursorPoint = new Point2D(e.getX(), e.getY());
-                Point2D geoCoords = mapCanvas.getGeoCoords(cursorPoint.getX(), cursorPoint.getY());
-                Node nearestRoadNode = mapData.getNearestRoadNode((float) geoCoords.getX(), (float) -geoCoords.getY() / 0.56f);
+                Point2D coords = mapCanvas.getTransCoords(e.getX(), e.getY());
+                Node nearestRoadNode = mapData.getNearestRoadNode((float) coords.getX(), (float) coords.getY());
 
                 String names = mapData.getNodeHighWayNames(nearestRoadNode);
                 if (fromSelected) {
@@ -518,12 +622,14 @@ public class Controller {
     public void searchNav() {
         if (currentToNode == null || currentFromNode == null) {
             showDialogBox("Navigation Error", "Please enter both from and to");
-        } else if (!radioButtonCarNav.isSelected() && !radioButtonBikeNav.isSelected() && !radioButtonWalkNav.isSelected()) {
+        } else if (currentFromNode == currentToNode) {
+            showDialogBox("Navigation Error", "From and to are the same entries");
+        } else if (vehicleNavGroup.getSelectedToggle() == null) {
             showDialogBox("Navigation Error", "Please select a vehicle type");
         } else if (!radioButtonFastestNav.isSelected() && !radioButtonShortestNav.isSelected()) {
             showDialogBox("Navigation Error", "Please select either fastest or shortest");
         } else {
-            getDijkstraPath();
+            getRoute();
         }
     }
 
@@ -534,20 +640,36 @@ public class Controller {
     private Alert createAlert(Alert.AlertType alertType, String title, String header, String text, ButtonType... buttons) {
         Alert alert = new Alert(alertType, text, buttons);
         alert.setTitle(title);
-        alert.setHeaderText(header);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         return alert;
     }
 
     @FXML
-    public void getDijkstraPath() {
-        try {
-            mapData.setDijkstraRoute(currentFromNode, currentToNode, radioButtonCarNav.isSelected(), radioButtonBikeNav.isSelected(), radioButtonWalkNav.isSelected(), radioButtonFastestNav.isSelected());
-            setDistanceAndTimeNav(mapData.getDistanceNav(), mapData.getTimeNav());
+    public void getRoute() {
+        routeNavigation.setupRoute(currentFromNode, currentToNode, (VehicleType) vehicleNavGroup.getSelectedToggle().getUserData(), radioButtonFastestNav.isSelected(), aStarNav.isSelected());
+        routeNavigation.startRouting();
+
+        routeNavigation.setOnSucceeded(e -> {
+            mapData.setCurrentRoute(routeNavigation.getValue());
+            setDistanceAndTimeNav(routeNavigation.getTotalDistance(), routeNavigation.getTotalTime());
             mapCanvas.repaint();
-        } catch (NoNavigationResultException e) {
-            e.printStackTrace();
+        });
+        routeNavigation.setOnFailed(e -> showDialogBox("No Route Found", routeNavigation.getException().getMessage()));
+        mapCanvas.repaint();
+    }
+
+    public void setDirections(ArrayList<String> directions) {
+        directionsBox.getChildren().removeAll(directionsBox.getChildren());
+        int order = 1;
+        for (String s : directions) {
+            Label l = new Label(order + ". " + s);
+            directionsBox.getChildren().add(l);
+            directionsBox.getChildren().add(new Label(""));
+            order++;
         }
+        directionsScrollPane.setMinSize(160, 200);
+        directionsScrollPane.setPrefSize(160, 200);
+        directionsScrollPane.setVisible(true);
     }
 
     public void setDistanceAndTimeNav(double distance, double time) {
@@ -555,15 +677,15 @@ public class Controller {
         String s = "Total distance: ";
 
         if (distance < 1000) {
-            s += round(distance, 0) + " m";
+            s += MapMath.round(distance, 0) + " m";
         } else {
-            s += round(distance / 1000f, 2) + " km";
+            s += MapMath.round(distance / 1000f, 3) + " km";
         }
 
         if (time < 60) {
-            s += " , Total time: " + round(time, 0) + " s";
+            s += " , Total time: " + MapMath.round(time, 0) + " s";
         } else {
-            s += " , Total time: " + round(time / 60f, 2) + " min";
+            s += " , Total time: " + MapMath.round(time / 60f, 3) + " min";
         }
         distanceAndTimeNav.setText(s);
     }
@@ -572,26 +694,35 @@ public class Controller {
         distanceAndTimeNav.setVisible(false);
     }
 
+    public void setSpecialPathFeatures(HashSet<String> specialPathFeatures) {
+        StringBuilder labelText = new StringBuilder();
+        for (String s : specialPathFeatures) {
+            labelText.append("This route includes ").append(s).append("\n");
+        }
+        specialPathFeaturesNav.setText(labelText.toString());
+        specialPathFeaturesNav.setVisible(true);
+    }
+
     @FXML
     public void moveToPoint(ActionEvent actionEvent) {
         int i = dropDownPoints.getSelectionModel().getSelectedIndex();
         Node node = mapData.getUserAddedPoints().get(i);
         mapCanvas.centerOnPoint(node.getxMin(), node.getyMin());
-
+        mapCanvas.repaint();
     }
 
     @FXML
     public void addUserPoint(ActionEvent actionEvent) {
-        if (textFieldPointName.getText().equals("")) showDialogBox("User added point error", "Please input name for your point");
+        if (textFieldPointName.getText().equals(""))
+            showDialogBox("User added point error", "Please input name for your point");
         else {
             EventHandler<MouseEvent> event = new EventHandler<>() {
                 @Override
                 public void handle(MouseEvent e) {
+                    Point2D cursorPoint = mapCanvas.getTransCoords(e.getX(), e.getY());
+                    Node node = new Node((float) cursorPoint.getX(), (float) cursorPoint.getY());
                     //// TODO: 20-04-2021 make this work
 
-                    Point2D cursorPoint = new Point2D(e.getX(), e.getY());
-                    Point2D geoCoords = mapCanvas.getGeoCoords(cursorPoint.getX(), cursorPoint.getY());
-                    Node node = new Node((float) geoCoords.getX(), (float) -geoCoords.getY() / 0.56f);
                     String nodeName = textFieldPointName.getText();
                     mapData.addToUserPointList(node);
                     dropDownPoints.getItems().add(nodeName);
@@ -601,9 +732,6 @@ public class Controller {
                 }
             };
             mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
-
-
-
         }
     }
 

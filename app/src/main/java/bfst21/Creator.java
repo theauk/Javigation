@@ -33,12 +33,14 @@ public class Creator extends Task<MapData> {
     private HashSet<String> nodesNotCreateValues;
     private String city, streetName, houseNumber, name;
     private Integer postcode;
-    private boolean isAddress;
     private int bottomLayer, layerTwo, layerThree, layerFour, topLayer;
     private HashMap<String, Integer> typeToLayer;
     private Relation coastLines;
     private HashMap<Element, String> elementToText;
-    private boolean isFoot = false; // TODO: 4/15/21 is there a better way?
+    private boolean isFoot = false;
+    private boolean motorWayJunctionNode = false;
+    private HashMap<Node, String> destinationInfoMap = new HashMap<>();
+    private String motorwayExitInfo;
 
     public Creator(InputStream inputStream, long fileSize, boolean binary) {
         mapData = new MapData();
@@ -94,7 +96,7 @@ public class Creator extends Task<MapData> {
         Relation relation = null;
 
         KDTree<Node> highWayRoadNodes = new KDTree<>(2, 4);
-        RTree rTree = new RTree(1, 30, 4, topLayer);
+        RTree rTree = new RTree(1, 100, 4, topLayer); //remove nodes
         AddressTriesTree addressTree = new AddressTriesTree();
         ElementToElementsTreeMap<Node, Way> nodeToWayMap = new ElementToElementsTreeMap<>();
         ElementToElementsTreeMap<Node, Relation> nodeToRestriction = new ElementToElementsTreeMap<>();
@@ -152,6 +154,7 @@ public class Creator extends Task<MapData> {
                                 if (node != null) {
                                     // TODO: 09-04-2021 out commented node deletion
                                     //if(checkNodesNotCreate(k,v)) node = null;
+                                    checkMotorWayExitNode(k, v);
                                     checkAddressNode(k, v, node);
                                     break;
                                 }
@@ -216,8 +219,14 @@ public class Creator extends Task<MapData> {
                         switch (reader.getLocalName()) {
                             case "node":
                                 if (node != null) {
+                                    if (motorWayJunctionNode) {
+                                        motorWayJunctionNode = false;
+                                        destinationInfoMap.put(node, motorwayExitInfo);
+                                        motorwayExitInfo = null;
+                                    }
+
                                     if(isAddress()){
-                                        addressTree.put(node, city, streetName, postcode, houseNumber,2);
+                                        addressTree.put(node, city, streetName, postcode, houseNumber);
                                         node.setLayer(4);
                                         nullifyAddress();
                                     } else {
@@ -249,7 +258,6 @@ public class Creator extends Task<MapData> {
                                 if (relation != null) {
                                     if (relation.hasType()) {
                                         if (relation.getType().equals("restriction")) {
-                                            // TODO: 14-04-2021 needs be bettter plz plzx plz
                                             if (relation.getViaNode() != null)
                                                 nodeToRestriction.put(relation.getViaNode(), relation);
                                             else if (relation.getViaWay() != null)
@@ -272,6 +280,19 @@ public class Creator extends Task<MapData> {
         updateMessage("Finalizing...");
         mapData.addDataTrees(highWayRoadNodes, rTree, nodeToRestriction, wayToRestriction, addressTree, nodeToWayMap);
         reader.close();
+    }
+
+    private void checkMotorWayExitNode(String k, String v) {
+        if (k.equals("highway") && v.equals("motorway_junction")) {
+            motorWayJunctionNode = true;
+        } else if (motorWayJunctionNode) {
+            if (k.equals("name")) {
+                motorwayExitInfo = v;
+            } else if (k.equals("ref")) {
+                if (motorwayExitInfo != null) motorwayExitInfo = "Exit " + v + "-" + motorwayExitInfo;
+                else motorwayExitInfo = "Exit " + v;
+            }
+        }
     }
 
     private void checkRelation(String k, String v, Relation relation) {
@@ -322,6 +343,12 @@ public class Creator extends Task<MapData> {
 
     private void checkWay(String k, String v, Way way) {
         switch (k) {
+            case "amenity":
+                if (v.equals("parking")) {
+                    way.setType("asphalt", typeToLayer.get("asphalt"));
+                }
+                break;
+
             case "natural":
                 if (v.equals("water") || v.equals("wetland")) {
                     way.setType((v), typeToLayer.get(v));
@@ -347,7 +374,6 @@ public class Creator extends Task<MapData> {
                     way.setType(k, typeToLayer.get(k));
                     break;
                 }
-
                 break;
 
             case "leisure":
@@ -371,21 +397,50 @@ public class Creator extends Task<MapData> {
                     break;
                 }
                 break;
-            case "amenity":
-                if (v.equals("parking")) {
-                    way.setType("asphalt", typeToLayer.get("asphalt"));
-                }
-                break;
+
             case "highway":
                 checkHighWayType(way, v);
                 break;
 
-
             case "name":
                 way.setName(v);
                 break;
+
+            case "railway":
+                way.setType(v, typeToLayer.get("railway"));
+                break;
+
+            case "ref":
+                if (way.getName() == null && way.getType() != null && !way.getType().equals("roundabout")) way.setName(fixNumberWayName(v));
+                break;
+
+            case "route":
+                if (v.equals("ferry")) {
+                    way.setType("ferry", typeToLayer.get("ferry"));
+                    way.setAsHighWay();
+                }
+                break;
+
+            case "tunnel":
+                if (v.equals("yes")) way.setType(null);
+                break;
+
         }
         checkHighWayAttributes(k, v, way);
+    }
+
+    private String fixNumberWayName(String v) {
+        String[] wayNumbers = v.split(";");
+        String[] names = new String[wayNumbers.length];
+
+        for (int i = 0; i < wayNumbers.length; i++) {
+            if (wayNumbers[i].length() < 3) names[i] = "Main Road " + wayNumbers[i];
+            else if (wayNumbers[i].matches(".*[0-9]+.*") && wayNumbers[i].matches(".*[A-Za-z]+.*")) names[i] = "Highway " + wayNumbers[i];
+            else names[i] = "Secondary Road " + wayNumbers[i];
+        }
+
+        return String.join("/", names);
+
     }
 
     private void checkHighWayAttributes(String k, String v, Way way) {
@@ -399,6 +454,10 @@ public class Creator extends Task<MapData> {
                 break;
 
             case "cycleway":
+                if (v.equals("no")) way.setNotCycleable();
+                break;
+
+            case "bicycle":
                 if (v.equals("no")) way.setNotCycleable();
                 break;
 
@@ -428,10 +487,28 @@ public class Creator extends Task<MapData> {
                 break;
 
             case "foot":
-                if (v.equals("yes")) {
-                    isFoot = true;
+                if (v.equals("yes")) isFoot = true;
+                break;
+
+            case "service":
+                if (v.equals("driveway")) {
+                    way.setNotDriveable();
+                    way.setNotCycleable();
+                    way.setNotWalkable();
                 }
                 break;
+
+            case "duration":
+                if (v.matches("[0-9]{1,2}:[0-9]{1,2}")) {
+                    double duration = MapMath.colonTimeToHours(v);
+                    double distance = MapMath.getTotalDistance(way.getNodes());
+                    way.setMaxSpeed(distance / duration);
+                }
+                break;
+
+            case "toll":
+                /*if (v.equals("yes")) way.setType(way.getType() + "_toll"); // TODO: 4/29/21 fix problem is I cannot change type as it wont draw them then
+                break;*/
         }
     }
 
@@ -442,7 +519,6 @@ public class Creator extends Task<MapData> {
                 break;
             case "addr:housenumber":
                 houseNumber = v;
-                isAddress = true;
                 break;
             case "addr:postcode" :
                 postcode = Integer.parseInt(v.trim());
@@ -464,7 +540,6 @@ public class Creator extends Task<MapData> {
     }
 
     private void nullifyAddress() {
-        isAddress = false;
         city = null;
         houseNumber = null;
         postcode = null;
@@ -516,6 +591,15 @@ public class Creator extends Task<MapData> {
             way.setType(v, true, isFoot);
             way.setMaxSpeed(80);
             return;
+        }
+
+        if (v.equals("motorway_link")) {
+            for(Node n : way.getNodes()) {
+                if (destinationInfoMap.get(n) != null) {
+                    way.setName(destinationInfoMap.get(n));
+                    break;
+                }
+            }
         }
 
         if (restOfHighWays(v)) way.setType(v, true, isFoot);
@@ -621,6 +705,8 @@ public class Creator extends Task<MapData> {
         typeToLayer.put("man_made", layerTwo);
         typeToLayer.put("farmland", layerTwo);
         typeToLayer.put("asphalt", layerTwo);
+        typeToLayer.put("railway", layerTwo);
+        typeToLayer.put("ferry", layerTwo);
 
         typeToLayer.put("dark_green", layerThree);
         typeToLayer.put("bridge", layerThree);

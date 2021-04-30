@@ -48,6 +48,11 @@ name = "Dark Mode";
 "path" = {iColor = [250, 128, 114]}, {style = "dotted"};
 "cycleway" = {iColor = [0, 112, 242]}, {style = "dotted"};
 
+#Public transport
+"rail" = {iColor = [213, 216, 219]}, {showAt = 12};
+"light_rail" = {iColor = [213, 216, 219]}, {showAt = 12};
+"subway" = {iColor = [213, 216, 219]}, {showAt = 12};
+
 #Nature
 "park" = {iColor = [40, 68, 53]}, {filled = true};
 "forest" = {iColor = [157, 202, 138]}, {filled = true};

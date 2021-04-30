@@ -1,6 +1,6 @@
 package bfst21.data_structures;
 
-import bfst21.Exceptions.KDTreeEmptyException;
+import bfst21.exceptions.KDTreeEmptyException;
 import bfst21.Osm_Elements.Element;
 import javafx.geometry.Point2D;
 
@@ -38,7 +38,6 @@ public class KDTree<Value extends Element> implements Serializable {
         list = new ArrayList<>();
         hashList = new HashSet<>();
     }
-
 
     private Comparator<KDTreeNode> getComparatorFromDimension(int dim) {
         return dim == 0 ? comparatorX : comparatorY;

@@ -1,18 +1,21 @@
 package bfst21;
 
-import bfst21.Exceptions.KDTreeEmptyException;
-import bfst21.Exceptions.NoNavigationResultException;
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.*;
+import bfst21.exceptions.KDTreeEmptyException;
 import bfst21.view.CanvasBounds;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 public class MapData implements Serializable {
     @Serial
@@ -20,30 +23,35 @@ public class MapData implements Serializable {
 
     private KDTree<Node> closetRoadTree;
     private RTree rTree;
-    private ArrayList<ArrayList<Element>> mapSegment; //Only content within bounds
+    private transient ArrayList<ArrayList<Element>> mapSegment; //Only content within bounds
     private float minX, minY, maxX, maxY;
     private AddressTriesTree addressTree;
-    private boolean rTreeDebug;
+    private transient boolean rTreeDebug;
+
+    private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
     private ElementToElementsTreeMap<Node, Way> nodeToHighWay;
-    private DijkstraSP dijkstra;
-    private ArrayList<Element> currentDijkstraRoute;
-    private ArrayList<Node> userAddedPoints;
+    private ElementToElementsTreeMap<Way, Relation> wayToRestriction;
+    private transient List<Element> currentRoute;
+
+    private transient List<Node> userAddedPoints;
     private Relation coastlines;
     private HashMap<Element, String> elementToText;
 
     public MapData() {
         mapSegment = new ArrayList<>();
+        currentRoute = new ArrayList<>();
     }
 
     public void addDataTrees(KDTree<Node> highWayRoadNodes, RTree rTree, ElementToElementsTreeMap<Node, Relation> nodeToRestriction, ElementToElementsTreeMap<Way, Relation> wayToRestriction, AddressTriesTree addressTree, ElementToElementsTreeMap<Node, Way> nodeToWayMap) {
         this.rTree = rTree;
         this.closetRoadTree = highWayRoadNodes;
         this.addressTree = addressTree;
-        nodeToHighWay = nodeToWayMap;
-        dijkstra = new DijkstraSP(nodeToHighWay, nodeToRestriction, wayToRestriction);
-        currentDijkstraRoute = new ArrayList<>();
-        userAddedPoints = new ArrayList<>();
+        this.nodeToHighWay = nodeToWayMap;
+        this.nodeToRestriction = nodeToRestriction;
+        this.wayToRestriction = wayToRestriction;
+        currentRoute = new ArrayList<>();
 
+        userAddedPoints = new ArrayList<>();
         buildTrees();
     }
 
@@ -67,7 +75,12 @@ public class MapData implements Serializable {
         rTreeDebug = selected;
     }
 
-    public String getNearestRoad(float x, float y) {
+    public String getNearestRoad(float x, float y, boolean useKDTree) {
+        if (useKDTree) return getNearestRoadKDTree(x, y);
+        else return getNearestRoadRTree(x, y);
+    }
+
+    public String getNearestRoadKDTree(float x, float y) {
         String names = "";
         try {
             Node node = closetRoadTree.getNearestNode(x, y);
@@ -77,6 +90,14 @@ public class MapData implements Serializable {
             names = e.getMessage();
         }
         return names;
+    }
+
+    public String getNearestRoadRTree(float x, float y) { // TODO: 4/22/21 in progress
+        Way way = rTree.getNearestRoad(x, y);
+        if (way.getName() != null) {
+            return way.getName();
+        }
+        return "";
     }
 
     public String getNodeHighWayNames(Node node) {
@@ -90,7 +111,6 @@ public class MapData implements Serializable {
             names = String.join(", ", list);
         }
         return names;
-
     }
 
     public Node getNearestRoadNode(float x, float y) {
@@ -103,71 +123,66 @@ public class MapData implements Serializable {
         return nearestRoadNode;
     }
 
-    public void setDijkstraRoute(Node from, Node to, boolean car, boolean bike, boolean walk, boolean fastest) throws NoNavigationResultException {
-        ArrayList<Node> path = dijkstra.getPath(from, to, car, bike, walk, fastest);
-        currentDijkstraRoute = new ArrayList<>();
-        if (path.size() > 0) {
-            Way route = new Way();
-            Node start = path.get(0);
-            Node end = path.get(path.size() - 1);
-            setRouteElementType(route, start, end);
-
-            route.setType("navigation");
-            for (int i = 0; i < path.size() - 1; i++) {
-                route.addNode(path.get(i));
-            }
-            currentDijkstraRoute.add(route);
-            currentDijkstraRoute.add(start);
-            currentDijkstraRoute.add(end);
-        }
-    }
-
-    public double getDistanceNav() throws NoNavigationResultException {
-        return dijkstra.getTotalDistance();
-    }
-
-    public double getTimeNav() throws NoNavigationResultException {
-        return dijkstra.getTotalTime();
-    }
-
     public void addToUserPointList(Node toAdd) {
         toAdd.setType("user_added");
         userAddedPoints.add(toAdd);
     }
 
-    public ArrayList<Node> getUserAddedPoints() {
+    public List<Node> getUserAddedPoints() {
         return userAddedPoints;
     }
 
-    private void setRouteElementType(Way way, Node start, Node end) {
-        way.setType("navigation");
-        start.setType("start_route_note");
-        end.setType("end_route_note");
+    /**
+     * Defines a custom read object method for deserialization of MapData
+     * to ensure no NullPointerExceptions are thrown because of transient fields.
+     *
+     * @param in the ObjectInputStream used for reading the object.
+     * @throws IOException if the file could not be found or the stream is interrupted.
+     * @throws ClassNotFoundException if used class could not be found.
+     */
+    @Serial
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        currentRoute = new ArrayList<>();
+        userAddedPoints = new ArrayList<>();
     }
 
-    public ArrayList<Element> getCurrentDjikstraRoute() {
-        return currentDijkstraRoute;
+    public List<Element> getCurrentRoute() {
+        return currentRoute;
     }
 
-    public void removeCurrentDijkstraRoute() {
-        currentDijkstraRoute = new ArrayList<>();
+    public void setCurrentRoute(List<Element> currentRoute) {
+        this.currentRoute = currentRoute;
     }
 
     public ArrayList<ArrayList<Element>> getMapSegment() {
         return mapSegment;
     }
 
-    public Node getAddressNode(String address) {
-        return addressTree.getAddressNode(address);
-    }
 
     public String getTextFromElement(Element element) {
-        String result = elementToText.get(element);
-        return result;
+        return elementToText.get(element);
+    }
+
+    public List<AddressTrieNode> getAutoCompleteAdresses(String prefix){
+        return addressTree.searchWithPrefix(prefix);
     }
 
     public void setElementToText(HashMap<Element, String> elementToCityname) {
         this.elementToText = elementToCityname;
+    }
+
+
+    public ElementToElementsTreeMap<Node, Relation> getNodeToRestriction() {
+        return nodeToRestriction;
+    }
+
+    public ElementToElementsTreeMap<Node, Way> getNodeToHighWay() {
+        return nodeToHighWay;
+    }
+
+    public ElementToElementsTreeMap<Way, Relation> getWayToRestriction() {
+        return wayToRestriction;
     }
 
     public float getMinX() {
