@@ -13,6 +13,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public class MapData implements Serializable {
@@ -137,6 +138,10 @@ public class MapData implements Serializable {
 
     public ArrayList<String> getDirections() { // TODO: 4/28/21 what if no directions yet?
         return routeNavigation.getDirections();
+    }
+
+    public HashSet<String> getSpecialPathFeatures() {
+        return routeNavigation.getSpecialPathFeatures();
     }
 
     public double getDistanceNav() throws NoNavigationResultException {

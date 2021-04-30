@@ -206,6 +206,7 @@
                         </HBox>
                         <Button fx:id="searchNav" text="Search" onAction="#searchNav"/>
                         <Label fx:id="distanceAndTimeNav" visible="false"></Label>
+                        <Label fx:id="specialPathFeaturesNav" visible="false"></Label>
                         <ScrollPane fx:id="directionsScrollPane" visible="false">
                             <VBox fx:id="directionsBox"></VBox>
                         </ScrollPane>

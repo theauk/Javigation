@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 
 public class Controller {
@@ -109,6 +110,7 @@ public class Controller {
     @FXML private RadioMenuItem aStarNav;
     @FXML private VBox directionsBox;
     @FXML private ScrollPane directionsScrollPane;
+    @FXML private Label specialPathFeaturesNav;
 
     @FXML private ComboBox<String> dropDownPoints;
     @FXML private TextField textFieldPointName;
@@ -647,6 +649,7 @@ public class Controller {
         try {
             mapData.setRoute(currentFromNode, currentToNode, radioButtonCarNav.isSelected(), radioButtonBikeNav.isSelected(), radioButtonWalkNav.isSelected(), radioButtonFastestNav.isSelected(), aStarNav.isSelected());
             setDistanceAndTimeNav(mapData.getDistanceNav(), mapData.getTimeNav());
+            setSpecialPathFeatures(mapData.getSpecialPathFeatures());
             setDirections(mapData.getDirections());
             mapCanvas.repaint();
         } catch (NoNavigationResultException e) {
@@ -688,6 +691,15 @@ public class Controller {
 
     public void hideDistanceAndTimeNav() {
         distanceAndTimeNav.setVisible(false);
+    }
+
+    public void setSpecialPathFeatures(HashSet<String> specialPathFeatures) {
+        StringBuilder labelText = new StringBuilder();
+        for (String s : specialPathFeatures) {
+            labelText.append("This route includes ").append(s).append("\n");
+        }
+        specialPathFeaturesNav.setText(labelText.toString());
+        specialPathFeaturesNav.setVisible(true);
     }
 
     @FXML
