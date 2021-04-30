@@ -13,10 +13,6 @@ import bfst21.utils.VehicleType;
 import bfst21.view.CanvasBounds;
 import bfst21.view.MapCanvas;
 import bfst21.view.Theme;
-import bfst21.view.CanvasBounds;
-import bfst21.view.CustomKeyCombination;
-import bfst21.view.MapCanvas;
-import bfst21.view.Theme;
 import javafx.animation.FadeTransition;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -652,6 +648,8 @@ public class Controller {
         routeNavigation.setOnSucceeded(e -> {
             mapData.setCurrentRoute(routeNavigation.getValue());
             setDistanceAndTimeNav(routeNavigation.getTotalDistance(), routeNavigation.getTotalTime());
+            setDirections(routeNavigation.getDirections());
+            setSpecialPathFeatures(routeNavigation.getSpecialPathFeatures());
             mapCanvas.repaint();
         });
         routeNavigation.setOnFailed(e -> showDialogBox("No Route Found", routeNavigation.getException().getMessage()));
