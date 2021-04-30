@@ -9,17 +9,17 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class RTreeHolder {
-    private ArrayList<RTree> rTrees;
+    private ArrayList<RTree> rTreeList;
     private int returnListSize;
     private Map<String, Byte> zoomMap;
     private RTree closetRoadRTree;
 
     public RTreeHolder(int minimumChildren, int maximumChildren, int numberOfCoordinates, int returnListSize){
-        rTrees = new ArrayList<>();
+        rTreeList = new ArrayList<>();
         this.returnListSize = returnListSize;
         zoomMap = MapCanvas.zoomMap;
-        for(int i= 0; i<zoomMap.size(); i++){
-            rTrees.add(new RTree(maximumChildren, minimumChildren, numberOfCoordinates));
+        for(int i= 0; i<MapCanvas.MAX_ZOOM_LEVEL; i++){
+            rTreeList.add(new RTree(minimumChildren, maximumChildren, numberOfCoordinates));
         }
     }
 
@@ -30,14 +30,14 @@ public class RTreeHolder {
     public void insert(Element element){
         String type = element.getType();
         if(zoomMap.get(type) != null) {
-            rTrees.get(zoomMap.get(type)).insert(element);
+            rTreeList.get(zoomMap.get(type)).insert(element);
         }
     }
 
     public ArrayList<ArrayList<Element>> search(float xMin, float xMax, float yMin, float yMax, boolean debug, int currentZoomLevel){
         ArrayList<ArrayList<Element>> results = getCleanArrayList();
         for(int i = 0; i<= currentZoomLevel; i++){
-            rTrees.get(i).search(xMin, xMax, yMin, yMax, debug, results);
+                rTreeList.get(i).search(xMin, xMax, yMin, yMax, debug, results);
         }
 
         return results;

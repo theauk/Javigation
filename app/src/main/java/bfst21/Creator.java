@@ -232,7 +232,8 @@ public class Creator extends Task<MapData> {
                                         node.setLayer(4);
                                         nullifyAddress();
                                     } else {
-                                        if (node.hasType()) rTreeHolder.insert(node);
+                                        if (node.hasType())
+                                        {rTreeHolder.insert(node);}
                                         idToNode.put(node);
                                     }
                                     node = null;

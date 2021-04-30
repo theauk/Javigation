@@ -60,10 +60,8 @@ public class RTree implements Serializable {
             } else {
                 search(searchCoordinates, root, results);
             }
-            return results;
-        } else {
-            throw new RuntimeException("No elements in the RTree");
         }
+        return results;
     }
 
 

@@ -67,7 +67,7 @@ public class MapData implements Serializable {
     }
 
     public void searchInData(CanvasBounds bounds, int zoomLevel) {
-        mapSegment = rTreeHolder.search(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY(), rTreeDebug, zoomLevel);
+        mapSegment = rTreeHolder.search(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY(), rTreeDebug, zoomLevel-1);
     }
 
     public void setRTreeDebug(boolean selected) {
