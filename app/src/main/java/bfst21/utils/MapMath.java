@@ -3,15 +3,15 @@ package bfst21.utils;
 import bfst21.Osm_Elements.Node;
 import javafx.geometry.Point2D;
 
+import java.util.List;
+
 /**
  * The MapMath class is a collection of useful math operations used when working with maps.
  * It cannot be extended! (Hence final).
  */
 public final class MapMath {
 
-    private MapMath() {
-
-    }
+    private MapMath() { }
 
     /**
      * Calculates the cross product between the two vectors from p1 to p2 na dp2 to p3.
@@ -49,9 +49,9 @@ public final class MapMath {
      * @param p3 the end point.
      * @return the turn angle between the p1 and p3.
      */
-    public static double turnAngle(Point2D p1, Point2D p2, Point2D p3) {
-        double v1 = Math.atan2(p3.getY() - p1.getY(), p3.getX() - p1.getX());
-        double v2 = Math.atan2(p2.getY() - p1.getY(), p2.getX() - p1.getX());
+    public static double turnAngle(Node p1, Node p2, Node p3) {
+        double v1 = Math.atan2(p3.getyMax() - p1.getyMax(), p3.getxMax() - p1.getxMax());
+        double v2 = Math.atan2(p2.getyMax() - p1.getyMax(), p2.getxMax() - p1.getxMax());
         double result = v1 - v2;
 
         if(result > Math.PI) result -= 2 * Math.PI;
@@ -72,8 +72,7 @@ public final class MapMath {
     }
 
     /**
-     * <p>Calculates a compass direction from a bearing angle between two points.</p>
-     * <img src="http://www.mathsmutt.co.uk/files/Bearings_files/bear2.gif" width="400" height="400">
+     * Calculates a compass direction from a bearing angle between two points.
      *
      * @param bearing the bearing angle.
      * @return a String containing a compass direction ranging from NORTH, NORTH EAST, EAST and so forth or UNKNOWN if not found.
@@ -122,10 +121,15 @@ public final class MapMath {
      */
     public static double distanceBetween(Point2D p1, Point2D p2) {
         //Adapted from https://www.movable-type.co.uk/scripts/latlong.html
+        p1 = convertToGeoCoords(p1);
+        p2 = convertToGeoCoords(p2);
+
         double earthRadius = 6371e3; //in meters
 
-        double lat1 = Math.toRadians(p1.getX());
-        double lat2 = Math.toRadians(p2.getX());
+        //double lat1 = Math.toRadians(p1.getX()); // TODO: 4/29/21 what on earth...? Det her tror jeg virker
+        //double lat2 = Math.toRadians(p2.getX());
+        double lat1 = p1.getX();
+        double lat2 = p2.getX();
         double lon1 = p1.getY();
         double lon2 = p2.getY();
 
@@ -141,13 +145,18 @@ public final class MapMath {
     /**
      * Converts a y-coordinate to a geographical one.
      *
-     * @param yCoordinate the y-coordinate to be converted.
-     * @return the y-coordinate converted to a geographical coordinate.
+     * @param yCoordinate The y-coordinate to be converted.
+     * @return The y-coordinate converted to a geographical coordinate.
      */
     public static double convertToGeo(double yCoordinate) {
         return -yCoordinate * 0.56f;
     }
 
+    /**
+     * Converts a screen coordinate to a geo-coordinate.
+     * @param yCoordinate The coordinate as a screen coordinate.
+     * @return
+     */
     public static double convertToScreen(double yCoordinate) {
         return yCoordinate / -0.56f;
     }
@@ -155,8 +164,8 @@ public final class MapMath {
     /**
      * Converts a point to a geographical point in (lat, lon).
      *
-     * @param p the point to be converted.
-     * @return a converted geographical point written as (latitude, longitude).
+     * @param p The point to be converted.
+     * @return A converted geographical point written as (latitude, longitude).
      */
     public static Point2D convertToGeoCoords(Point2D p) {
         return new Point2D(convertToGeo(p.getY()), p.getX());
@@ -172,5 +181,26 @@ public final class MapMath {
     public static double round(double number, int digits) {
         double scale = Math.pow(10, digits);
         return Math.round(number * scale) / scale;
+    }
+
+    /**
+     * Takes a string in the format hh:mm and converts it to total hours.
+     * @param colonTime The time to be converted in the format hh:mm.
+     * @return The time in hours.
+     */
+    public static double colonTimeToHours(String colonTime) {
+        String[] timeParts = colonTime.split(":");
+        double hours = Double.parseDouble(timeParts[0]);
+        double minutes = Double.parseDouble(timeParts[1]);
+        hours += minutes / 60;
+        return hours;
+    }
+
+    public static double getTotalDistance(List<Node> nodes) {
+        double distance = 0;
+        for (int i = 0; i < nodes.size() - 1; i++) {
+            distance += distanceBetweenTwoNodes(nodes.get(i), nodes.get(i + 1));
+        }
+        return distance / 1000;
     }
 }

@@ -13,6 +13,10 @@ import bfst21.utils.VehicleType;
 import bfst21.view.CanvasBounds;
 import bfst21.view.MapCanvas;
 import bfst21.view.Theme;
+import bfst21.view.CanvasBounds;
+import bfst21.view.CustomKeyCombination;
+import bfst21.view.MapCanvas;
+import bfst21.view.Theme;
 import javafx.animation.FadeTransition;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -38,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 
 public class Controller {
@@ -91,12 +96,10 @@ public class Controller {
     @FXML private MenuItem zoomOutItem;
     @FXML private MenuItem dumpItem;
     @FXML private RadioMenuItem rTreeDebug;
+    @FXML private RadioMenuItem kdTreeNearestNode;
 
     @FXML private Button zoomInButton;
     @FXML private Button zoomOutButton;
-    @FXML private Button chooseCorButtonFromNav;
-    @FXML private Button chooseCorButtonToNav;
-    @FXML private Button searchNav;
 
     @FXML private TextField textFieldFromNav;
     @FXML private TextField textFieldToNav;
@@ -108,8 +111,10 @@ public class Controller {
     @FXML private RadioButton radioButtonFastestNav;
     @FXML private RadioButton radioButtonShortestNav;
     @FXML private Label distanceAndTimeNav;
-    @FXML private RadioMenuItem dijkstraNav;
     @FXML private RadioMenuItem aStarNav;
+    @FXML private VBox directionsBox;
+    @FXML private ScrollPane directionsScrollPane;
+    @FXML private Label specialPathFeaturesNav;
 
     @FXML private ComboBox<String> dropDownPoints;
     @FXML private TextField textFieldPointName;
@@ -162,14 +167,14 @@ public class Controller {
             @Override
             public void changed(ObservableValue<? extends String> observable,
                                 String oldValue, String newValue) {
-                if(newValue.length()>2) fillAutoCompleteText(autoCompleteFromNav, true);
+                if (newValue.length() > 2) fillAutoCompleteText(autoCompleteFromNav, true);
             }
         });
         textFieldToNav.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable,
                                 String oldValue, String newValue) {
-                if(newValue.length()>2) fillAutoCompleteText(autoCompleteToNav, false);
+                if (newValue.length() > 2) fillAutoCompleteText(autoCompleteToNav, false);
             }
         });
 
@@ -196,8 +201,10 @@ public class Controller {
      */
     @FXML
     private void zoom(ActionEvent e) {
-        if (e.getSource().equals(zoomInItem) || e.getSource().equals(zoomInButton)) zoom(true, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
-        else if (e.getSource().equals(zoomOutItem) || e.getSource().equals(zoomOutButton)) zoom(false, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
+        if (e.getSource().equals(zoomInItem) || e.getSource().equals(zoomInButton))
+            zoom(true, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
+        else if (e.getSource().equals(zoomOutItem) || e.getSource().equals(zoomOutButton))
+            zoom(false, new Point2D(mapCanvas.getWidth() / 2, mapCanvas.getHeight() / 2));
     }
 
     /**
@@ -265,19 +272,19 @@ public class Controller {
     private void onKeyPressed(KeyEvent e) {
         int acceleration = 50;
 
-        if(upLeftCombination.match(e)) mapCanvas.pan(acceleration, acceleration);
-        else if(upRightCombination.match(e)) mapCanvas.pan(-acceleration, acceleration);
-        else if(downLeftCombination.match(e)) mapCanvas.pan(acceleration, -acceleration);
-        else if(downRightCombination.match(e)) mapCanvas.pan(-acceleration, -acceleration);
-        else if(e.getCode().equals(KeyCode.UP)) mapCanvas.pan(0, acceleration);
-        else if(e.getCode().equals(KeyCode.DOWN)) mapCanvas.pan(0, -acceleration);
-        else if(e.getCode().equals(KeyCode.LEFT)) mapCanvas.pan(acceleration, 0);
-        else if(e.getCode().equals(KeyCode.RIGHT)) mapCanvas.pan(-acceleration, 0);
+        if (upLeftCombination.match(e)) mapCanvas.pan(acceleration, acceleration);
+        else if (upRightCombination.match(e)) mapCanvas.pan(-acceleration, acceleration);
+        else if (downLeftCombination.match(e)) mapCanvas.pan(acceleration, -acceleration);
+        else if (downRightCombination.match(e)) mapCanvas.pan(-acceleration, -acceleration);
+        else if (e.getCode().equals(KeyCode.UP)) mapCanvas.pan(0, acceleration);
+        else if (e.getCode().equals(KeyCode.DOWN)) mapCanvas.pan(0, -acceleration);
+        else if (e.getCode().equals(KeyCode.LEFT)) mapCanvas.pan(acceleration, 0);
+        else if (e.getCode().equals(KeyCode.RIGHT)) mapCanvas.pan(-acceleration, 0);
     }
 
     @FXML
     private void onKeyReleased() {
-        if(CustomKeyCombination.keyCodes.size() == 0) mapCanvas.updateMap();
+        if (CustomKeyCombination.keyCodes.size() == 0) mapCanvas.updateMap();
     }
 
     @FXML
@@ -295,9 +302,9 @@ public class Controller {
         Alert warning = createAlert(Alert.AlertType.WARNING, "Dump MapData", "MapData Dump", contentText, ButtonType.YES, ButtonType.NO);
         warning.showAndWait();
 
-        if(warning.getResult() == ButtonType.YES) {
+        if (warning.getResult() == ButtonType.YES) {
             File file = showFileChooser("save").showSaveDialog(scene.getWindow());
-            if(file != null) {
+            if (file != null) {
                 Serializer serializer = new Serializer(mapData, file);
                 showLoaderPane(true);
 
@@ -388,7 +395,7 @@ public class Controller {
     }
 
     private void taskFailed(Task<?> task, boolean showMap) {
-        if(showMap) {
+        if (showMap) {
             state = State.MAP;
             showLoaderPane(false);
         }
@@ -483,7 +490,7 @@ public class Controller {
     }
 
     private void setNearestRoadLabel(double x, double y) {
-        nearestRoadLabel.setText("Nearest Road: " + mapData.getNearestRoad((float) x, (float) y));
+        nearestRoadLabel.setText("Nearest Road: " + mapData.getNearestRoad((float) x, (float) y, kdTreeNearestNode.isSelected()));
     }
 
     private void setBoundsLabels() {
@@ -498,12 +505,12 @@ public class Controller {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Desktop"));
 
-        if(option.equals("open")) {
+        if (option.equals("open")) {
             fileChooser.setTitle("Open File");
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All OSM Files", "*.osm", "*zip", "*.bmapdata"));
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("OSM File", "*.osm"));
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Zipped OSM File", "*zip"));
-        } else if(option.equals("save")) {
+        } else if (option.equals("save")) {
             fileChooser.setTitle("Save File");
             fileChooser.setInitialFileName("binary_map_data");
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Binary MapData", "*.bmapdata"));
@@ -512,9 +519,8 @@ public class Controller {
         return fileChooser;
     }
 
-    private void fillAutoCompleteText(VBox autoComplete, boolean fromNav){
+    private void fillAutoCompleteText(VBox autoComplete, boolean fromNav) {
         autoComplete.getChildren().removeAll(autoComplete.getChildren());
-
         fillAutoCompleteText(fromNav);
     }
 
@@ -534,13 +540,12 @@ public class Controller {
                     ScrollpaneAutoCompleteToNav.setVisible(true);
                 }
             }
-
     }
 
 
-    private void labelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav){
+    private void labelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav) {
 
-        for (Map.Entry<String, String> entry : addressNode.getAddresses().entrySet()){
+        for (Map.Entry<String, String> entry : addressNode.getAddresses().entrySet()) {
             String address = entry.getValue();
             Label label = new Label(address);
             autoComplete.getChildren().add(label);
@@ -548,7 +553,7 @@ public class Controller {
             label.setOnMouseClicked((ActionEvent) -> {
                 autoComplete.getChildren().removeAll(autoComplete.getChildren());
 
-                fullAddressLabelForAutoComplete(addressNode, autoComplete, textField,  scrollPane,  fromNav, entry.getKey());
+                fullAddressLabelForAutoComplete(addressNode, autoComplete, textField, scrollPane, fromNav, entry.getKey());
 
             });
         }
@@ -617,12 +622,14 @@ public class Controller {
     public void searchNav() {
         if (currentToNode == null || currentFromNode == null) {
             showDialogBox("Navigation Error", "Please enter both from and to");
+        } else if (currentFromNode == currentToNode) {
+            showDialogBox("Navigation Error", "From and to are the same entries");
         } else if (vehicleNavGroup.getSelectedToggle() == null) {
             showDialogBox("Navigation Error", "Please select a vehicle type");
         } else if (!radioButtonFastestNav.isSelected() && !radioButtonShortestNav.isSelected()) {
             showDialogBox("Navigation Error", "Please select either fastest or shortest");
         } else {
-            getDijkstraPath();
+            getRoute();
         }
     }
 
@@ -637,7 +644,8 @@ public class Controller {
         return alert;
     }
 
-    public void getDijkstraPath() {
+    @FXML
+    public void getRoute() {
         routeNavigation.setupRoute(currentFromNode, currentToNode, (VehicleType) vehicleNavGroup.getSelectedToggle().getUserData(), radioButtonFastestNav.isSelected(), aStarNav.isSelected());
         routeNavigation.startRouting();
 
@@ -650,6 +658,20 @@ public class Controller {
         mapCanvas.repaint();
     }
 
+    public void setDirections(ArrayList<String> directions) {
+        directionsBox.getChildren().removeAll(directionsBox.getChildren());
+        int order = 1;
+        for (String s : directions) {
+            Label l = new Label(order + ". " + s);
+            directionsBox.getChildren().add(l);
+            directionsBox.getChildren().add(new Label(""));
+            order++;
+        }
+        directionsScrollPane.setMinSize(160, 200);
+        directionsScrollPane.setPrefSize(160, 200);
+        directionsScrollPane.setVisible(true);
+    }
+
     public void setDistanceAndTimeNav(double distance, double time) {
         distanceAndTimeNav.setVisible(true);
         String s = "Total distance: ";
@@ -657,19 +679,28 @@ public class Controller {
         if (distance < 1000) {
             s += MapMath.round(distance, 0) + " m";
         } else {
-            s += MapMath.round(distance / 1000f, 2) + " km";
+            s += MapMath.round(distance / 1000f, 3) + " km";
         }
 
         if (time < 60) {
             s += " , Total time: " + MapMath.round(time, 0) + " s";
         } else {
-            s += " , Total time: " + MapMath.round(time / 60f, 2) + " min";
+            s += " , Total time: " + MapMath.round(time / 60f, 3) + " min";
         }
         distanceAndTimeNav.setText(s);
     }
 
     public void hideDistanceAndTimeNav() {
         distanceAndTimeNav.setVisible(false);
+    }
+
+    public void setSpecialPathFeatures(HashSet<String> specialPathFeatures) {
+        StringBuilder labelText = new StringBuilder();
+        for (String s : specialPathFeatures) {
+            labelText.append("This route includes ").append(s).append("\n");
+        }
+        specialPathFeaturesNav.setText(labelText.toString());
+        specialPathFeaturesNav.setVisible(true);
     }
 
     @FXML
@@ -682,7 +713,8 @@ public class Controller {
 
     @FXML
     public void addUserPoint(ActionEvent actionEvent) {
-        if (textFieldPointName.getText().equals("")) showDialogBox("User added point error", "Please input name for your point");
+        if (textFieldPointName.getText().equals(""))
+            showDialogBox("User added point error", "Please input name for your point");
         else {
             EventHandler<MouseEvent> event = new EventHandler<>() {
                 @Override

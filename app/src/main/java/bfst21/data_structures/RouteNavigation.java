@@ -13,10 +13,9 @@ import javafx.geometry.Point2D;
 
 import java.util.*;
 
-public class RouteNavigation extends Service<List<Element>> {
-    // TODO: 4/10/21 Add restrictions
-    // TODO: 4/19/21 Hide fastest for bike/walk in the view.
+public class RouteNavigation {
 
+    private Node to;
     private ElementToElementsTreeMap<Node, Way> nodeToWayMap;
     private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
     private ElementToElementsTreeMap<Way, Relation> wayToRestriction;
@@ -27,7 +26,6 @@ public class RouteNavigation extends Service<List<Element>> {
     private boolean aStar;
 
     private List<Node> path;
-    private List<String> routeDescription;
 
     private Map<Node, DistanceAndTimeEntry> unitsTo;
     private Map<Node, Node> nodeBefore;
@@ -36,6 +34,11 @@ public class RouteNavigation extends Service<List<Element>> {
 
     private boolean needToCheckUTurns;
     private final int maxSpeed;
+
+    private double currentDistanceDescription;
+    private double currentTimeDescription;
+    private ArrayList<String> routeDescription;
+    private HashSet<String> specialPathFeatures;
 
     public RouteNavigation() {
         this.maxSpeed = 130;
@@ -89,6 +92,20 @@ public class RouteNavigation extends Service<List<Element>> {
         pq = new PriorityQueue<>((a, b) -> Integer.compare(unitsTo.get(a).compareTo(unitsTo.get(b)), 0)); // different comparator
         pq.add(from);
         unitsTo.put(from, new DistanceAndTimeEntry(0, 0, 0));
+        routeDescription = new ArrayList<>();
+        specialPathFeatures = new HashSet<>();
+    }
+
+    public void setNodeToWayMap(ElementToElementsTreeMap<Node, Way> nodeToWayMap) {
+        this.nodeToWayMap = nodeToWayMap;
+    }
+
+    public void setNodeToRestriction(ElementToElementsTreeMap<Node, Relation> nodeToRestriction) {
+        this.nodeToRestriction = nodeToRestriction;
+    }
+
+    public void setWayToRestriction(ElementToElementsTreeMap<Way, Relation> wayToRestriction) {
+        this.wayToRestriction = wayToRestriction;
     }
 
     /**
@@ -103,20 +120,14 @@ public class RouteNavigation extends Service<List<Element>> {
 
         if (n != to) {
             setup();
-            needToCheckUTurns = true; // TODO: 4/19/21 really not the most beautiful thing...
+            needToCheckUTurns = true; // TODO: 4/19/21 really not the most beautiful thing... for u-turns
             n = checkNode();
-
             if (n != to) throw new NoNavigationResultException();
-            else {
-                path = getTrack(new ArrayList<>(), n);
-                return path;
-            }
-
-        } else {
-            path = getTrack(new ArrayList<>(), n);
-            getRouteDescription();
-            return path;
         }
+        path = getTrack(new ArrayList<>(), n);
+
+        getRouteDescription();
+        return path;
     }
 
 
@@ -141,7 +152,7 @@ public class RouteNavigation extends Service<List<Element>> {
      * @return The total distance.
      */
     public double getTotalDistance() {
-        if (unitsTo.get(to) != null) return unitsTo.get(to).distance; // TODO: 4/26/21 back to exception instead
+        if (unitsTo.get(to) != null) return unitsTo.get(to).distance; // TODO: 4/26/21 back to exception instead?
         else return 0;
     }
 
@@ -152,6 +163,22 @@ public class RouteNavigation extends Service<List<Element>> {
     public double getTotalTime() {
         if (unitsTo.get(to) != null) return unitsTo.get(to).time;
         else return 0;
+    }
+
+    /**
+     * Gets a list of the directions to navigate the computed route.
+     * @return An ArrayList with the directions where each entry is a navigation step.
+     */
+    public ArrayList<String> getDirections() {
+        return routeDescription;
+    }
+
+    /**
+     * Gets a list of special features on a path such as if it is necessary to take a ferry, if the route has tolls, etc. // TODO: 4/29/21 toll??
+     * @return A list of special path features.
+     */
+    public HashSet<String> getSpecialPathFeatures() {
+        return specialPathFeatures;
     }
 
     /**
@@ -172,7 +199,7 @@ public class RouteNavigation extends Service<List<Element>> {
      * Gets a list of the Nodes that make up the path.
      * @param nodes A list of the Nodes making up the path.
      * @param currentNode The Node which should be checked for the Node before it.
-     * @return A list of the Nodes making up the path.
+     * @return A list of the Nodes making up the path in reverse order (to first and from at the end).
      */
     private List<Node> getTrack(List<Node> nodes, Node currentNode) {
         if (currentNode != null) {
@@ -214,7 +241,6 @@ public class RouteNavigation extends Service<List<Element>> {
             }
             if (!adjacentNodes.isEmpty()) {
                 for (Node n : adjacentNodes) {
-                    boolean[] doAdjacentNodesHaveRestrictions = new boolean[adjacentNodes.size()]; // TODO: 4/23/21 delete?
                     if (!isThereARestriction(wayBefore.get(currentFrom), currentFrom, w)) {
                         if (aStar) {
                             checkDistanceAStar(currentFrom, n, w);
@@ -230,8 +256,8 @@ public class RouteNavigation extends Service<List<Element>> {
     /**
      * Gets the Node before a specified Node on a certain Way.
      * @param adjacentNodes The list of adjacent Nodes to the current from Node.
-     * @param w The current Way.
-     * @param currentFrom The current from Node.
+     * @param w             The current Way.
+     * @param currentFrom   The current from Node.
      */
     private void getPreviousNode(List<Node> adjacentNodes, Way w, Node currentFrom) {
         Node previousNode = w.getPreviousNode(currentFrom);
@@ -241,8 +267,8 @@ public class RouteNavigation extends Service<List<Element>> {
     /**
      * Gets the next Node after a specified Node on a certain Way.
      * @param adjacentNodes The list of adjacent Nodes to the current from Node.
-     * @param w The current Way.
-     * @param currentFrom The current from Node.
+     * @param w             The current Way.
+     * @param currentFrom   The current from Node.
      */
     private void getNextNode(List<Node> adjacentNodes, Way w, Node currentFrom) {
         Node nextNode = w.getNextNode(currentFrom);
@@ -253,7 +279,7 @@ public class RouteNavigation extends Service<List<Element>> {
      * Checks if is a _no restriction (e.g. no left-turn).
      * @param fromWay The Way the path is coming from.
      * @param viaNode The Node the path is trying to go via.
-     * @param toWay The Way the path is trying to go to.
+     * @param toWay   The Way the path is trying to go to.
      * @return True if there is a restriction. False if not.
      */
     private boolean isThereARestriction(Way fromWay, Node viaNode, Way toWay) {
@@ -266,17 +292,15 @@ public class RouteNavigation extends Service<List<Element>> {
      * Checks if there is a _no restriction via a specified Node.
      * @param fromWay The Way the path is coming from.
      * @param viaNode The Node the path is trying to go via.
-     * @param toWay The Way the path is trying to go to.
+     * @param toWay   The Way the path is trying to go to.
      * @return True if there is a restriction. False if not.
      */
     private boolean checkRestrictionViaNode(Way fromWay, Node viaNode, Way toWay) {
         List<Relation> restrictionsViaNode = nodeToRestriction.getElementsFromNode(viaNode);
         if (restrictionsViaNode != null) {
             for (Relation restriction : restrictionsViaNode) {
-                if (restriction.getRestriction().contains("no_") && restriction.getFrom() == fromWay && restriction.getViaNode() == viaNode && restriction.getTo() == toWay) { // TODO: 4/19/21 er check med viaNode nødvendigt grundet nodeToorest lookup? same nedenunder for viaWay
+                if (restriction.getRestriction().contains("no_") && restriction.getFrom() == fromWay && restriction.getViaNode() == viaNode && restriction.getTo() == toWay) {
                     return true;
-                } else if (restriction.getRestriction().contains("only_")) { // TODO: 4/20/21 FIX
-                    //System.out.println(fromWay.getName() + " " + viaNode.getId() + " " + toWay.getName());
                 }
             }
         }
@@ -287,7 +311,7 @@ public class RouteNavigation extends Service<List<Element>> {
      * Checks if there is a _no restriction via a specified Way.
      * @param fromWay The Way the path is coming from.
      * @param viaNode The Node the path is trying to go via.
-     * @param toWay The Way the path is trying to go to.
+     * @param toWay   The Way the path is trying to go to.
      * @return True if there is a restriction. False if not.
      */
     private boolean checkRestrictionViaWay(Way fromWay, Node viaNode, Way toWay) {
@@ -306,9 +330,7 @@ public class RouteNavigation extends Service<List<Element>> {
                             unitsTo.put(viaNode, new DistanceAndTimeEntry(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
                         return true;
                     }
-                } //else if (restriction.getRestriction().contains("only_")) { // TODO: 4/20/21 ja....
-
-                //}
+                }
             }
         }
         return false;
@@ -317,25 +339,25 @@ public class RouteNavigation extends Service<List<Element>> {
     /**
      * Find the cost between two Nodes to update the priority queue.
      * @param currentFrom The from Node.
-     * @param currentTo The to Node.
-     * @param w The Way between the two Nodes.
+     * @param currentTo   The to Node.
+     * @param w           The Way between the two Nodes.
      */
     private void checkDistanceAStar(Node currentFrom, Node currentTo, Way w) {
         double currentCost = unitsTo.get(currentTo) == null ? Double.POSITIVE_INFINITY : unitsTo.get(currentTo).cost;
 
-        double distanceBetweenFromTo = getDistanceBetweenTwoNodes(currentFrom, currentTo);
+        double distanceBetweenFromTo = MapMath.distanceBetweenTwoNodes(currentFrom, currentTo);
         double timeBetweenFromTo = getTravelTime(distanceBetweenFromTo, w);
 
         if (fastest) {
             double unitsToCurrentTo = unitsTo.get(currentFrom).time + timeBetweenFromTo;
-            double unitsCurrentToToFinalTo = getDistanceBetweenTwoNodes(currentTo, to) / maxSpeed;
+            double unitsCurrentToToFinalTo = MapMath.distanceBetweenTwoNodes(currentTo, to) / maxSpeed;
             double newCost = unitsToCurrentTo + unitsCurrentToToFinalTo;
             if (newCost < currentCost) {
                 updateMapsAndPQ(currentTo, currentFrom, w, distanceBetweenFromTo, timeBetweenFromTo, newCost);
             }
         } else {
             double unitsToCurrentTo = unitsTo.get(currentFrom).distance + distanceBetweenFromTo;
-            double unitsCurrentToToFinalTo = getDistanceBetweenTwoNodes(currentTo, to);
+            double unitsCurrentToToFinalTo = MapMath.distanceBetweenTwoNodes(currentTo, to);
             double newCost = unitsToCurrentTo + unitsCurrentToToFinalTo;
             if (newCost < currentCost) {
                 updateMapsAndPQ(currentTo, currentFrom, w, distanceBetweenFromTo, timeBetweenFromTo, newCost);
@@ -346,20 +368,20 @@ public class RouteNavigation extends Service<List<Element>> {
     /**
      * Find the units between two Nodes to update the priority queue.
      * @param currentFrom The from Node.
-     * @param currentTo The to Node.
-     * @param w The Way between the Nodes.
+     * @param currentTo   The to Node.
+     * @param w           The Way between the Nodes.
      */
     private void checkDistanceDijkstra(Node currentFrom, Node currentTo, Way w) {
         double currentDistanceTo = unitsTo.get(currentTo) == null ? Double.POSITIVE_INFINITY : unitsTo.get(currentTo).distance;
         double currentTimeTo = unitsTo.get(currentTo) == null ? Double.POSITIVE_INFINITY : unitsTo.get(currentTo).time;
 
-        double distanceBetweenFromTo = getDistanceBetweenTwoNodes(currentFrom, currentTo);
+        double distanceBetweenFromTo = MapMath.distanceBetweenTwoNodes(currentFrom, currentTo);
         double timeBetweenFromTo = getTravelTime(distanceBetweenFromTo, w);
 
         if (fastest) {
             double newCost = unitsTo.get(currentFrom).time + timeBetweenFromTo;
             if (newCost < currentTimeTo) {
-                updateMapsAndPQ(currentTo, currentFrom, w, distanceBetweenFromTo, timeBetweenFromTo, newCost); // TODO: 4/23/21 better way to do the last variable?
+                updateMapsAndPQ(currentTo, currentFrom, w, distanceBetweenFromTo, timeBetweenFromTo, newCost);
             }
         } else {
             double newCost = unitsTo.get(currentFrom).distance + distanceBetweenFromTo;
@@ -375,8 +397,8 @@ public class RouteNavigation extends Service<List<Element>> {
      * @param currentFrom The to Node.
      * @param w The Way between the Nodes.
      * @param distanceBetweenFromTo The distance between the two Nodes.
-     * @param timeBetweenFromTo The travelling time between the two Nodes.
-     * @param newCost The cost between the two Nodes.
+     * @param timeBetweenFromTo     The travelling time between the two Nodes.
+     * @param newCost               The cost between the two Nodes.
      */
     private void updateMapsAndPQ(Node currentTo, Node currentFrom, Way w, double distanceBetweenFromTo, double timeBetweenFromTo, double newCost) {
         nodeBefore.put(currentTo, currentFrom);
@@ -387,33 +409,10 @@ public class RouteNavigation extends Service<List<Element>> {
         pq.add(currentTo);
     }
 
-    private double getDistanceBetweenTwoNodes(Node from, Node to) {
-        //Adapted from https://www.movable-type.co.uk/scripts/latlong.html
-        //Calculations need y to be before x in a point.
-        double earthRadius = 6371e3; //in meters
-
-        double lat1 = convertToGeo(from.getyMax());
-        double lat2 = convertToGeo(to.getyMax());
-        double lon1 = from.getxMax();
-        double lon2 = to.getxMax();
-
-        double deltaLat = Math.toRadians(lat2 - lat1);
-        double deltaLon = Math.toRadians(lon2 - lon1);
-
-        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return earthRadius * c;
-    }
-
-    private double convertToGeo(double value) {
-        return -value * 0.56f;
-    }
-
     /**
      * Gets the travel time for a given distance and speed.
      * @param distance The distance to be used for the calculation.
-     * @param w The Way used to find the speed if travelling by car.
+     * @param w        The Way used to find the speed if travelling by car.
      * @return The travelling time.
      */
     private double getTravelTime(double distance, Way w) {
@@ -424,89 +423,207 @@ public class RouteNavigation extends Service<List<Element>> {
         return distance / (speed * (5f / 18f));
     }
 
-    public void dumpPath() {
-        for(int j = 0; j < path.size(); j++) {
-            System.out.println("(" + path.get(j).getxMax() + ", " + convertToGeo(path.get(j).getyMax()) + ")");
-        }
+    /**
+     * Gets the route description.
+     */
+    private void getRouteDescription() {
+        currentDistanceDescription = unitsTo.get(path.get(path.size() - 2)).distance - unitsTo.get(path.get(path.size() - 1)).distance;
+        currentTimeDescription = unitsTo.get(path.get(path.size() - 2)).time - unitsTo.get(path.get(path.size() - 1)).time;
+
+        if (path.size() >= 3) getRouteDescriptionMoreThanTwoNodes();
+        else getRouteDescriptionLessThanThreeNodes();
     }
 
-    private String lastDirection;
-    private String currentDirection;
-    private double turnAngleThreshold = 5.0;
-
-    private String getDirection(Point2D from, Point2D via, Point2D to) {
-        double angle = MapMath.turnAngle(from, via, to);
-
-        //System.out.println("Angle: " + angle);
-
-        //LEFT NEGATIVE
-        //RIGHT POSITIVE
-        if(angle > turnAngleThreshold) return "RIGHT";
-        if(angle < -turnAngleThreshold) return "LEFT";
-        else return "STRAIGHT";
+    /**
+     * Gets the route description for a path that has less than three nodes.
+     */
+    private void getRouteDescriptionLessThanThreeNodes() {
+        Node f = path.get(path.size() - 1);
+        Node t = path.get(path.size() - 2);
+        routeDescription.add("Head " + MapMath.compassDirection(f, t).toLowerCase() + " on " + wayBefore.get(t).getName() + " and you will arrive at your destination" + getCurrentDistanceAndTimeText());
     }
 
-    public void calculateResult(Point2D from, Point2D via, Point2D to) {
-        //System.out.println("Calculate Result");
+    /**
+     * Gets the route description for a path that has more than two nodes.
+     */
+    private void getRouteDescriptionMoreThanTwoNodes() {
+        boolean roundabout = false;
+        boolean keepRight = false;
+        boolean ferry = false;
+        int roundAboutStartNodeIndex = 0;
 
-        //System.out.println("F = (" + from.getX() + ", " + from.getY() + ")");
-        //System.out.println("V = (" + via.getX() + ", " + via.getY() + ")");
-        //System.out.println("T = (" + to.getX() + ", " + to.getY() + ")");
-
-        currentDirection = getDirection(from, via, to);
-
-        if(!currentDirection.equals(lastDirection)) {
-            //if(lastDirection == null) System.out.println("Go " + MapMath.compassDirection(from, via));   //START POINT
-        }
-
-        if(currentDirection.equals("LEFT")) {
-            //System.out.println("Go LEFT");
-        }
-        else if(currentDirection.equals("RIGHT")) {
-            //System.out.println("Go RIGHT");
-        }
-        else if(currentDirection.equals("STRAIGHT")) {
-            //System.out.println("Go STRAIGHT");
-        }
-
-        lastDirection = currentDirection;
-    }
-
-    public void getRouteDescription() {
-        //System.err.println("Size: " + path.size());
-        //if(path.size() % 3 != 0) System.err.println("Warning can't do 3 each time!");
-        lastDirection = null;
-
-        for (int i = path.size() - 1; i >= 0; i--) {
-            if(i - 2 < 0) {
-                //System.err.println("SKIPPING 2");
-                break;
-            }
-
+        for (int i = path.size() - 1; i >= 2; i--) {
             Node f = path.get(i);
             Node v = path.get(i - 1);
             Node t = path.get(i - 2);
+            Way wayBeforeVia = wayBefore.get(v);
+            Way wayBeforeTo = wayBefore.get(t);
+            String wayBeforeViaName = wayBeforeVia.getName() != null ? wayBeforeVia.getName() : "unnamed road";
+            String wayBeforeToName = wayBeforeTo.getName() != null ? wayBeforeTo.getName() : "unnamed road";
 
-            Point2D from = MapMath.convertToGeoCoords(new Point2D(f.getxMax(), f.getyMax()));
-            Point2D via = MapMath.convertToGeoCoords(new Point2D(v.getxMax(), v.getyMax()));
-            Point2D to = MapMath.convertToGeoCoords(new Point2D(t.getxMax(), t.getyMax()));
+            if (!wayBeforeViaName.equals(wayBeforeToName)) {
+                if (roundabout) {
+                    routeDescription.add(getRoundaboutText(roundAboutStartNodeIndex, i, wayBeforeVia, wayBeforeToName));
+                    roundabout = false;
+                } else if (ferry) {
+                    routeDescription.add(getFerryText(wayBeforeViaName));
+                    ferry = false;
+                } else {
+                    if (keepRight) {
+                        routeDescription.add(getKeepRightText(wayBeforeViaName));
+                        keepRight = false;
+                    } else {
+                        routeDescription.add("Follow " + wayBeforeViaName + getCurrentDistanceAndTimeText());
+                    }
 
-            calculateResult(from, via, to);
+                    currentDistanceDescription = unitsTo.get(t).distance - unitsTo.get(v).distance;
+                    currentTimeDescription = unitsTo.get(t).time - unitsTo.get(v).time;
 
-            //System.out.println();
+                    String directionBetweenViaAndToWay = getDirection(MapMath.turnAngle(f, v, t), wayBeforeTo, wayBeforeToName);
+                    switch (directionBetweenViaAndToWay) {
+                        case "ROUNDABOUT" -> {
+                            roundabout = true;
+                            roundAboutStartNodeIndex = i - 1;
+                        }
+                        case "KEEP_RIGHT" -> keepRight = true;
+                        case "FERRY" -> {
+                            ferry = true;
+                            specialPathFeatures.add("a ferry");
+                        }
+                        default -> routeDescription.add(directionBetweenViaAndToWay);
+                    }
+                }
+            } else {
+                currentDistanceDescription += unitsTo.get(t).distance - unitsTo.get(v).distance;
+                currentTimeDescription += unitsTo.get(t).time - unitsTo.get(v).time;
+            }
+        }
+
+        routeDescription.add(getArrivedAtDestinationText(roundabout, ferry));
+        fixFirstDirection();
+    }
+
+    /**
+     * Gets the current distance and time as a string on different lines.
+     * @return The current distance and time on different lines.
+     */
+    private String getCurrentDistanceAndTimeText() {
+        return "\n" + currentDistanceDescription + " m " + "\n" + currentTimeDescription + " s";
+    }
+
+    /**
+     * Gets the direction for a ferry.
+     * @param wayBeforeViaName The name of the way before the via Node.
+     * @return The ferry direction string.
+     */
+    private String getFerryText(String wayBeforeViaName) {
+        return "Take the " + wayBeforeViaName + " ferry " + getCurrentDistanceAndTimeText(); // TODO: 4/29/21 time in this case?
+    }
+
+    /**
+     * Gets the direction text for a roundabout, including the exit number.
+     * @param roundAboutStartNodeIndex The index on the path where it enters the roundabout.
+     * @param i The current index.
+     * @param wayBeforeVia The way before the via Node.
+     * @param wayBeforeToName The name of the way before the to Node.
+     * @return The direction string for the roundabout.
+     */
+    private String getRoundaboutText(int roundAboutStartNodeIndex, int i, Way wayBeforeVia, String wayBeforeToName) {
+        return "At the roundabout, take the " + getRoundaboutExit(roundAboutStartNodeIndex, i - 1, wayBeforeVia) + ". exit onto " + wayBeforeToName + getCurrentDistanceAndTimeText();
+    }
+
+    /**
+     * Gets the text for keep right directions.
+     * @param wayBeforeViaName The name of the way which should be kept right on.
+     * @return The keep right direction.
+     */
+    private String getKeepRightText(String wayBeforeViaName) {
+        String keepRightName = "";
+        if (wayBeforeViaName.contains("Exit")) keepRightName = " and take " + wayBeforeViaName;
+        else if (!wayBeforeViaName.equals("unnamed way")) keepRightName = " on " + wayBeforeViaName;
+        return "Keep right" + keepRightName + getCurrentDistanceAndTimeText();
+    }
+
+    /**
+     * Gets the final text for the direction, which informs the user that they have arrived at their destination.
+     * @param roundabout If the route ends in a roundabout.
+     * @param ferry If the route ends on a ferry.
+     * @return The final direction.
+     */
+    private String getArrivedAtDestinationText(boolean roundabout, boolean ferry) {
+        String text = "";
+        String wayName = wayBefore.get(path.get(0)).getName();
+        if (wayName.equals("null")) wayName = "unnamed way";
+
+        if (roundabout) text = "Follow the roundabout";
+        else if (ferry) text = "Take the " + wayName + " ferry";
+        else text = "Follow " + wayName;
+
+        text += " and you will arrive at your destination" + getCurrentDistanceAndTimeText();
+        return text;
+    }
+
+    /**
+     * Gets the direction between two ways depending on the angle between them and the type of the current to way.
+     * @param angle The angle between two ways.
+     * @param wayBeforeTo The way before the current to Node.
+     * @param wayBeforeToName The name of the way before the current to Node.
+     * @return The direction between two ways.
+     */
+    private String getDirection(double angle, Way wayBeforeTo, String wayBeforeToName) {
+
+        System.out.println("Angle: " + angle);
+        String type = wayBeforeTo.getType();
+
+        if (type.contains("_toll")) specialPathFeatures.add("toll"); // TODO: 4/29/21 fix
+
+        if (type.equals("ferry")) {
+            return "FERRY";
+        } else if (angle > 0) {
+            if (type.equals("roundabout")) return "ROUNDABOUT";
+            else if (type.equals("primary_link") || type.equals("motorway_link")) return "KEEP_RIGHT";
+            else return "Turn right onto " + wayBeforeToName;
+        } else if (angle < 0) {
+            return "Turn left onto " + wayBeforeToName;
+        } else {
+            throw new RuntimeException("getDirection Error"); // TODO: 4/29/21 ???
         }
     }
 
-    public void setNodeToWayMap(ElementToElementsTreeMap<Node, Way> nodeToWayMap) {
-        this.nodeToWayMap = nodeToWayMap;
+    /**
+     * Gets the number corresponding to the roundabout exit the path goes along.
+     * @param roundaboutStartNodeIndex The index of the Node in the path where it enters the roundabout.
+     * @param roundaboutEndIndex The index of the Node in the path where it leaves the roundabout.
+     * @param roundaboutWay The Way object for the roundabout.
+     * @return The roundabout exit number,
+     */
+    private String getRoundaboutExit(int roundaboutStartNodeIndex, int roundaboutEndIndex, Way roundaboutWay) {
+        int exits = 0;
+        for (int i = roundaboutStartNodeIndex - 1; i >= roundaboutEndIndex; i--) {
+            ArrayList<Way> ways = nodeToWayMap.getElementsFromNode(path.get(i));
+            if (ways.size() > 1) {
+                for (Way w : ways) {
+                    if (w != roundaboutWay) {
+                        if (!w.isOnewayRoad()) exits++;
+                        else if (w.getNextNode(path.get(i)) != null) exits++; // to ensure that we do not count one-way roads
+                        break;
+                    }
+                }
+            }
+        }
+        return String.valueOf(exits);
     }
 
-    public void setNodeToRestriction(ElementToElementsTreeMap<Node, Relation> nodeToRestriction) {
-        this.nodeToRestriction = nodeToRestriction;
-    }
-
-    public void setWayToRestriction(ElementToElementsTreeMap<Way, Relation> wayToRestriction) {
-        this.wayToRestriction = wayToRestriction;
+    /**
+     * Changes the first direction from follow to head in a certain compass direction. This needs to be done at the end
+     * because the path might have several segments from the same road in the beginning and we need to get the full
+     * distance for all of the segments.
+     */
+    private void fixFirstDirection() {
+        Node f = path.get(path.size() - 1);
+        Node t = path.get(path.size() - 2);
+        routeDescription.add(1, routeDescription.get(0).replace("Follow", "Head " + MapMath.compassDirection(f, t).toLowerCase() + " on"));
+        routeDescription.remove(0);
     }
 
     /**
