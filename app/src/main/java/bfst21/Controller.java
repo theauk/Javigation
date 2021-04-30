@@ -522,9 +522,6 @@ public class Controller {
 
 
     private void fillAutoCompleteText(boolean fromNav){
-        //if(mapData.getAutoCompleteAdresses(textFieldFromNav.getText()) != null){
-
-
             if (fromNav) {
                 for(AddressTrieNode addressNode : mapData.getAutoCompleteAdresses(textFieldFromNav.getText())) {
                     labelForAutoComplete(addressNode, autoCompleteFromNav, textFieldFromNav, ScrollpaneAutoCompleteFromNav, fromNav);
@@ -541,7 +538,7 @@ public class Controller {
 
     private void labelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav) {
 
-        for (Map.Entry<String, String> entry : addressNode.getAddresses().entrySet()) {
+        for (Map.Entry<Integer, String> entry : addressNode.getAddresses().entrySet()){
             String address = entry.getValue();
             Label label = new Label(address);
             autoComplete.getChildren().add(label);
@@ -555,11 +552,11 @@ public class Controller {
         }
     }
 
-    private void fullAddressLabelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav, String city) {
+    private void fullAddressLabelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav, int postcode) {
 
-        for (Map.Entry<String, Node> houserNumber : addressNode.getHouseNumbersOnStreet(city).entrySet()) {
-            String addressWithHouseNumber = houserNumber.getKey();
-            Node node = houserNumber.getValue();
+        for (Map.Entry<String, Node> houseNumber : addressNode.getHouseNumbersOnStreet(postcode).entrySet()) {
+            String addressWithHouseNumber = houseNumber.getKey();
+            Node node = houseNumber.getValue();
             Label labelHouseNumber = new Label(addressWithHouseNumber);
             autoComplete.getChildren().add(labelHouseNumber);
             labelHouseNumber.prefWidth(autoComplete.getWidth());
@@ -570,7 +567,6 @@ public class Controller {
                 else currentToNode = node;
                 autoComplete.getChildren().removeAll(autoComplete.getChildren());
                 scrollPane.setVisible(false);
-
             });
         }
     }
