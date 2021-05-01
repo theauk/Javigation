@@ -2,11 +2,9 @@ package bfst21.data_structures;
 
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
-import bfst21.Osm_Elements.NodeHolder;
 import bfst21.Osm_Elements.Way;
 import bfst21.utils.MapMath;
 import bfst21.view.MapCanvas;
-import javafx.geometry.Point2D;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -654,26 +652,39 @@ public class RTree implements Serializable {
         return areaWithBoth - areaElement1 - areaElement2;
     }
 
+
+
     /**
      * Gets the nearest way from a point.
      * @param x The point's x-coordinate.
      * @param y The points y-coordinate.
-     * @return The nearest way.
+     * @return The nearest way. // TODO: 5/1/21
      */
-    public Way getNearestRoad(float x, float y) {
+    public NearestRoadPriorityQueueEntry getNearestRoad(float x, float y) {
+
+        /**
+         * På en eller anden måde skal segment indeksene gives videre så at du kan enten indsætte noden
+         * mellem de to nodes eller lade den være enten start eller slut hvis samme. (det er hurtigere end
+         * hvis du giver vej og segment videre og skal til at lede efter segmentet O(n)).
+         * Felter med get metoder er nok nemmest I guess. Men hvad med forskellige tråde og hvis brugeren også bruger cursoren i mens?
+         */
+
         // Adapted from Hjaltason, Gísli, and Hanan Samet. “Distance Browsing in Spatial Databases.” ACM transactions on database systems 24.2 (1999): 265–318. Web.
-        PriorityQueue<PriorityQueueEntry> pq = new PriorityQueue<>();
-        pq.add(new PriorityQueueEntry(true, false, root, null, 0));
+        PriorityQueue<NearestRoadPriorityQueueEntry> pq = new PriorityQueue<>();
+        pq.add(new NearestRoadPriorityQueueEntry(true, false, root, null, null, null, 0));
 
         while (!pq.isEmpty()) {
-            PriorityQueueEntry entry = pq.poll();
+            NearestRoadPriorityQueueEntry entry = pq.poll();
 
             if (!entry.isRTreeNode || entry.isBoundingRectangle) {
                 // check if the distance to the first pq entry's actual element is smaller than the next pq entry's distance
-                if (entry.isBoundingRectangle && !pq.isEmpty() && MapMath.shortestDistanceToElement(x, y, entry.way) > pq.peek().distance) {
-                    pq.add(new PriorityQueueEntry(false, false, null, entry.way, MapMath.shortestDistanceToElement(x, y, entry.way)));
+                if (entry.isBoundingRectangle && !pq.isEmpty() && MapMath.shortestDistanceToElement(x, y, entry.segment) > pq.peek().distance) {
+                    pq.add(new NearestRoadPriorityQueueEntry(false, false, null, entry.originalWay, entry.segment, entry.segmentIndices, MapMath.shortestDistanceToElement(x, y, entry.segment)));
                 } else {
-                    return entry.way;
+                    if (entry.segmentIndices == null) {
+                        System.out.println("");
+                    }
+                    return entry;
                 }
             } else if (entry.rTreeNode.isLeaf()) {
                 for (RTreeNode n : entry.rTreeNode.getChildren()) {
@@ -681,8 +692,10 @@ public class RTree implements Serializable {
                         if (e instanceof Way) { // only look for ways
                             Way w = (Way) e;
                             if (w.isHighWay() && w.hasName()) {
-                                for (Way segment : createWaySegments(w)) { // to accommodate for curvy ways
-                                    pq.add(new PriorityQueueEntry(false, true, null, segment, minDistMBB(x, y, segment.getCoordinates())));
+                                for (int i = 0; i < w.getNodes().size() - 1; i++) {
+                                    Way segment = createWaySegment(w, i);
+                                    NearestRoadPriorityQueueEntry newEntry = new NearestRoadPriorityQueueEntry(false, true, null, w, segment, new int[]{i, i + 1}, minDistMBB(x, y, segment.getCoordinates()));
+                                    pq.add(newEntry);
                                 }
                             }
                         }
@@ -690,7 +703,7 @@ public class RTree implements Serializable {
                 }
             } else {
                 for (RTreeNode node : entry.rTreeNode.getChildren()) {
-                    pq.add(new PriorityQueueEntry(true, false, node, null, minDistMBB(x, y, entry.rTreeNode.getCoordinates())));
+                    pq.add(new NearestRoadPriorityQueueEntry(true, false, node, null, null, null, minDistMBB(x, y, entry.rTreeNode.getCoordinates())));
                 }
             }
         }
@@ -698,21 +711,17 @@ public class RTree implements Serializable {
     }
 
     /**
-     * Get the segments (ways between each pair of nodes) that make up a way.
-     * @param w The way to split into segments.
-     * @return A list of the way's segments.
+     * Creates a way segment between two nodes in a way.
+     * @param w The way to split into a segment.
+     * @return The way segment.
      */
-    public ArrayList<Way> createWaySegments(Way w) {
-        ArrayList<Way> segments = new ArrayList<>();
-        for (int i = 0; i < w.getNodes().size() - 1; i++) {
-            Way segment = new Way();
-            segment.setAsHighWay();
-            segment.setName(w.getName());
-            segment.addNode(w.getNodes().get(i));
-            segment.addNode(w.getNodes().get(i + 1));
-            segments.add(segment);
-        }
-        return segments;
+    public Way createWaySegment(Way w, int i) {
+        Way segment = new Way();
+        segment.setAsHighWay();
+        segment.setName(w.getName());
+        segment.addNode(w.getNodes().get(i + 1));
+        segment.addNode(w.getNodes().get(i));
+        return segment;
     }
 
     /**
@@ -731,23 +740,35 @@ public class RTree implements Serializable {
     /**
      * Priority queue class for the nearest road method. Sorts the queue in ascending order based on distance.
      */
-    private class PriorityQueueEntry implements Comparable<PriorityQueueEntry> {
+    public class NearestRoadPriorityQueueEntry implements Comparable<NearestRoadPriorityQueueEntry> {
         private boolean isRTreeNode;
         private boolean isBoundingRectangle;
         private RTreeNode rTreeNode;
-        private Way way;
+        private Way originalWay;
+        private Way segment;
         private double distance;
+        private int[] segmentIndices; // TODO: 5/1/21 kan nok nøjes med største indeks til højre da venstre hvis ikke bliver brugt 
 
-        public PriorityQueueEntry(boolean isRTreeNode, boolean isBoundingRectangle, RTreeNode rTreeNode, Way way, double distance) {
+        public NearestRoadPriorityQueueEntry(boolean isRTreeNode, boolean isBoundingRectangle, RTreeNode rTreeNode, Way originalWay, Way segment, int[] segmentIndices, double distance) {
             this.isRTreeNode = isRTreeNode;
             this.isBoundingRectangle = isBoundingRectangle;
             this.rTreeNode = rTreeNode;
-            this.way = way;
+            this.originalWay = originalWay;
+            this.segment = segment;
+            this.segmentIndices = segmentIndices;
             this.distance = distance;
         }
 
+        public Way getWay() {
+            return originalWay;
+        }
+
+        public int[] getSegmentIndices() {
+            return segmentIndices;
+        }
+
         @Override
-        public int compareTo(PriorityQueueEntry e) {
+        public int compareTo(NearestRoadPriorityQueueEntry e) {
             return Double.compare(distance, e.distance);
         }
     }

@@ -15,19 +15,19 @@ class MapMathTest {
     @BeforeEach
     void setUp() {
         w1 = new Way();
-        Node n1 = new Node(1, 1);
-        Node n2 = new Node(5, 5);
+        Node n1 = new Node(1, 0);
+        Node n2 = new Node(3, 2);
         w1.addNode(n1);
         w1.addNode(n2);
     }
 
     @Test
     void intersectionClosestPointTest() {
-        float x = 5;
-        float y = 3;
+        float x = 3;
+        float y = 0;
         Node intersectionNode = MapMath.getClosestPointOnWayAsNode(x, y, w1);
-        assertEquals(4f, intersectionNode.getxMax());
-        assertEquals(4f, intersectionNode.getyMax());
+        assertEquals(2f, intersectionNode.getxMax());
+        assertEquals(1f, intersectionNode.getyMax());
     }
 
     @AfterEach

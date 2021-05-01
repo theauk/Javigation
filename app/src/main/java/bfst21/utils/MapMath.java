@@ -264,7 +264,7 @@ public final class MapMath {
 
         double[] coordinatesPointOnNearestWay = findIntersectionCramersRule(nearestWayStandardEquation, perpendicularStandardEquation);
 
-        return new Node((float) coordinatesPointOnNearestWay[0], (float) coordinatesPointOnNearestWay[1]); // TODO: 4/30/21 better to cast and have more precise cals or change to floats all the way through?
+        return new Node((float) coordinatesPointOnNearestWay[1], (float) coordinatesPointOnNearestWay[0]); // TODO: 4/30/21 better to cast and have more precise cals or change to floats all the way through?
     }
 
     /**

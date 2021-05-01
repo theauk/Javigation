@@ -3,6 +3,7 @@ package bfst21;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.AddressTrieNode;
+import bfst21.data_structures.RTree;
 import bfst21.data_structures.RouteNavigation;
 import bfst21.exceptions.NoOSMInZipFileException;
 import bfst21.exceptions.UnsupportedFileFormatException;
@@ -61,6 +62,12 @@ public class Controller {
 
     private Node currentFromNode;
     private Node currentToNode;
+    private Way currentFromWay;
+    private Way currentToWay;
+    private int currentFromNodeIndexInWay;
+    private int currentToNodeIndexInWay;
+    private int[] nearestFromWaySegmentIndices;
+    private int[] nearestToWaySegmentIndices;
 
     private ArrayList<AddressTrieNode> currentAutoCompleteList;
 
@@ -377,7 +384,7 @@ public class Controller {
 
     private void loadSuccess() {
         mapData = creator.getValue();
-        routeNavigation.setNodeToWayMap(mapData.getNodeToHighWay());
+        routeNavigation.setNodeToHighwayMap(mapData.getNodeToHighWay());
         routeNavigation.setNodeToRestriction(mapData.getNodeToRestriction());
         routeNavigation.setWayToRestriction(mapData.getWayToRestriction());
         taskSuccess();
@@ -524,15 +531,13 @@ public class Controller {
 
     private void fillAutoCompleteText(boolean fromNav){
         //if(mapData.getAutoCompleteAdresses(textFieldFromNav.getText()) != null){
-
-
             if (fromNav) {
-                for(AddressTrieNode addressNode : mapData.getAutoCompleteAdresses(textFieldFromNav.getText())) {
+                for(AddressTrieNode addressNode : mapData.getAutoCompleteAddresses(textFieldFromNav.getText())) {
                     labelForAutoComplete(addressNode, autoCompleteFromNav, textFieldFromNav, ScrollpaneAutoCompleteFromNav, fromNav);
                     ScrollpaneAutoCompleteFromNav.setVisible(true);
                 }
             } else {
-                for(AddressTrieNode addressNode : mapData.getAutoCompleteAdresses(textFieldToNav.getText())) {
+                for(AddressTrieNode addressNode : mapData.getAutoCompleteAddresses(textFieldToNav.getText())) {
                     labelForAutoComplete(addressNode, autoCompleteToNav, textFieldToNav, ScrollpaneAutoCompleteToNav, fromNav);
                     ScrollpaneAutoCompleteToNav.setVisible(true);
                 }
@@ -541,7 +546,6 @@ public class Controller {
 
 
     private void labelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav) {
-
         for (Map.Entry<String, String> entry : addressNode.getAddresses().entrySet()) {
             String address = entry.getValue();
             Label label = new Label(address);
@@ -565,10 +569,9 @@ public class Controller {
             autoComplete.getChildren().add(labelHouseNumber);
             labelHouseNumber.prefWidth(autoComplete.getWidth());
             labelHouseNumber.setOnMouseClicked((ActionEvent2) -> {
-                System.out.println("here");
+                System.out.println("here " + addressWithHouseNumber);
                 textField.setText(addressWithHouseNumber);
-                if (fromNav) currentFromNode = node;
-                else currentToNode = node;
+                updateNodesNavigation(fromNav, node.getxMax(), node.getyMax());
                 autoComplete.getChildren().removeAll(autoComplete.getChildren());
                 scrollPane.setVisible(false);
 
@@ -598,21 +601,31 @@ public class Controller {
             @Override
             public void handle(MouseEvent e) {
                 Point2D coords = mapCanvas.getTransCoords(e.getX(), e.getY());
-                Node nearestRoadNode = mapData.getNearestRoadNode((float) coords.getX(), (float) coords.getY()); // TODO: 4/30/21 skal opdateres
-                Way nearestWay = mapData.getNearestRoadRTree((float) coords.getX(), (float) coords.getY());
-                // tænk ny metode
-                String names = mapData.getNodeHighWayNames(nearestRoadNode);
-                if (fromSelected) {
-                    textFieldFromNav.setText(names);
-                    currentFromNode = nearestRoadNode;
-                } else {
-                    textFieldToNav.setText(names);
-                    currentToNode = nearestRoadNode;
-                }
+                Point2D coords1 = MapMath.convertToGeoCoords(mapCanvas.getTransCoords(e.getX(), e.getY())); // TODO: 5/1/21 coordinates how?
+                updateNodesNavigation(fromSelected, (float) coords.getX(), (float) coords.getY());
                 mapCanvas.removeEventHandler(MouseEvent.MOUSE_CLICKED, this);
             }
         };
         mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
+    }
+
+    public void updateNodesNavigation(boolean fromSelected, float x, float y) {
+        RTree.NearestRoadPriorityQueueEntry entry = mapData.getNearestRoadRTreePQEntry(x, y);
+        Way nearestWay = entry.getWay();
+        int[] nearestWaySegmentIndices = entry.getSegmentIndices();
+        Node nearestNodeOnNearestWay = MapMath.getClosestPointOnWayAsNode(x, y, nearestWay); // TODO: 5/1/21 hvorfor kommer X og Y ud omvendt??? Test på testen med andet end (4,4) og se om det er det samme
+
+        if (fromSelected) {
+            textFieldFromNav.setText(nearestWay.getName());
+            currentFromWay = nearestWay;
+            nearestFromWaySegmentIndices = nearestWaySegmentIndices;
+            currentFromNode = nearestNodeOnNearestWay;
+        } else {
+            textFieldToNav.setText(nearestWay.getName());
+            currentToWay = nearestWay;
+            currentToNode = nearestNodeOnNearestWay;
+            nearestToWaySegmentIndices = nearestWaySegmentIndices;
+        }
     }
 
     @FXML
@@ -643,7 +656,7 @@ public class Controller {
 
     @FXML
     public void getRoute() {
-        routeNavigation.setupRoute(currentFromNode, currentToNode, (VehicleType) vehicleNavGroup.getSelectedToggle().getUserData(), radioButtonFastestNav.isSelected(), aStarNav.isSelected());
+        routeNavigation.setupRoute(currentFromNode, currentToNode, currentFromWay, currentToWay, nearestFromWaySegmentIndices, nearestToWaySegmentIndices, (VehicleType) vehicleNavGroup.getSelectedToggle().getUserData(), radioButtonFastestNav.isSelected(), aStarNav.isSelected());
         routeNavigation.startRouting();
 
         routeNavigation.setOnSucceeded(e -> {

@@ -99,7 +99,7 @@ public class Creator extends Task<MapData> {
         KDTree<Node> highWayRoadNodes = new KDTree<>(2, 4);
         RTree rTree = new RTree(1, 100, 4, topLayer); //remove nodes
         AddressTriesTree addressTree = new AddressTriesTree();
-        ElementToElementsTreeMap<Node, Way> nodeToWayMap = new ElementToElementsTreeMap<>();
+        ElementToElementsTreeMap<Node, Way> nodeToHighwayMap = new ElementToElementsTreeMap<>();
         ElementToElementsTreeMap<Node, Relation> nodeToRestriction = new ElementToElementsTreeMap<>();
         ElementToElementsTreeMap<Way, Relation> wayToRestriction = new ElementToElementsTreeMap<>();
 
@@ -246,7 +246,7 @@ public class Creator extends Task<MapData> {
 
                                     }
                                     if (way.isHighWay()) {
-                                        nodeToWayMap.putAll(way.getNodes(), way);
+                                        nodeToHighwayMap.putAll(way.getNodes(), way);
                                         if (way.hasName()) {
                                             highWayRoadNodes.addAll(way.getNodes());
                                         }
@@ -279,7 +279,7 @@ public class Creator extends Task<MapData> {
         mapData.setCoastlines(coastLines);
         mapData.setElementToText(elementToText);
         updateMessage("Finalizing...");
-        mapData.addDataTrees(highWayRoadNodes, rTree, nodeToRestriction, wayToRestriction, addressTree, nodeToWayMap);
+        mapData.addDataTrees(highWayRoadNodes, rTree, nodeToRestriction, wayToRestriction, addressTree, nodeToHighwayMap);
         reader.close();
     }
 

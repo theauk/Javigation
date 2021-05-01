@@ -86,6 +86,10 @@ public class MapData implements Serializable {
     }
 
     public Way getNearestRoadRTree(float x, float y) {
+        return getNearestRoadRTreePQEntry(x, y).getWay();
+    }
+
+    public RTree.NearestRoadPriorityQueueEntry getNearestRoadRTreePQEntry(float x, float y) {
         return rTree.getNearestRoad(x, y);
     }
 
@@ -165,7 +169,7 @@ public class MapData implements Serializable {
         return elementToText.get(element);
     }
 
-    public List<AddressTrieNode> getAutoCompleteAdresses(String prefix){
+    public List<AddressTrieNode> getAutoCompleteAddresses(String prefix){
         return addressTree.searchWithPrefix(prefix);
     }
 
