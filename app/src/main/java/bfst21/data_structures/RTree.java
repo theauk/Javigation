@@ -658,17 +658,9 @@ public class RTree implements Serializable {
      * Gets the nearest way from a point.
      * @param x The point's x-coordinate.
      * @param y The points y-coordinate.
-     * @return The nearest way. // TODO: 5/1/21
+     * @return An priority queue entry containing the nearest way.
      */
     public NearestRoadPriorityQueueEntry getNearestRoad(float x, float y) {
-
-        /**
-         * På en eller anden måde skal segment indeksene gives videre så at du kan enten indsætte noden
-         * mellem de to nodes eller lade den være enten start eller slut hvis samme. (det er hurtigere end
-         * hvis du giver vej og segment videre og skal til at lede efter segmentet O(n)).
-         * Felter med get metoder er nok nemmest I guess. Men hvad med forskellige tråde og hvis brugeren også bruger cursoren i mens?
-         */
-
         // Adapted from Hjaltason, Gísli, and Hanan Samet. “Distance Browsing in Spatial Databases.” ACM transactions on database systems 24.2 (1999): 265–318. Web.
         PriorityQueue<NearestRoadPriorityQueueEntry> pq = new PriorityQueue<>();
         pq.add(new NearestRoadPriorityQueueEntry(true, false, root, null, null, null, 0));
@@ -681,9 +673,6 @@ public class RTree implements Serializable {
                 if (entry.isBoundingRectangle && !pq.isEmpty() && MapMath.shortestDistanceToElement(x, y, entry.segment) > pq.peek().distance) {
                     pq.add(new NearestRoadPriorityQueueEntry(false, false, null, entry.originalWay, entry.segment, entry.segmentIndices, MapMath.shortestDistanceToElement(x, y, entry.segment)));
                 } else {
-                    if (entry.segmentIndices == null) {
-                        System.out.println("");
-                    }
                     return entry;
                 }
             } else if (entry.rTreeNode.isLeaf()) {

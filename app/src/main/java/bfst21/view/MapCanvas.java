@@ -234,7 +234,7 @@ public class MapCanvas extends Canvas {
 
     public void updateMap() {
         setBounds();
-        mapData.searchInData(bounds, zoomLevel);
+        mapData.searchInRTree(bounds, zoomLevel);
         repaint();
     }
 
@@ -307,6 +307,25 @@ public class MapCanvas extends Canvas {
         zoom(true, levels);
     }
 
+    public void panToRoute(float[] boundingBoxRouteCoordinates) { // TODO: 5/1/21 fix
+        double mapWidth = boundingBoxRouteCoordinates[1] - boundingBoxRouteCoordinates[0];
+        double boundsWidth = bounds.getMaxX() - bounds.getMinX();          
+        double minXMap = boundingBoxRouteCoordinates[0];  
+
+        double mapHeight = boundingBoxRouteCoordinates[3] - boundingBoxRouteCoordinates[2];
+        double boundsHeight = bounds.getMaxY() - bounds.getMinY();
+        double minYMap = boundingBoxRouteCoordinates[2];
+
+        double dx = (minXMap - boundingBoxRouteCoordinates[0]);                           
+        double dy = (minYMap - boundingBoxRouteCoordinates[2]);
+
+        double zoom = getWidth() / mapWidth; 
+        int levels = (int) (Math.log(zoom) / Math.log(ZOOM_FACTOR));        
+
+        pan(dx, dy);
+        //zoom(true, levels);
+    }
+
     public void centerOnPoint(double x, double y) {
         double boundsWidth = (bounds.getMaxX() - bounds.getMinX());
         double boundsHeight = (bounds.getMaxY() - bounds.getMinY());
@@ -322,7 +341,7 @@ public class MapCanvas extends Canvas {
     }
 
     public void rTreeDebugMode() {
-        mapData.searchInData(bounds, zoomLevel);
+        mapData.searchInRTree(bounds, zoomLevel);
         repaint();
     }
 

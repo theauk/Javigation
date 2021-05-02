@@ -86,6 +86,10 @@ public class Creator extends Task<MapData> {
         objectInputStream.close();
     }
 
+    /**
+     * Converts OSM data into objects and sorts them into different data structures depending on their attributes and type.
+     * @throws XMLStreamException If a processing error happens.
+     */
     private void createMapData() throws XMLStreamException {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new BufferedInputStream(progressInputStream));
 
@@ -283,6 +287,11 @@ public class Creator extends Task<MapData> {
         reader.close();
     }
 
+    /**
+     * Sets the name of motorway exits to the exit number and name (if any).
+     * @param k The current key.
+     * @param v The current value.
+     */
     private void checkMotorWayExitNode(String k, String v) {
         if (k.equals("highway") && v.equals("motorway_junction")) {
             motorWayJunctionNode = true;
@@ -296,9 +305,14 @@ public class Creator extends Task<MapData> {
         }
     }
 
+    /**
+     * Sets the type of relations.
+     * @param k The current key.
+     * @param v The current value.
+     * @param relation The current Relation.
+     */
     private void checkRelation(String k, String v, Relation relation) {
         switch (k) {
-
             case "restriction":
                 relation.setType(k);
                 relation.setRestriction(v);
@@ -307,6 +321,7 @@ public class Creator extends Task<MapData> {
                 relation.setName(v);
                 break;
             case "bridge":
+                // TODO: 5/1/21 ???
             case "building":
                 relation.setType((k), typeToLayer.get(k));
                 break;
@@ -342,6 +357,12 @@ public class Creator extends Task<MapData> {
         }
     }
 
+    /**
+     * Sets the type of ways.
+     * @param k The current key.
+     * @param v The current value.
+     * @param way The current way.
+     */
     private void checkWay(String k, String v, Way way) {
         switch (k) {
             case "amenity":
@@ -356,7 +377,7 @@ public class Creator extends Task<MapData> {
                     break;
                 }
                 if (v.equals("coastline")) {
-                    //way.setType((v),typeToLayer.get(v));
+                    //way.setType((v),typeToLayer.get(v)); // TODO: 5/1/21 ????
                     coastLines.addWay(way);
                     break;
                 }
@@ -430,20 +451,29 @@ public class Creator extends Task<MapData> {
         checkHighWayAttributes(k, v, way);
     }
 
+    /**
+     * Sets the name of a way to its number (given that it has one) and type if the way does not already have a name.
+     * @param v The current value.
+     * @return The name of the way.
+     */
     private String fixNumberWayName(String v) {
         String[] wayNumbers = v.split(";");
         String[] names = new String[wayNumbers.length];
 
         for (int i = 0; i < wayNumbers.length; i++) {
-            if (wayNumbers[i].length() < 3) names[i] = "Main Road " + wayNumbers[i];
-            else if (wayNumbers[i].matches(".*[0-9]+.*") && wayNumbers[i].matches(".*[A-Za-z]+.*")) names[i] = "Highway " + wayNumbers[i];
+            if (wayNumbers[i].length() < 3) names[i] = "Main Road " + wayNumbers[i]; // main road has max 2 numbers.
+            else if (wayNumbers[i].matches(".*[0-9]+.*") && wayNumbers[i].matches(".*[A-Za-z]+.*")) names[i] = "Highway " + wayNumbers[i]; // highway has letters and numbers
             else names[i] = "Secondary Road " + wayNumbers[i];
         }
-
         return String.join("/", names);
-
     }
 
+    /**
+     * Sets the attributes of ways.
+     * @param k The current key.
+     * @param v The current value.
+     * @param way The current way.
+     */
     private void checkHighWayAttributes(String k, String v, Way way) {
         switch (k) {
             case "oneway":
@@ -513,6 +543,12 @@ public class Creator extends Task<MapData> {
         }
     }
 
+    /**
+     * Sets the attributes of an address node.
+     * @param k The current key.
+     * @param v The current value.
+     * @param node The current node.
+     */
     private void checkAddressNode(String k, String v, Node node) {
         switch (k) {
             case "addr:city":
@@ -535,11 +571,13 @@ public class Creator extends Task<MapData> {
                     node.setType(v,typeToLayer.get("text"));
                     elementToText.put(node, name);
                 }
-
                 break;
         }
     }
 
+    /**
+     * Resets the fields holding address info.
+     */
     private void nullifyAddress() {
         city = null;
         houseNumber = null;
@@ -547,6 +585,10 @@ public class Creator extends Task<MapData> {
         streetName = null;
     }
 
+    /**
+     * Checks if the current node has a valid address.
+     * @return
+     */
     private boolean isAddress() {
         if (city == null) return false;
         if (postcode == null) return false;
@@ -555,6 +597,11 @@ public class Creator extends Task<MapData> {
         return true;
     }
 
+    /**
+     * Sets highway (ways which can be navigated on).
+     * @param way The current way.
+     * @param v The current value.
+     */
     private void checkHighWayType(Way way, String v) {
 
         if (v.equals("motorway")) {
@@ -604,10 +651,14 @@ public class Creator extends Task<MapData> {
         }
 
         if (restOfHighWays(v)) way.setType(v, true, isFoot);
-
         isFoot = false;
     }
 
+    /**
+     * Checks if the way is of a type that should be created as an object.
+     * @param v The current value.
+     * @return True if it should be created. Otherwise, false.
+     */
     public boolean restOfHighWays(String v) {
         if (v.equals("primary")) return true;
 
@@ -697,6 +748,9 @@ public class Creator extends Task<MapData> {
         return nodesNotCreateKeys.contains(k) || nodesNotCreateValues.contains(v);
     }
 
+    /**
+     * Sets up the map which maps element types to the layer (order) where they should be drawn.
+     */
     private void setUpTypeToLayer() {
         typeToLayer.put("water", bottomLayer);
         typeToLayer.put("light_green", bottomLayer);

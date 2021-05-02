@@ -17,7 +17,6 @@ public class RouteNavigation extends Service<List<Element>> {
     private ElementToElementsTreeMap<Node, Way> nodeToHighwayMap;
     private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
     private ElementToElementsTreeMap<Way, Relation> wayToRestriction;
-    private HashMap<Node, ArrayList<Way>> userAddedFromToNodeToHighway;
 
     private Node from, to;
     private Way fromWay, toWay;
@@ -40,6 +39,7 @@ public class RouteNavigation extends Service<List<Element>> {
     private double currentTimeDescription;
     private ArrayList<String> routeDescription;
     private HashSet<String> specialPathFeatures;
+    private float[] coordinatesForPanToRoute;
 
     public RouteNavigation() {
         this.maxSpeed = 130;
@@ -96,6 +96,7 @@ public class RouteNavigation extends Service<List<Element>> {
         unitsTo.put(from, new DistanceAndTimeEntry(0, 0, 0));
         routeDescription = new ArrayList<>();
         specialPathFeatures = new HashSet<>();
+        coordinatesForPanToRoute = new float[]{Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY};
     }
 
     public void setNodeToHighwayMap(ElementToElementsTreeMap<Node, Way> nodeToHighwayMap) {
@@ -155,11 +156,17 @@ public class RouteNavigation extends Service<List<Element>> {
         addFromToNodesToFromToWays();
     }
 
+    /**
+     * Adds the to and from node to their respective ways so that it is possible to navigate from/to them.
+     */
     private void addFromToNodesToFromToWays() {
         fromWay.addNodeBetweenIndices(from, nearestFromWaySegmentIndices[1]);
         toWay.addNodeBetweenIndices(to, nearestToWaySegmentIndices[1]);
     }
 
+    /**
+     * Removes the to and from nodes from their respective ways.
+     */
     private void removeFromToNodesFromTheirWays() {
         if (nearestFromWaySegmentIndices[1] > nearestToWaySegmentIndices[1]) {
             fromWay.removeNodeFromIndex(nearestFromWaySegmentIndices[1]);
@@ -227,9 +234,29 @@ public class RouteNavigation extends Service<List<Element>> {
     private List<Node> getTrack(List<Node> nodes, Node currentNode) {
         if (currentNode != null) {
             nodes.add(currentNode);
+            updateCoordinatesForPanToRoute(currentNode);
             getTrack(nodes, nodeBefore.get(currentNode));
         }
         return nodes;
+    }
+
+    /**
+     * Update the coordinates that represents the bounding box that can hold the route.
+     * @param currentNode The current node to check.
+     */
+    private void updateCoordinatesForPanToRoute(Node currentNode) {
+        if (currentNode.getxMax() < coordinatesForPanToRoute[0]) coordinatesForPanToRoute[0] = currentNode.getxMax(); // x_min
+        if (currentNode.getxMax() > coordinatesForPanToRoute[1]) coordinatesForPanToRoute[1] = currentNode.getxMax(); // x_max
+        if (currentNode.getyMax() < coordinatesForPanToRoute[2]) coordinatesForPanToRoute[2] = currentNode.getyMax(); // y_max
+        if (currentNode.getyMax() > coordinatesForPanToRoute[3]) coordinatesForPanToRoute[3] = currentNode.getyMax(); // y_max
+    }
+
+    /**
+     * Gets the coordinates that represents the smallest bounding box that contains the route.
+     * @return A float array with x-min, x-max, y-min, and y-max.
+     */
+    public float[] getCoordinatesForPanToRoute() {
+        return coordinatesForPanToRoute;
     }
 
     /**
@@ -601,8 +628,6 @@ public class RouteNavigation extends Service<List<Element>> {
      * @return The direction between two ways.
      */
     private String getDirection(double angle, Way wayBeforeTo, String wayBeforeToName) {
-
-        System.out.println("Angle: " + angle);
         String type = wayBeforeTo.getType();
 
         if (type.contains("_toll")) specialPathFeatures.add("toll"); // TODO: 4/29/21 fix

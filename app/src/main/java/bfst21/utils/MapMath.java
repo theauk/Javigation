@@ -326,4 +326,18 @@ public final class MapMath {
         return new double[]{x, y};
     }
 
+    public static String formatDistance(double meters, int digits) {
+        String s = "";
+        if (meters < 1000) s += MapMath.round(meters, digits) + " m";
+        else s += MapMath.round(meters / 1000f, digits) + " km";
+        return s;
+    }
+
+    public static String formatTime(double seconds, int digits) {
+        String s = "";
+        if (seconds < 60) s += " , Total time: " + round(seconds, digits) + " s";
+        else s += " , Total time: " + round(seconds / 60f, digits) + " min";
+        return s;
+    }
+
 }

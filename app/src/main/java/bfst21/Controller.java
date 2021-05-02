@@ -569,7 +569,6 @@ public class Controller {
             autoComplete.getChildren().add(labelHouseNumber);
             labelHouseNumber.prefWidth(autoComplete.getWidth());
             labelHouseNumber.setOnMouseClicked((ActionEvent2) -> {
-                System.out.println("here " + addressWithHouseNumber);
                 textField.setText(addressWithHouseNumber);
                 updateNodesNavigation(fromNav, node.getxMax(), node.getyMax());
                 autoComplete.getChildren().removeAll(autoComplete.getChildren());
@@ -587,12 +586,12 @@ public class Controller {
     }
 
     @FXML
-    public void getPointNavFrom(ActionEvent actionEvent) {
+    public void getPointNavFrom() {
         getPointNav(true);
     }
 
     @FXML
-    public void getPointNavTo(ActionEvent actionEvent) {
+    public void getPointNavTo() {
         getPointNav(false);
     }
 
@@ -664,6 +663,7 @@ public class Controller {
             setDistanceAndTimeNav(routeNavigation.getTotalDistance(), routeNavigation.getTotalTime());
             setDirections(routeNavigation.getDirections());
             setSpecialPathFeatures(routeNavigation.getSpecialPathFeatures());
+            mapCanvas.panToRoute(routeNavigation.getCoordinatesForPanToRoute());
             mapCanvas.repaint();
         });
         routeNavigation.setOnFailed(e -> showDialogBox("No Route Found", routeNavigation.getException().getMessage()));
@@ -684,21 +684,11 @@ public class Controller {
         directionsScrollPane.setVisible(true);
     }
 
-    public void setDistanceAndTimeNav(double distance, double time) {
+    public void setDistanceAndTimeNav(double meters, double seconds) {
         distanceAndTimeNav.setVisible(true);
         String s = "Total distance: ";
-
-        if (distance < 1000) {
-            s += MapMath.round(distance, 0) + " m";
-        } else {
-            s += MapMath.round(distance / 1000f, 3) + " km";
-        }
-
-        if (time < 60) {
-            s += " , Total time: " + MapMath.round(time, 0) + " s";
-        } else {
-            s += " , Total time: " + MapMath.round(time / 60f, 3) + " min";
-        }
+        s += MapMath.formatDistance(meters, 2);
+        s += MapMath.formatTime(seconds, 2);
         distanceAndTimeNav.setText(s);
     }
 
