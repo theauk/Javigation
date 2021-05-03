@@ -24,16 +24,14 @@ import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
+import javax.naming.Context;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -115,6 +113,11 @@ public class Controller {
     @FXML private ComboBox<String> dropDownPoints;
     @FXML private TextField textFieldPointName;
     @FXML private Button addPointButton;
+
+    @FXML private ContextMenu rightClickMenu;
+    @FXML private MenuItem addToYourPoints;
+    @FXML private MenuItem routeFromHere;
+    @FXML private MenuItem routeToHere;
 
     public void init() {
         mapData = new MapData();
@@ -253,6 +256,7 @@ public class Controller {
         lastMouse = new Point2D(e.getX(), e.getY());
         mapCanvas.requestFocus();
         setLabels(lastMouse);
+        rightClickMenu.hide();
     }
 
     @FXML
@@ -727,6 +731,16 @@ public class Controller {
             };
             mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
         }
+    }
+    @FXML
+    public void setRightClickMenu(ContextMenuEvent actionEvent) {
+        mapCanvas.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() {
+            @Override
+            public void handle(ContextMenuEvent event) {
+                rightClickMenu.show(mapCanvas, event.getScreenX(), event.getScreenY());
+                mapCanvas.removeEventHandler(ContextMenuEvent.CONTEXT_MENU_REQUESTED, this);
+            }
+        });
     }
 
     private enum State {

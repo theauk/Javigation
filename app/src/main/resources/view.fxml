@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.Scene?>
 <?import bfst21.utils.VehicleType?>
+<?import com.sun.javafx.scene.control.EmbeddedTextContextMenuContent?>
 <Scene xmlns="https://javafx.com/javafx"
        xmlns:fx="http://javafx.com/fxml"
        fx:controller="bfst21.Controller"
@@ -71,6 +72,16 @@
         </top>
         <center>
             <StackPane fx:id="centerPane">
+                <fx:define>
+                    <ContextMenu fx:id="rightClickMenu">
+                        <items>
+                            <MenuItem fx:id="addToYourPoints" text="Add to your points" onAction="#addUserPoint"/>
+                            <SeparatorMenuItem/>
+                            <MenuItem fx:id="routeFromHere" text="Route from here" onAction="#getPointNavFrom"/>
+                            <MenuItem fx:id="routeToHere" text="Route to here" onAction="#getPointNavTo"/>
+                        </items>
+                    </ContextMenu>
+                </fx:define>
                 <Pane fx:id="mapPane">
                     <MapCanvas fx:id="mapCanvas"
                                width="${mapPane.width}"
@@ -82,6 +93,7 @@
                                onMouseReleased="#onMouseReleased"
                                onKeyPressed="#onKeyPressed"
                                onKeyReleased="#onKeyReleased"
+                               onContextMenuRequested="#setRightClickMenu"
                     />
                 </Pane>
 
