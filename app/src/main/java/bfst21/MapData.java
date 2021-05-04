@@ -259,6 +259,10 @@ public class MapData implements Serializable {
         return addressTree.searchWithPrefix(prefix);
     }
 
+    public AddressTriesTree getAddressTree() {
+        return addressTree;
+    }
+
     /**
      * Gets a map which maps nodes to restrictions that have the specified node as a part of the restriction.
      * @return A tree map with nodes mapping to restrictions in the form of relations.

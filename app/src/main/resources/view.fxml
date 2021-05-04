@@ -242,7 +242,7 @@
                         <children>
                             <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0">
                                 <children>
-                                    <TextField fx:id="textFieldFromNav" promptText="From" prefHeight="27.0" prefWidth="113.0">
+                                    <TextField  promptText="From" prefHeight="27.0" prefWidth="113.0">
                                         <HBox.margin>
                                             <Insets />
                                         </HBox.margin>
