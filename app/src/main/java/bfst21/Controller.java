@@ -772,7 +772,8 @@ public class Controller {
 
     @FXML
     public void rightCLickAddUserPoint(ActionEvent actionEvent) {
-        addUserPoint(currentRightClick);
+        Point2D point = mapCanvas.getTransCoords(currentRightClick.getX(), currentRightClick.getY());
+        addUserPoint(point);
     }
 
     @FXML
