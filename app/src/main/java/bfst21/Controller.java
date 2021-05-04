@@ -620,14 +620,12 @@ public class Controller {
             currentFromWay = nearestWay;
             nearestFromWaySegmentIndices = nearestWaySegmentIndices;
             currentFromNode = nearestNodeOnNearestWay;
-            mapCanvas.repaintTest(currentFromNode); // TODO: 5/2/21 delete 
         } else {
             if (addressWay == null) textFieldToNav.setText(nearestWay.getName());
             else textFieldToNav.setText(fullAddress);
             currentToWay = nearestWay;
             currentToNode = nearestNodeOnNearestWay;
             nearestToWaySegmentIndices = nearestWaySegmentIndices;
-            mapCanvas.repaintTest(currentToNode); // TODO: 5/2/21 delete 
         }
     }
 
@@ -667,16 +665,11 @@ public class Controller {
             setDistanceAndTimeNav(routeNavigation.getTotalDistance(), routeNavigation.getTotalTime());
             setDirections(routeNavigation.getDirections());
             setSpecialPathFeatures(routeNavigation.getSpecialPathFeatures());
-            //mapCanvas.panToRoute(routeNavigation.getCoordinatesForPanToRoute());
+            mapCanvas.panToRoute(routeNavigation.getCoordinatesForPanToRoute());
             mapCanvas.repaint();
         });
         routeNavigation.setOnFailed(e -> {
             showDialogBox("No Route Found", "Could not find a route between the two points");
-            try { // TODO: 5/4/21 delete 
-                throw routeNavigation.getException();
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
-            }
         });
         mapCanvas.repaint();
     }

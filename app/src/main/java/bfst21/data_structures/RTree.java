@@ -8,15 +8,19 @@ import bfst21.view.MapCanvas;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
+import java.util.PriorityQueue;
 
 public class RTree implements Serializable {
-    @Serial private static final long serialVersionUID = 7154862203691144752L;
+    @Serial
+    private static final long serialVersionUID = 7154862203691144752L;
 
     private final int minimumChildren, maximumChildren, numberOfCoordinates;
     ArrayList<ArrayList<Long>> splitInsertResults;
     private RTreeNode root;
-    private long size;
+    private long size; // TODO: 5/4/21 necessary???
     private int returnListSize;
 
     public RTree(int minimumChildren, int maximumChildren, int numberOfCoordinates, int returnListSize) {
@@ -43,11 +47,11 @@ public class RTree implements Serializable {
      * Recursively searches the R-tree by going through the nodes whose minimum bounding box intersects with the search bounds.
      * If debug is selected, elements to visualize the elements' minimum bounding boxes are also created along with a rectangle to visualize the canvas bounds.
      *
-     * @param xMin  The minimum x-coordinate of the canvas.
-     * @param xMax  The maximum x-coordinate of the canvas.
-     * @param yMin  The minimum y-coordinate of the canvas.
-     * @param yMax  The maximum y-coordinate of the canvas.
-     * @param debug True if debug mode is selected. Otherwise, false.
+     * @param xMin             The minimum x-coordinate of the canvas.
+     * @param xMax             The maximum x-coordinate of the canvas.
+     * @param yMin             The minimum y-coordinate of the canvas.
+     * @param yMax             The maximum y-coordinate of the canvas.
+     * @param debug            True if debug mode is selected. Otherwise, false.
      * @param currentZoomLevel The current zoom level for the GUI.
      * @return An ArrayList with the Element objects that intersect with the search bounds.
      */
@@ -72,6 +76,7 @@ public class RTree implements Serializable {
 
     /**
      * Make a list with as many lists as layers for the map.
+     *
      * @return An ArrayList with empty nested Arraylists.
      */
     private ArrayList<ArrayList<Element>> prepareResultArray() {
@@ -84,11 +89,12 @@ public class RTree implements Serializable {
 
     /**
      * Search for elements in the R-tree based on search coordinates.
+     *
      * @param searchCoordinates The coordinates to search for elements within where the minimum coordinate is followed by maximum for each dimension.
-     * @param node The current Node to check.
-     * @param results List with elements that are within the search coordinates.
-     * @param currentZoomLevel The current zoom level for the GUI.
-     * @param zoomMap A map with types as keys and the layers where the types should be drawn as values.
+     * @param node              The current Node to check.
+     * @param results           List with elements that are within the search coordinates.
+     * @param currentZoomLevel  The current zoom level for the GUI.
+     * @param zoomMap           A map with types as keys and the layers where the types should be drawn as values.
      */
     private void search(float[] searchCoordinates, RTreeNode node, ArrayList<ArrayList<Element>> results, int currentZoomLevel, Map<String, Byte> zoomMap) {
         if (node.isLeaf()) {
@@ -113,11 +119,12 @@ public class RTree implements Serializable {
     /**
      * Search for elements in the R-tree based on search coordinates and add elements which visualize the r-tree. Separate method from
      * search to avoid extra checks in the original method.
+     *
      * @param searchCoordinates The coordinates to search for elements within where the minimum coordinate is followed by maximum for each dimension.
-     * @param node The current Node to check.
-     * @param results List with elements that are within the search coordinates.
-     * @param currentZoomLevel The current zoom level for the GUI.
-     * @param zoomMap A map with types as keys and the layers where the types should be drawn as values.
+     * @param node              The current Node to check.
+     * @param results           List with elements that are within the search coordinates.
+     * @param currentZoomLevel  The current zoom level for the GUI.
+     * @param zoomMap           A map with types as keys and the layers where the types should be drawn as values.
      */
     private void searchDebug(float[] searchCoordinates, RTreeNode node, ArrayList<ArrayList<Element>> results, int currentZoomLevel, Map<String, Byte> zoomMap) {
         if (node.isLeaf()) {
@@ -143,6 +150,7 @@ public class RTree implements Serializable {
 
     /**
      * Determine if two coordinate bounding boxes intersect.
+     *
      * @param coordinates1 The first coordinate set with minimum followed by maximum for each dimension.
      * @param coordinates2 The second coordinate set with minimum followed by maximum for each dimension.
      * @return True if the bounding boxes intersect. False if not.
@@ -160,7 +168,8 @@ public class RTree implements Serializable {
 
     /**
      * Check if the minimum coordinate from the first element and the maximum coordinate for the second element of a certain dimension do not intersect.
-     * @param minCoordinateFirstElement The first element's minimum coordinate for the current dimension.
+     *
+     * @param minCoordinateFirstElement  The first element's minimum coordinate for the current dimension.
      * @param maxCoordinateSecondElement The second element's minimum coordinate for the current dimension.
      * @return True if the coordinates do not intersect. False if they intersect.
      */
@@ -170,9 +179,10 @@ public class RTree implements Serializable {
 
     /**
      * Creates a Way for the debug visualization mode.
-     * @param firstCoordinate The first coordinate for the start of the way.
+     *
+     * @param firstCoordinate  The first coordinate for the start of the way.
      * @param secondCoordinate The second coordinate for the start of the way.
-     * @param thirdCoordinate The first coordinate for the end of the way.
+     * @param thirdCoordinate  The first coordinate for the end of the way.
      * @param fourthCoordinate The second coordinate for the end of the way.
      * @return A Way with two Nodes.
      */
@@ -185,6 +195,7 @@ public class RTree implements Serializable {
 
     /**
      * Creates a rectangle which acts as pseudo canvas bounds when using the debug mode.
+     *
      * @param searchCoordinates The coordinates for the rectangle.
      * @return A list with four ways which make up the rectangle.
      */
@@ -563,7 +574,8 @@ public class RTree implements Serializable {
                 }
                 if (elementsToSplit.get(j).getCoordinates()[i + 1] < leftmostRightSide) { // for the leftmost right side
                     leftmostRightSide = elementsToSplit.get(j).getCoordinates()[i + 1];
-                    if (currentFurthestPairIndices[0] != j) currentFurthestPairIndices[1] = j; // to avoid getting the same element twice
+                    if (currentFurthestPairIndices[0] != j)
+                        currentFurthestPairIndices[1] = j; // to avoid getting the same element twice
                 }
                 if (elementsToSplit.get(j).getCoordinates()[i] < leftmostSide) { // for the greatest width
                     leftmostSide = elementsToSplit.get(j).getCoordinates()[i];
@@ -653,15 +665,15 @@ public class RTree implements Serializable {
     }
 
 
-
     /**
      * Gets the nearest way from a point.
+     * Adapted from Hjaltason, Gísli, and Hanan Samet. “Distance Browsing in Spatial Databases.” ACM transactions on database systems 24.2 (1999): 265–318. Web.
+     *
      * @param x The point's x-coordinate.
      * @param y The points y-coordinate.
      * @return An priority queue entry containing the nearest way.
      */
     public NearestRoadPriorityQueueEntry getNearestRoad(float x, float y, String addressWayName) { // TODO: 5/4/21 hvis vi kun kigger i ways kan jeg komme af med instance of
-        // Adapted from Hjaltason, Gísli, and Hanan Samet. “Distance Browsing in Spatial Databases.” ACM transactions on database systems 24.2 (1999): 265–318. Web.
         PriorityQueue<NearestRoadPriorityQueueEntry> pq = new PriorityQueue<>();
         pq.add(new NearestRoadPriorityQueueEntry(true, false, root, null, null, null, 0));
 
@@ -679,13 +691,11 @@ public class RTree implements Serializable {
                     for (Element e : n.getElementEntries()) {
                         if (e instanceof Way) { // only look for ways
                             Way w = (Way) e;
-                            if (w.isHighWay() && w.hasName()) {
-                                if (addressWayName == null || w.getName().toLowerCase().equals(addressWayName)) { // to ensure that address nodes are matched with the way searched for even if another is nearer
-                                    for (int i = 0; i < w.getNodes().size() - 1; i++) {
-                                        Way segment = createWaySegment(w, i);
-                                        NearestRoadPriorityQueueEntry newEntry = new NearestRoadPriorityQueueEntry(false, true, null, w, segment, new int[]{i, i + 1}, minDistMBB(x, y, segment.getCoordinates()));
-                                        pq.add(newEntry);
-                                    }
+                            if (isValidWay(w, addressWayName)) {
+                                for (int i = 0; i < w.getNodes().size() - 1; i++) {
+                                    Way segment = createWaySegment(w, i);
+                                    NearestRoadPriorityQueueEntry newEntry = new NearestRoadPriorityQueueEntry(false, true, null, w, segment, new int[]{i, i + 1}, minDistMBB(x, y, segment.getCoordinates()));
+                                    pq.add(newEntry);
                                 }
                             }
                         }
@@ -697,11 +707,28 @@ public class RTree implements Serializable {
                 }
             }
         }
-        return null;
+        return null; // TODO: 5/4/21 handle 
+    }
+
+    /**
+     * Determines if the search method should place the way in the priority queue. A way is valid if it is a highway and has a name.
+     * If searching for an address way, the way name should be equal to the address street name searched for.
+     *
+     * @param w              The current way to check.
+     * @param addressWayName The street name if searching for an address way. Otherwise, null.
+     * @return True, if the way should be added to the pq. Otherwise, false
+     */
+    private boolean isValidWay(Way w, String addressWayName) {
+        if (w.isHighWay() && w.hasName()) {
+            // right part necessary to ensure that address nodes are matched with the way searched for even if another way is nearer
+            return addressWayName == null || w.getName().toLowerCase().equals(addressWayName);
+        }
+        return false;
     }
 
     /**
      * Creates a way segment between two nodes in a way.
+     *
      * @param w The way to split into a segment.
      * @return The way segment.
      */
@@ -716,8 +743,9 @@ public class RTree implements Serializable {
 
     /**
      * Find the minimum distance between a point and a bounding box.
-     * @param queryX The point's x-coordinate.
-     * @param queryY The point's y-coordinate.
+     *
+     * @param queryX      The point's x-coordinate.
+     * @param queryY      The point's y-coordinate.
      * @param coordinates The coordinates of the bounding box.
      * @return The minimum distance.
      */

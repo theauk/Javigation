@@ -89,40 +89,6 @@ public class MapCanvas extends Canvas {
         gc.restore();
     }
 
-    public void repaintTest(Node selectedNode) { // TODO: 5/2/21 delete 
-        GraphicsContext gc = getGraphicsContext2D();
-        gc.save();
-        gc.setTransform(new Affine());
-
-        gc.setFill(theme.get("background").getColor().getInner());
-        gc.fillRect(0, 0, getWidth(), getHeight());
-
-        gc.setTransform(trans);
-        fillCoastLines(gc);
-
-        int layers = mapData.getMapSegment().size();
-        for (int layer = 0; layer < layers - 1; layer++) { // -1 since toplayer is drawn below
-            for (Element element : mapData.getMapSegment().get(layer)) {
-                drawElement(gc, element);
-            }
-        }
-        for (Element element : mapData.getMapSegment().get(mapData.getMapSegment().size() - 1)) { // toplayer is only text
-            drawText(gc, element);
-        }
-
-        for (Element route : mapData.getCurrentRoute()) {
-            if (theme.get(route.getType()).isNode()) drawRoundNode(gc, route);
-            else drawElement(gc, route);
-        }
-
-        for (Node point : mapData.getUserAddedPoints()) {
-            drawRectangleNode(gc, point);
-        }
-
-        drawRoundNode(gc, selectedNode);
-        gc.restore();
-    }
-
     private void fillCoastLines(GraphicsContext gc) {
         drawElement(gc, mapData.getCoastlines());
     }
@@ -348,20 +314,20 @@ public class MapCanvas extends Canvas {
 
         double mapWidth = boundingBoxRouteCoordinates[1] - boundingBoxRouteCoordinates[0];
         double boundsWidth = bounds.getMaxX() - bounds.getMinX();          
-        double minXMap = boundingBoxRouteCoordinates[0];  
+        double minXMap = bounds.getMinX() + ((boundsWidth - mapWidth) / 2);
 
         double mapHeight = boundingBoxRouteCoordinates[3] - boundingBoxRouteCoordinates[2];
         double boundsHeight = bounds.getMaxY() - bounds.getMinY();
-        double minYMap = boundingBoxRouteCoordinates[2];
+        double minYMap = bounds.getMinY() + ((boundsHeight - mapHeight) / 2);
 
         double dx = (minXMap - boundingBoxRouteCoordinates[0]);                           
         double dy = (minYMap - boundingBoxRouteCoordinates[2]);
 
         double zoom = getWidth() / mapWidth; 
-        int levels = (int) (Math.log(zoom) / Math.log(ZOOM_FACTOR));        
+        int levels = (int) (Math.log(zoom) / Math.log(ZOOM_FACTOR));
 
         pan(dx, dy);
-        //zoom(true, levels);
+        zoom(true, levels);
     }
 
     public void centerOnPoint(double x, double y) {
