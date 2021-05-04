@@ -5,7 +5,7 @@ import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.*;
-import bfst21.exceptions.KDTreeEmptyException;
+import bfst21.Exceptions.KDTreeEmptyException;
 import bfst21.view.CanvasBounds;
 import bfst21.view.MapCanvas;
 

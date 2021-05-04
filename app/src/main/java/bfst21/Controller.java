@@ -5,8 +5,8 @@ import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.AddressTrieNode;
 import bfst21.data_structures.RTree;
 import bfst21.data_structures.RouteNavigation;
-import bfst21.exceptions.NoOSMInZipFileException;
-import bfst21.exceptions.UnsupportedFileFormatException;
+import bfst21.Exceptions.NoOSMInZipFileException;
+import bfst21.Exceptions.UnsupportedFileFormatException;
 import bfst21.file_io.Loader;
 import bfst21.file_io.Serializer;
 import bfst21.utils.CustomKeyCombination;
@@ -26,10 +26,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -123,6 +120,15 @@ public class Controller {
     @FXML private ComboBox<String> dropDownPoints;
     @FXML private TextField textFieldPointName;
     @FXML private Button addPointButton;
+
+    @FXML private ContextMenu rightClickMenu;
+    @FXML private MenuItem addToYourPoints;
+    @FXML private MenuItem routeFromHere;
+    @FXML private MenuItem routeToHere;
+
+
+    @FXML private ToggleGroup optionNav;
+    @FXML private Button showleft;
 
     public void init() {
         mapData = new MapData();
@@ -263,6 +269,7 @@ public class Controller {
         lastMouse = new Point2D(e.getX(), e.getY());
         mapCanvas.requestFocus();
         setLabels(lastMouse);
+        rightClickMenu.hide();
     }
 
     @FXML
@@ -737,6 +744,17 @@ public class Controller {
             };
             mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
         }
+    }
+
+    @FXML
+    public void setRightClickMenu(ContextMenuEvent actionEvent) {
+        mapCanvas.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() {
+            @Override
+            public void handle(ContextMenuEvent event) {
+                rightClickMenu.show(mapCanvas, event.getScreenX(), event.getScreenY());
+                mapCanvas.removeEventHandler(ContextMenuEvent.CONTEXT_MENU_REQUESTED, this);
+            }
+        });
     }
 
     private enum State {
