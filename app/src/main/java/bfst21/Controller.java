@@ -119,6 +119,10 @@ public class Controller {
     @FXML private MenuItem routeFromHere;
     @FXML private MenuItem routeToHere;
 
+
+    @FXML private ToggleGroup optionNav;
+    @FXML private Button showleft;
+
     public void init() {
         mapData = new MapData();
         routeNavigation = new RouteNavigation();
@@ -741,6 +745,11 @@ public class Controller {
                 mapCanvas.removeEventHandler(ContextMenuEvent.CONTEXT_MENU_REQUESTED, this);
             }
         });
+    }
+
+    @FXML
+    public void setLeftscrollPane(){
+
     }
 
     private enum State {
