@@ -26,6 +26,12 @@ import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.input.*;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -33,6 +39,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +55,7 @@ public class Controller {
     private static final String BINARY_FILE = "/small.bmapdata";
 
     private Point2D lastMouse = new Point2D(0, 0);
+    private Point2D currentRightClick = new Point2D(0,0);
     private final CustomKeyCombination upLeftCombination = new CustomKeyCombination(KeyCode.UP, KeyCode.LEFT);
     private final CustomKeyCombination upRightCombination = new CustomKeyCombination(KeyCode.UP, KeyCode.RIGHT);
     private final CustomKeyCombination downLeftCombination = new CustomKeyCombination(KeyCode.DOWN, KeyCode.LEFT);
@@ -569,6 +577,8 @@ public class Controller {
         }
     }
 
+    //todo  full address activates navigation
+
     private void fullAddressLabelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav, int postcode) {
 
         for (Map.Entry<String, Node> houseNumber : addressNode.getHouseNumbersOnStreet(postcode).entrySet()) {
@@ -724,26 +734,28 @@ public class Controller {
 
     @FXML
     public void addUserPoint(ActionEvent actionEvent) {
-        if (textFieldPointName.getText().equals(""))
-            showDialogBox("User added point error", "Please input name for your point");
-        else {
+
             EventHandler<MouseEvent> event = new EventHandler<>() {
                 @Override
                 public void handle(MouseEvent e) {
                     Point2D cursorPoint = mapCanvas.getTransCoords(e.getX(), e.getY());
-                    Node node = new Node(0, (float) cursorPoint.getX(), (float) cursorPoint.getY());
-                    //// TODO: 20-04-2021 make this work
-
-                    String nodeName = textFieldPointName.getText();
-                    mapData.addToUserPointList(node);
-                    dropDownPoints.getItems().add(nodeName);
-                    mapCanvas.repaint();
-                    textFieldPointName.setText("");
+                   addUserPoint(cursorPoint);
                     mapCanvas.removeEventHandler(MouseEvent.MOUSE_CLICKED, this);
                 }
             };
             mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
         }
+
+    private void addUserPoint(Point2D point){
+        Node node = new Node(0, (float) point.getX(), (float) point.getY());
+        String nodeName = textFieldPointName.getText();
+
+        mapData.addToUserPointList(node);
+        if(nodeName.equals("")){dropDownPoints.getItems().add("Point " + (dropDownPoints.getItems().size()+1));}
+            else{dropDownPoints.getItems().add(nodeName);}
+        mapCanvas.repaint();
+        textFieldPointName.setText("");
+
     }
 
     @FXML
@@ -752,9 +764,27 @@ public class Controller {
             @Override
             public void handle(ContextMenuEvent event) {
                 rightClickMenu.show(mapCanvas, event.getScreenX(), event.getScreenY());
+                currentRightClick = new Point2D(event.getScreenX(), event.getScreenY());
                 mapCanvas.removeEventHandler(ContextMenuEvent.CONTEXT_MENU_REQUESTED, this);
             }
         });
+    }
+
+    @FXML
+    public void rightCLickAddUserPoint(ActionEvent actionEvent) {
+        addUserPoint(currentRightClick);
+    }
+
+    @FXML
+    public void rightCLickPointNavFrom(ActionEvent actionEvent) {
+        Point2D point =  mapCanvas.getTransCoords(currentRightClick.getX(), currentRightClick.getY());
+        updateNodesNavigation(true,point.getX(), point.getY());
+    }
+
+    @FXML
+    public void rightClickPointNavTo(ActionEvent actionEvent) {
+        Point2D point =  mapCanvas.getTransCoords(currentRightClick.getX(), currentRightClick.getY());
+        updateNodesNavigation(false,point.getX(), point.getY());
     }
 
     private enum State {

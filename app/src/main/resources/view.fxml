@@ -74,12 +74,12 @@
         <center>
             <StackPane fx:id="centerPane">
                 <fx:define>
-                    <ContextMenu fx:id="rightClickMenu">
+                    <ContextMenu fx:id="rightClickMenu" >
                         <items>
-                            <MenuItem fx:id="addToYourPoints" text="Add to your points" onAction="#addUserPoint"/>
+                            <MenuItem fx:id="addToYourPoints" text="Add to your points" onAction="#rightCLickAddUserPoint"/>
                             <SeparatorMenuItem/>
-                            <MenuItem fx:id="routeFromHere" text="Route from here" onAction="#getPointNavFrom"/>
-                            <MenuItem fx:id="routeToHere" text="Route to here" onAction="#getPointNavTo"/>
+                            <MenuItem fx:id="routeFromHere" text="Route from here" onAction="#rightCLickPointNavFrom"/>
+                            <MenuItem fx:id="routeToHere" text="Route to here" onAction="#rightClickPointNavTo"/>
                         </items>
                     </ContextMenu>
                 </fx:define>
@@ -156,7 +156,7 @@
                 <AnchorPane id="navigationControl" visible="${navigationPane.selected}" pickOnBounds="false">
                     <VBox AnchorPane.leftAnchor="5" AnchorPane.topAnchor="5" spacing="5">
                         <HBox>
-                            <TextField fx:id="textFieldFromNav" promptText="From" />
+                            <TextField  />
                             <Button fx:id="chooseCorButtonFromNav" text="Choose on map" onAction="#getPointNavFrom"/>
                         </HBox>
                             <ScrollPane fx:id="ScrollpaneAutoCompleteFromNav" visible="false" >
@@ -291,7 +291,7 @@
                         <children>
                             <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0">
                                 <children>
-                                    <TextField prefHeight="27.0" prefWidth="113.0">
+                                    <TextField fx:id="textFieldFromNav" promptText="From" prefHeight="27.0" prefWidth="113.0">
                                         <HBox.margin>
                                             <Insets />
                                         </HBox.margin>
