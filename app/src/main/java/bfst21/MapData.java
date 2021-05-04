@@ -5,7 +5,7 @@ import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.*;
-import bfst21.exceptions.KDTreeEmptyException;
+import bfst21.Exceptions.KDTreeEmptyException;
 import bfst21.view.CanvasBounds;
 
 import java.io.IOException;
@@ -14,7 +14,6 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 public class MapData implements Serializable {

@@ -3,8 +3,8 @@ package bfst21;
 import bfst21.Osm_Elements.Node;
 import bfst21.data_structures.AddressTrieNode;
 import bfst21.data_structures.RouteNavigation;
-import bfst21.exceptions.NoOSMInZipFileException;
-import bfst21.exceptions.UnsupportedFileFormatException;
+import bfst21.Exceptions.NoOSMInZipFileException;
+import bfst21.Exceptions.UnsupportedFileFormatException;
 import bfst21.file_io.Loader;
 import bfst21.file_io.Serializer;
 import bfst21.utils.CustomKeyCombination;
@@ -31,7 +31,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
-import javax.naming.Context;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -736,6 +735,7 @@ public class Controller {
             mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
         }
     }
+
     @FXML
     public void setRightClickMenu(ContextMenuEvent actionEvent) {
         mapCanvas.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() {
@@ -745,11 +745,6 @@ public class Controller {
                 mapCanvas.removeEventHandler(ContextMenuEvent.CONTEXT_MENU_REQUESTED, this);
             }
         });
-    }
-
-    @FXML
-    public void setLeftscrollPane(){
-
     }
 
     private enum State {
