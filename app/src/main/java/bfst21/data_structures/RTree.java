@@ -664,7 +664,6 @@ public class RTree implements Serializable {
         return areaWithBoth - areaElement1 - areaElement2;
     }
 
-
     /**
      * Gets the nearest way from a point.
      * Adapted from Hjaltason, Gísli, and Hanan Samet. “Distance Browsing in Spatial Databases.” ACM transactions on database systems 24.2 (1999): 265–318. Web.

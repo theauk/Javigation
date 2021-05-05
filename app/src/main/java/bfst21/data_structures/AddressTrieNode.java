@@ -71,7 +71,7 @@ public class AddressTrieNode implements Serializable {
         return (this.streetname +  ", " + this.postcode + " " + city);
     }
     private String getFullAddress(HouseNumberNode node){
-        return (this.streetname + "  " + node.houseNumber + ", " + this.postcode);
+        return (this.streetname + " " + node.houseNumber + ", " + this.postcode);
     }
 
     public HashMap<String, Node> getHouseNumbersOnStreet(String city){

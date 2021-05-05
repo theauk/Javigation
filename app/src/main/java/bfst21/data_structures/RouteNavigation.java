@@ -194,7 +194,7 @@ public class RouteNavigation extends Service<List<Element>> {
      * @return The total distance.
      */
     public double getTotalDistance() {
-        if (unitsTo.get(to) != null) return unitsTo.get(to).distance; // TODO: 4/26/21 back to exception instead?
+        if (unitsTo.get(to) != null) return unitsTo.get(to).distance;
         else return 0;
     }
 
@@ -509,7 +509,12 @@ public class RouteNavigation extends Service<List<Element>> {
     private void getRouteDescriptionLessThanThreeNodes() {
         Node f = path.get(path.size() - 1);
         Node t = path.get(path.size() - 2);
-        routeDescription.add("Head " + MapMath.compassDirection(f, t).toLowerCase() + " on " + wayBefore.get(t).getName() + " and you will arrive at your destination" + getCurrentDistanceAndTimeText());
+        if (fromWay.getType().equals("ferry")) {
+            routeDescription.add(getFerryText(fromWay.getName()));
+            specialPathFeatures.add("a ferry");
+        } else {
+            routeDescription.add("Head " + MapMath.compassDirection(f, t).toLowerCase() + " on " + wayBefore.get(t).getName() + " and you will arrive at your destination" + getCurrentDistanceAndTimeText());
+        }
     }
 
     /**

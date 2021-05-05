@@ -4,10 +4,11 @@ import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
 import bfst21.exceptions.NoNavigationResultException;
+import bfst21.utils.MapMath;
 import bfst21.utils.VehicleType;
-import javafx.embed.swing.JFXPanel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 
@@ -33,43 +34,136 @@ class RouteNavigationTest {
         return idCount;
     }
 
-    private Node createNode(float x, float y) {
-        return new Node(getID(), x, y);
+    private float convertCoordinate(double coordinate) {
+        return (float) MapMath.convertToScreen(coordinate);
     }
 
-    private Way createWay(ArrayList<Node> nodes, double maxSpeed) { // TODO: 5/4/21 udvid med typer
+    private Node createNode(float x, double y) {
+        return new Node(getID(), x, convertCoordinate(y));
+    }
+
+    private Way createWay(ArrayList<Node> nodes, double maxSpeed, String name, String type) { // TODO: 5/4/21 udvid med typer
         Way w = new Way(getID());
         w.setAsHighWay();
         w.setMaxSpeed(maxSpeed);
-        w.setType("unclassified");
+        w.setType(type);
         w.addAllNodes(nodes);
+        w.setName(name);
         for (Node n : nodes) {
             nodeToHighwayMap.put(n, w);
         }
         return w;
     }
 
-    @Test
-    void name() throws NoNavigationResultException {
-        ArrayList<Node> nodesStraightWay = new ArrayList<>();
-        nodesStraightWay.add(createNode(0, 0));
-        nodesStraightWay.add(createNode(0, 4));
-        Way straightWay = createWay(nodesStraightWay, 1);
-
-        ArrayList<Node> nodesRightWay = new ArrayList<>();
-        nodesRightWay.add(createNode(0, 4));
-        nodesRightWay.add(createNode(3, 4));
-        Way rightWay = createWay(nodesRightWay, 1);
-
-        Node from = new Node(getID(), 0, 0);
-        Node to = new Node(getID(), 3, 4);
-
+    private void setTreeMaps() {
         routeNavigation.setNodeToHighwayMap(nodeToHighwayMap);
         routeNavigation.setNodeToRestriction(nodeToRestriction);
         routeNavigation.setWayToRestriction(wayToRestriction);
+    }
 
-        routeNavigation.setupRoute(from, to, straightWay, rightWay, new int[]{0, 1}, new int[]{0, 1}, VehicleType.CAR, true, true);
+    @Test
+    void rightTurnTest() throws NoNavigationResultException {
+        Node from = createNode(12.1879864f , 55.449707);
+        Node to = createNode(12.1882954f, 55.4500809);
+        Node turnNode = createNode(12.1877728f, 55.4498749);
+
+        ArrayList<Node> nodesStartWay = new ArrayList<>();
+        nodesStartWay.add(createNode(12.1879864f , 55.449707));
+        nodesStartWay.add(turnNode);
+        Way startWay = createWay(nodesStartWay, 1, "Way 1", "unclassified");
+
+        ArrayList<Node> nodesTurnRightOntoWay = new ArrayList<>();
+        nodesTurnRightOntoWay.add(turnNode);
+        nodesTurnRightOntoWay.add(createNode(12.1882954f , 55.4500809));
+        Way turnRightOntoWay = createWay(nodesTurnRightOntoWay, 1, "Way 2", "unclassified");
+
+        setTreeMaps();
+        routeNavigation.setupRoute(from, to, startWay, turnRightOntoWay, new int[]{0, 1}, new int[]{0, 1}, VehicleType.CAR, false, true);
         routeNavigation.testGetCurrentRoute();
-        System.out.println(routeNavigation.getTotalDistance());
+
+        String turnDirection = routeNavigation.getDirections().get(1);
+        assertEquals("Turn right onto Way 2", turnDirection);
+    }
+
+    @Test
+    void leftTurnTest() throws NoNavigationResultException {
+        Node from = createNode(12.1882954f, 55.4500809);
+        Node to = createNode(12.1879864f , 55.449707);
+        Node turnNode = createNode(12.1877728f, 55.4498749);
+
+        ArrayList<Node> nodesStartWay = new ArrayList<>();
+        nodesStartWay.add(turnNode);
+        nodesStartWay.add(createNode(12.1882954f , 55.4500809));
+        Way startWay = createWay(nodesStartWay, 1, "Way 1", "unclassified");
+
+        ArrayList<Node> turnLeftOntoWayNodes = new ArrayList<>();
+        turnLeftOntoWayNodes.add(createNode(12.1879864f , 55.449707));
+        turnLeftOntoWayNodes.add(turnNode);
+        Way turnLeftOntoWay = createWay(turnLeftOntoWayNodes, 1, "Way 2", "unclassified");
+
+        setTreeMaps();
+        routeNavigation.setupRoute(from, to, startWay, turnLeftOntoWay, new int[]{0, 1}, new int[]{0, 1}, VehicleType.CAR, false, true);
+        routeNavigation.testGetCurrentRoute();
+
+        String turnDirection = routeNavigation.getDirections().get(1);
+        assertEquals("Turn left onto Way 2", turnDirection);
+    }
+
+    @Test
+    void noNavigationResultExceptionTest() throws NoNavigationResultException {
+        Node from = createNode(12.1882954f, 55.4500809);
+        ArrayList<Node> fromNodes = new ArrayList<>();
+        fromNodes.add(from);
+        fromNodes.add(createNode(12.1882955f, 55.4500806));
+        Way fromWay = createWay(fromNodes, 50, "Way 1", "unclassified");
+
+        Node to = createNode(12.1879864f , 55.449707);
+        ArrayList<Node> toNodes = new ArrayList<>();
+        toNodes.add(to);
+        toNodes.add(createNode(12.1879863f , 55.449705));
+        Way toWay = createWay(toNodes, 50, "Way 2", "unclassified");
+
+        setTreeMaps();
+        routeNavigation.setupRoute(from, to, fromWay, toWay, new int[]{0, 1}, new int[]{0, 1}, VehicleType.CAR, false, true);
+
+        assertThrows(NoNavigationResultException.class, () -> {
+            routeNavigation.testGetCurrentRoute();
+        });
+        assertEquals(0, routeNavigation.getTotalDistance());
+        assertEquals(0, routeNavigation.getTotalTime());
+    }
+
+    @Test
+    void getDistanceAndTimeTest() throws NoNavigationResultException {
+        // Assumption distance found via: https://www.movable-type.co.uk/scripts/latlong.html
+        ArrayList<Node> nodes = new ArrayList<>();
+        nodes.add(createNode(12.1934f, 55.4453));
+        nodes.add(createNode(12.2024f, 55.4378));
+        double speed = 50;
+        Way w = createWay(nodes, speed, "Way 1", "unclassified");
+
+        setTreeMaps();
+        routeNavigation.setupRoute(nodes.get(0), nodes.get(1), w, w, new int[]{0, 1}, new int[]{0, 1}, VehicleType.CAR, false, true);
+        routeNavigation.testGetCurrentRoute();
+        double distance = Math.round(routeNavigation.getTotalDistance());
+        assertEquals(1009.0, distance);
+
+        double speedMs = speed * (5f / 18f);
+        double timeCalculated = Math.round(distance / speedMs);
+        double time = Math.round(routeNavigation.getTotalTime());
+        assertEquals(timeCalculated, time);
+    }
+
+    @Test
+    void ferrySpecialPathFeaturesTest() throws NoNavigationResultException {
+        ArrayList<Node> nodes = new ArrayList<>();
+        nodes.add(createNode(12.1934f, 55.4453));
+        nodes.add(createNode(12.2024f, 55.4378));
+        Way w = createWay(nodes, 50, "Ferry from A - B", "ferry");
+
+        setTreeMaps();
+        routeNavigation.setupRoute(nodes.get(0), nodes.get(1), w, w, new int[]{0, 1}, new int[]{0, 1}, VehicleType.CAR, false, true);
+        routeNavigation.testGetCurrentRoute();
+        assertTrue(routeNavigation.getSpecialPathFeatures().contains("a ferry"));
     }
 }
