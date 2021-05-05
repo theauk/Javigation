@@ -15,8 +15,6 @@ import bfst21.utils.MapMath;
 import bfst21.utils.VehicleType;
 import bfst21.view.*;
 import javafx.animation.FadeTransition;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -38,7 +36,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -73,8 +70,6 @@ public class Controller {
     private int currentToNodeIndexInWay;
     private int[] nearestFromWaySegmentIndices;
     private int[] nearestToWaySegmentIndices;
-
-    private ArrayList<AddressTrieNode> currentAutoCompleteList;
 
     @FXML private MapCanvas mapCanvas;
     @FXML private Scene scene;
@@ -111,11 +106,7 @@ public class Controller {
     @FXML private Button zoomOutButton;
 
     @FXML private AutoFillTextField textFieldFromNav;
-    @FXML private TextField textFieldToNav;
-    @FXML private VBox autoCompleteFromNav;
-    @FXML private ScrollPane ScrollpaneAutoCompleteToNav;
-    @FXML private VBox autoCompleteToNav;
-    @FXML private ScrollPane ScrollpaneAutoCompleteFromNav;
+    @FXML private AutoFillTextField textFieldToNav;
 
     @FXML private RadioButton radioButtonFastestNav;
     @FXML private RadioButton radioButtonShortestNav;
@@ -130,9 +121,6 @@ public class Controller {
     @FXML private Button addPointButton;
 
     @FXML private ContextMenu rightClickMenu;
-    @FXML private MenuItem addToYourPoints;
-    @FXML private MenuItem routeFromHere;
-    @FXML private MenuItem routeToHere;
 
 
     @FXML private ToggleGroup optionNav;
@@ -156,8 +144,9 @@ public class Controller {
         });
         disableMenus();
         CustomKeyCombination.setTarget(mapCanvas);
-        addListenerToSearchFields();
+        addListeners();
         textFieldFromNav.setFilter(addressFilter);
+        textFieldToNav.setFilter(addressFilter);
     }
 
     private void initMapCanvas() {
@@ -184,19 +173,7 @@ public class Controller {
         }
     }
 
-    private void addListenerToSearchFields() {
-        textFieldFromNav.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.isBlank()) {
-                fillAutoCompleteText(autoCompleteFromNav, true);
-            }
-        });
-        textFieldToNav.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable,
-                                String oldValue, String newValue) {
-                if (newValue.length() > 2) fillAutoCompleteText(autoCompleteToNav, false);
-            }
-        });
+    private void addListeners() {
 
         mapCanvas.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() {
             @Override
@@ -550,26 +527,6 @@ public class Controller {
         return fileChooser;
     }
 
-    private void fillAutoCompleteText(VBox autoComplete, boolean fromNav) {
-        autoComplete.getChildren().removeAll(autoComplete.getChildren());
-        fillAutoCompleteText(fromNav);
-    }
-
-
-    private void fillAutoCompleteText(boolean fromNav){
-            if (fromNav) {
-                for(AddressTrieNode addressNode : mapData.getAutoCompleteAddresses(textFieldFromNav.getText())) {
-                    labelForAutoComplete(addressNode, autoCompleteFromNav, textFieldFromNav, ScrollpaneAutoCompleteFromNav, fromNav);
-                    ScrollpaneAutoCompleteFromNav.setVisible(true);
-                }
-            } else {
-                for(AddressTrieNode addressNode : mapData.getAutoCompleteAddresses(textFieldToNav.getText())) {
-                    labelForAutoComplete(addressNode, autoCompleteToNav, textFieldToNav, ScrollpaneAutoCompleteToNav, fromNav);
-                    ScrollpaneAutoCompleteToNav.setVisible(true);
-                }
-            }
-    }
-
 
     private void labelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav) {
 
@@ -585,8 +542,6 @@ public class Controller {
             });
         }
     }
-
-    //todo  full address activates navigation
 
     private void fullAddressLabelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav, int postcode) {
         for (Map.Entry<String, Node> houseNumber : addressNode.getHouseNumbersOnStreet(postcode).entrySet()) {
@@ -611,6 +566,7 @@ public class Controller {
         mapCanvas.rTreeDebugMode();
     }
 
+    // TODO: 05-05-2021 is this needed?
     @FXML
     public void getPointNavFrom() {
         getPointNav(true);
