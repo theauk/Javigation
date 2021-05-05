@@ -14,10 +14,10 @@ public class AddressFilter implements Filter {
 
     private AddressTriesTree addressTree;
     private List<String> suggestions;
+    private Node matchedAddress;
 
-    //TODO FIX CITY KAN KUN TAGE ET BOGSTAV TIL SIDST
-    private final String regex = "^ *(?<street>[a-zæøå0-9 \\-.]+?),? *(?<number>\\d{1,3}[a-zæøå]?)?,? *(?<postCode>\\d{1,4})?(?: (?<city>[a-zæøå]+?|[a-zæøå]+? *[a-zæøå])?)? *$";
-    private final Pattern pattern = Pattern.compile(regex);
+    private final String addressRegex = "^ *(?<street>[a-zæøå0-9 \\-.]+?),? *(?<number>\\d{1,3}[a-zæøå]?)?,? *(?<postCode>\\d{1,4})?(?: (?<city>[a-zæøå]+?|[a-zæøå]+? *[a-zæøå]+)?)? *$";
+    private final Pattern pattern = Pattern.compile(addressRegex);
     private Matcher matcher;
 
     public AddressFilter() {
@@ -38,36 +38,30 @@ public class AddressFilter implements Filter {
             if(matches("postCode")) postCode = Integer.parseInt(matcher.group("postCode"));
             if(matches("city")) city = matcher.group("city");
 
-            suggestions = filter(addressTree.searchWithPrefix(street), street, houseNumber, postCode, city);
-            Collections.sort(suggestions);
+            List<AddressTrieNode> searchResult = addressTree.searchWithPrefix(street);
+            if(searchResult.size() == 0) return;
+            validateInput(searchResult, houseNumber, postCode, city);
         } else suggestions.add("No matches!");
     }
 
-    private List<String> filter(List<AddressTrieNode> searchResult, String street, String houseNumber, int postCode, String city) {
+    private void validateInput(List<AddressTrieNode> searchResult, String houseNumber, int postCode, String city) {
+        if(!isMatch(searchResult.get(0), houseNumber, postCode, city)) makeSuggestions(searchResult, houseNumber, postCode, city);
+        else matchedAddress = searchResult.get(0).findNode(houseNumber, postCode);
+    }
 
-        if(!street.isBlank() && !houseNumber.isBlank() && validPostCode(postCode) && validCity(city)) getNode(searchResult.get(0), houseNumber, postCode);
-        if(!street.isBlank() && !houseNumber.isBlank() && postCode == 0) return getAddressesWithNumber(searchResult, houseNumber);
-        //else if(!street.isBlank() && !houseNumber.isBlank() && validPostCode(postCode)) getNode(searchResult.get(0), houseNumber, postCode);
+    private void makeSuggestions(List<AddressTrieNode> searchResult, String houseNumber, int postCode, String city) {
+        suggestions = filter(searchResult, houseNumber, postCode, city);
+        Collections.sort(suggestions);
+    }
 
-
+    private List<String> filter(List<AddressTrieNode> searchResult, String houseNumber, int postCode, String city) {
+        if(!houseNumber.isBlank() && postCode != 0 && !city.isBlank()) return getAddressesWithNumberPostCodeAndCity(searchResult, houseNumber, postCode, city);
+        else if(!houseNumber.isBlank() && postCode == 0 && city.isBlank()) return getAddressesWithNumber(searchResult, houseNumber);
         return getAddresses(searchResult);
     }
 
-    private boolean validPostCode(int postCode) {
-        return Collections.binarySearch(addressTree.getPostCodes(), postCode) >= 0;
-    }
-
-    private boolean validCity(String city) {
-        List<String> cities = addressTree.getCities();
-        System.out.println("BINARY ON: " + city);
-        int index = Collections.binarySearch(cities, city);
-        if(index >= 0) System.out.println("RESULT: i = " + index + " : " + cities.get(index));
-
-        return Collections.binarySearch(addressTree.getCities(), city) >= 0;
-    }
-
-    private boolean validHouseNumber(String houseNumber) {
-        return true;
+    private boolean isMatch(AddressTrieNode node, String houseNumber, int postCode, String city) {
+        return node.isValidAddress(houseNumber, postCode, city);
     }
 
     private List<String> getAddresses(List<AddressTrieNode> searchResult) {
@@ -90,11 +84,8 @@ public class AddressFilter implements Filter {
         return list;
     }
 
-    private void getNode(AddressTrieNode result, String houseNumber, int postCode) {
-        if(result.isValidAddress(houseNumber, postCode)) {
-            Node node = result.findNode(houseNumber, postCode);
-            System.out.println("PERFECT MATCH");
-        } else System.err.println("Invalid address!");
+    private List<String> getAddressesWithNumberPostCodeAndCity(List<AddressTrieNode> searchResult, String houseNumber, int postCode, String city) {
+        return new ArrayList<>(searchResult.get(0).getAddressesFor(houseNumber, postCode, city));
     }
 
     private boolean matches(String group) {
@@ -107,5 +98,9 @@ public class AddressFilter implements Filter {
 
     public List<String> getSuggestions() {
         return suggestions;
+    }
+
+    public Node getMatchedAddress() {
+        return matchedAddress;
     }
 }

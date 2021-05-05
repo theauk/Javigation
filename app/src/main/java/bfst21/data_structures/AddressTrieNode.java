@@ -14,7 +14,6 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
     private Map<Integer, List<HouseNumberNode>> citiesWithThisStreet;
     private String streetname;
     private Map<Integer, String> addresses;
-    private Map<Integer, String> postCodesToCities;
     private boolean isAddress;
 
     public AddressTrieNode() {
@@ -22,14 +21,13 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
         isAddress = false;
     }
 
-    public void setAddress(Node node, int postcode, String streetname, String houseNumber, Map<Integer, String> postcodesToCities){
+    public void setAddress(Node node, int postcode, String streetname, String houseNumber){
         citiesWithThisStreet = new HashMap<>();
         List<HouseNumberNode> list = new ArrayList<>();
         list.add(new HouseNumberNode(node, houseNumber));
         citiesWithThisStreet.put(postcode, list);
         this.streetname = streetname;
         isAddress = true;
-        this.postCodesToCities = postcodesToCities;
     }
 
     public boolean isAddress(){
@@ -39,6 +37,7 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
     public void addHouseNumber(int postcode, Node node, String houseNumber){
         if(citiesWithThisStreet.containsKey(postcode)){
             citiesWithThisStreet.get(postcode).add(new HouseNumberNode(node, houseNumber));
+            Collections.sort(citiesWithThisStreet.get(postcode));
         } else {
             ArrayList<HouseNumberNode> list = new ArrayList<>();
             list.add(new HouseNumberNode(node, houseNumber));
@@ -63,13 +62,13 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
     }
 
     private String getAddressWithOutHouseNumber(int postcode){
-        return (this.streetname +  ", " + postcode + " " + postCodesToCities.get(postcode));
+        return (this.streetname +  ", " + postcode + " " + AddressTriesTree.POSTCODE_TO_CITIES.get(postcode));
     }
 
     public Map<String, Node> getHouseNumbersOnStreet(int postcode){
         Map<String, Node> map = new HashMap<>();
         for(HouseNumberNode houseNumberNode : citiesWithThisStreet.get(postcode) ){
-            map.put((this.streetname + "  " + houseNumberNode.houseNumber + ", " + postcode + " " + postCodesToCities.get(postcode)), houseNumberNode.node);
+            map.put((this.streetname + "  " + houseNumberNode.houseNumber + ", " + postcode + " " + AddressTriesTree.POSTCODE_TO_CITIES.get(postcode)), houseNumberNode.node);
         }
 
         return map;
@@ -91,7 +90,7 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
         for(Map.Entry<Integer, List<HouseNumberNode>> entry : citiesWithThisStreet.entrySet()) {    //Get the key/value set for postcode to list of house nodes
             for(HouseNumberNode node: entry.getValue()) {   //Run through each house number node to check if the specified address is present
                 if(node.houseNumber.startsWith(houseNumber)) {
-                    String address = streetname + " " + node.houseNumber + ", " + entry.getKey() + " " + postCodesToCities.get(entry.getKey());
+                    String address = streetname + " " + node.houseNumber + ", " + entry.getKey() + " " + AddressTriesTree.POSTCODE_TO_CITIES.get(entry.getKey());
                     list.add(address);
                 }
             }
@@ -100,20 +99,39 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
         return list;
     }
 
-    public Node findNode(String houseNumber, int postCode) {
+    public List<String> getAddressesFor(String houseNumber, int postCode, String city) {
+        List<String> list = new ArrayList<>();
+
+        if(!isValidCity(postCode, city)) return list;
+
         List<HouseNumberNode> nodes = citiesWithThisStreet.get(postCode);
-        Collections.sort(nodes);
 
-        int index = binarySearch(nodes, houseNumber);
+        for(HouseNumberNode node: nodes) {
+            if(node.houseNumber.startsWith(houseNumber)) {
+                String address = streetname + " " + node.houseNumber + ", " + postCode + " " + city;
+                list.add(address);
+            }
+        }
 
-        return nodes.get(index).node;
+        return list;
     }
 
-    public boolean isValidAddress(String houseNumber, int postCode)  {
+    public Node findNode(String houseNumber, int postCode) {
         List<HouseNumberNode> nodes = citiesWithThisStreet.get(postCode);
-        Collections.sort(nodes);
+        return nodes.get(binarySearch(nodes, houseNumber)).node;
+    }
+
+    public boolean isValidAddress(String houseNumber, int postCode, String city)  {
+        if(!isValidCity(postCode, city)) return false;
+        List<HouseNumberNode> nodes = citiesWithThisStreet.get(postCode);
 
         return binarySearch(nodes, houseNumber) != -1;
+    }
+
+    private boolean isValidCity(int postCode, String city) {
+        String realCity = AddressTriesTree.POSTCODE_TO_CITIES.get(postCode);
+        if(realCity == null) return false;
+        return realCity.equals(city);
     }
 
     private int binarySearch(List<HouseNumberNode> nodes, String houseNumber)
@@ -132,10 +150,6 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
         }
 
         return -1;
-    }
-
-    public String getStreetname() {
-        return streetname;
     }
 
     @Override
