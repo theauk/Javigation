@@ -154,22 +154,6 @@
                     </HBox>
                 </AnchorPane>
 
-                <AnchorPane id="navigationControl" visible="${navigationPane.selected}" pickOnBounds="false">
-                    <VBox AnchorPane.leftAnchor="5" AnchorPane.topAnchor="5" spacing="5">
-
-
-                        <VBox>
-                            <HBox.margin>
-                                <Insets right="30.0"/>
-                                <Insets bottom="10.0"/>
-                            </HBox.margin>
-                            <Button fx:id="addPointButton" text="Choose on map to add point" onAction="#addUserPoint"/>
-                            <TextField fx:id="textFieldPointName" promptText="Name your point"/>
-                            <ComboBox fx:id="dropDownPoints" onAction="#moveToPoint"/>
-                        </VBox>
-                    </VBox>
-                </AnchorPane>
-
                 <VBox fx:id="loaderPane" alignment="CENTER" style="-fx-background-color: rgb(180, 180, 180);">
                     <ProgressIndicator fx:id="loadingBar" progress="0"/>
                     <Label fx:id="statusLabel" text="Waiting"/>
@@ -180,7 +164,7 @@
         <left>
             <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                 <children>
-                    <AnchorPane fx:id="navigationLeftPane" prefHeight="616.0" prefWidth="200.0" visible="true" managed="${navigationLeftPane.visible}">
+                    <AnchorPane fx:id="navigationLeftPane" prefHeight="616.0" prefWidth="200.0" visible="false" managed="${navigationLeftPane.visible}">
                         <children>
                             <GridPane layoutY="39.0" prefHeight="91.0" prefWidth="185.0">
                                 <columnConstraints>
@@ -297,7 +281,7 @@
 
                     <!--Second left pane-->
 
-                    <AnchorPane fx:id="Address_myPlacesPane" prefHeight="616.0" prefWidth="200.0" visible="false" managed="${Address_myPlacesPane.visible}">
+                    <AnchorPane fx:id="Address_myPlacesPane" prefHeight="616.0" prefWidth="200.0" visible="true" managed="${Address_myPlacesPane.visible}">
                         <children>
                             <GridPane layoutX="7.0" layoutY="54.0" prefHeight="91.0" prefWidth="185.0">
                                 <columnConstraints>
@@ -339,17 +323,19 @@
                                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                 </rowConstraints>
                                 <children>
-                                    <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="59.0" text="Add">
+                                    <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="59.0" text="Add" onAction="#addUserPoint">
                                         <GridPane.margin>
                                             <Insets left="20.0" />
                                         </GridPane.margin>
                                     </Button>
-                                    <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="61.0" text="Delete" GridPane.columnIndex="1" />
+                                    <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="61.0" text="Delete" GridPane.columnIndex="1" onAction="#deleteUserPoint" />
                                 </children>
                             </GridPane>
                             <ScrollPane fx:id="ScrollPaneListView" layoutX="5.0" layoutY="414.0" prefHeight="188.0" prefWidth="179.0">
                                 <content>
-                                    <ListView fx:id="MyPlacesListView" prefHeight="200.0" prefWidth="200.0" />
+                                    <ListView fx:id="myPlacesListView" prefHeight="200.0" prefWidth="200.0" onMouseClicked="#moveToPoint">
+
+                                    </ListView>
                                 </content>
                             </ScrollPane>
                             <Label layoutX="21.0" layoutY="24.0" prefHeight="29.0" prefWidth="147.0" text="Search for an address">

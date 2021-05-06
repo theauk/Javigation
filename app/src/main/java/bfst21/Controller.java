@@ -116,9 +116,7 @@ public class Controller {
     @FXML private ScrollPane directionsScrollPane;
     @FXML private Label specialPathFeaturesNav;
 
-    @FXML private ComboBox<String> dropDownPoints;
-    @FXML private TextField textFieldPointName;
-    @FXML private Button addPointButton;
+    @FXML private ListView<String> myPlacesListView;
 
     @FXML private ContextMenu rightClickMenu;
 
@@ -157,7 +155,7 @@ public class Controller {
 
         textFieldToNav.setText("");
         textFieldFromNav.setText("");
-        dropDownPoints.getItems().removeAll(dropDownPoints.getItems());
+        myPlacesListView.getItems().removeAll(myPlacesListView.getItems());
     }
 
     private void loadThemes() {
@@ -689,8 +687,8 @@ public class Controller {
     }
 
     @FXML
-    public void moveToPoint(ActionEvent actionEvent) {
-        int i = dropDownPoints.getSelectionModel().getSelectedIndex();
+    public void moveToPoint(MouseEvent actionEvent) {
+        int i = myPlacesListView.getSelectionModel().getSelectedIndex();
         Node node = mapData.getUserAddedPoints().get(i);
         mapCanvas.centerOnPoint(node.getxMax(), node.getyMax());
         mapCanvas.repaint();
@@ -707,18 +705,33 @@ public class Controller {
                     mapCanvas.removeEventHandler(MouseEvent.MOUSE_CLICKED, this);
                 }
             };
-            mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
-        }
+             mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
+    }
 
     private void addUserPoint(Point2D point){
         Node node = new Node(0, (float) point.getX(), (float) point.getY());
-        String nodeName = textFieldPointName.getText();
+        //String nodeName = textFieldPointName.getText();
+        // TODO: 06-05-2021 does the user want to name points?
 
         mapData.addToUserPointList(node);
-        if(nodeName.equals("")){dropDownPoints.getItems().add("Point " + (dropDownPoints.getItems().size()+1));}
-            else{dropDownPoints.getItems().add(nodeName);}
+        //if(nodeName.equals("")){
+            myPlacesListView.getItems().add("Point " + (myPlacesListView.getItems().size()+1));
+        //} else {
+                //myPlacesListView.getItems().add(nodeName);
+                //}
         mapCanvas.repaint();
-        textFieldPointName.setText("");
+        //textFieldPointName.setText("");
+
+    }
+
+    @FXML
+    public void deleteUserPoint(){
+        if(myPlacesListView.getSelectionModel().getSelectedItem() != null){
+            int i = myPlacesListView.getSelectionModel().getSelectedIndex();
+            myPlacesListView.getItems().remove(i);
+            mapData.getUserAddedPoints().remove(i);
+            mapCanvas.repaint();
+        }
 
     }
 
