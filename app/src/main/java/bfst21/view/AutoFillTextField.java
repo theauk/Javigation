@@ -1,60 +1,77 @@
 package bfst21.view;
 
-import bfst21.utils.AddressFilter;
-import bfst21.utils.Filter;
+import javafx.beans.NamedArg;
 import javafx.geometry.Side;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * A TextField with the ability to show a list of clickable suggestions.
+ * If a suggestion is clicked, the text will be transferred to the TextField.
+ */
 public class AutoFillTextField extends TextField {
-    private Filter filter;
+
     private final ContextMenu popup;
-    private static final int MAX_ENTRIES = 10;
+    private final int maxEntries;
 
-    private List<String> searchResult;
-
-    public AutoFillTextField() {
+    /**
+     * Creates an AutoFillTextField with the specified number of max suggestions
+     * per call to the {@link AutoFillTextField#suggest(List)} method.
+     *
+     * @param maxEntries the maximum number of suggestions the TextField can show.
+     */
+    public AutoFillTextField(@NamedArg("maxEntries") int maxEntries) {
         popup = new ContextMenu();
-        filter = new AddressFilter();
-        searchResult = new ArrayList<>();
+        this.maxEntries = maxEntries;
         setListeners();
     }
 
+    /**
+     * Shows a list of possible suggestions as a ContextMenu right under the TextField.
+     *
+     * @param suggestions a list of Strings containing the suggestions to show.
+     */
+    public void suggest(List<String> suggestions) {
+        if (!suggestions.isEmpty()) {
+            addToPopup(suggestions);
+            if (!popup.isShowing()) popup.show(this, Side.BOTTOM, 0, 0);
+        } else popup.hide();
+    }
+
+    /**
+     * Prepares the TextField with Listeners for defining
+     * when to show the suggestion popup.
+     */
     private void setListeners() {
         textProperty().addListener(((observable, oldValue, newValue) -> {
             String entered = getText();
-
-            if(entered == null || entered.isEmpty()) popup.hide();
-            else {
-                filter.search(getText());
-                searchResult = filter.getSuggestions();
-
-                if(!searchResult.isEmpty()) {
-                    addToPopup(searchResult);
-
-                    if(!popup.isShowing()) popup.show(this, Side.BOTTOM, 0, 0);
-                } else popup.hide();
-            }
+            if (entered == null || entered.isEmpty()) popup.hide();
         }));
 
         focusedProperty().addListener(((observable, oldValue, newValue) -> {
-            if(newValue && !getText().isBlank()) popup.show(this, Side.BOTTOM, 0, 0);  //If focus is gained show and field is not empty
+            if (newValue && !getText().isBlank())
+                popup.show(this, Side.BOTTOM, 0, 0);  //If focus is gained and field is not empty
             else popup.hide();
         }));
     }
 
-    private void addToPopup(List<String> searchResult) {
+    /**
+     * Creates the popup's entries and only displays between 1 and {@link AutoFillTextField#maxEntries}
+     * only showing the smallest amount possible.
+     *
+     * @param suggestions a List of Strings containing the entries to show in the suggestion popup.
+     */
+    private void addToPopup(List<String> suggestions) {
         List<CustomMenuItem> menuItems = new LinkedList<>();
-        int count = Math.min(searchResult.size(), MAX_ENTRIES);
+        int count = Math.min(suggestions.size(), maxEntries);
 
         for (int i = 0; i < count; i++) {
-            String entry = searchResult.get(i);
+            String entry = suggestions.get(i);
             Label label = new Label(entry);
 
             CustomMenuItem item = new CustomMenuItem(label, true);
@@ -69,9 +86,5 @@ public class AutoFillTextField extends TextField {
 
         popup.getItems().clear();
         popup.getItems().addAll(menuItems);
-    }
-
-    public void setFilter(Filter filter) {
-        this.filter = filter;
     }
 }

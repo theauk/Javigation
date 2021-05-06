@@ -1,7 +1,6 @@
 package bfst21;
 
 import bfst21.Osm_Elements.Node;
-import bfst21.data_structures.AddressTrieNode;
 import bfst21.data_structures.RouteNavigation;
 import bfst21.exceptions.NoOSMInZipFileException;
 import bfst21.exceptions.UnsupportedFileFormatException;
@@ -11,10 +10,11 @@ import bfst21.utils.AddressFilter;
 import bfst21.utils.CustomKeyCombination;
 import bfst21.utils.MapMath;
 import bfst21.utils.VehicleType;
-import bfst21.view.*;
+import bfst21.view.AutoFillTextField;
+import bfst21.view.CanvasBounds;
+import bfst21.view.MapCanvas;
+import bfst21.view.Theme;
 import javafx.animation.FadeTransition;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -38,13 +38,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Map;
 
 public class Controller {
     private MapData mapData;
     private Creator creator;
     private RouteNavigation routeNavigation;
-    private AddressFilter addressFilter;
+    private AddressFilter fromAddressFilter;
+    private AddressFilter toAddressFilter;
 
     private static final String BINARY_FILE = "/small.bmapdata";
 
@@ -60,8 +60,6 @@ public class Controller {
 
     private Node currentFromNode;
     private Node currentToNode;
-
-    private ArrayList<AddressTrieNode> currentAutoCompleteList;
 
     @FXML private MapCanvas mapCanvas;
     @FXML private Scene scene;
@@ -98,11 +96,7 @@ public class Controller {
     @FXML private Button zoomOutButton;
 
     @FXML private AutoFillTextField textFieldFromNav;
-    @FXML private TextField textFieldToNav;
-    @FXML private VBox autoCompleteFromNav;
-    @FXML private ScrollPane ScrollpaneAutoCompleteToNav;
-    @FXML private VBox autoCompleteToNav;
-    @FXML private ScrollPane ScrollpaneAutoCompleteFromNav;
+    @FXML private AutoFillTextField textFieldToNav;
 
     @FXML private RadioButton radioButtonFastestNav;
     @FXML private RadioButton radioButtonShortestNav;
@@ -119,7 +113,8 @@ public class Controller {
     public void init() {
         mapData = new MapData();
         routeNavigation = new RouteNavigation();
-        addressFilter = new AddressFilter();
+        fromAddressFilter = new AddressFilter();
+        toAddressFilter = new AddressFilter();
         loadThemes();
         initView();
         openFile();
@@ -134,8 +129,19 @@ public class Controller {
         });
         disableMenus();
         CustomKeyCombination.setTarget(mapCanvas);
-        addListenerToSearchFields();
-        textFieldFromNav.setFilter(addressFilter);
+
+        //Route navigation text fields
+        textFieldFromNav.textProperty().addListener(((observable, oldValue, newValue) -> {
+            fromAddressFilter.search(newValue);
+            textFieldFromNav.suggest(fromAddressFilter.getSuggestions());
+            currentFromNode = fromAddressFilter.getMatchedAddress();
+        }));
+
+        textFieldToNav.textProperty().addListener(((observable, oldValue, newValue) -> {
+            toAddressFilter.search(newValue);
+            textFieldToNav.suggest(toAddressFilter.getSuggestions());
+            currentToNode = toAddressFilter.getMatchedAddress();
+        }));
     }
 
     private void initMapCanvas() {
@@ -158,22 +164,6 @@ public class Controller {
                 themeMenu.getItems().add(item);
             }
         }
-    }
-
-    private void addListenerToSearchFields() {
-        textFieldFromNav.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.isBlank()) {
-                fillAutoCompleteText(autoCompleteFromNav, true);
-            }
-        });
-        textFieldToNav.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable,
-                                String oldValue, String newValue) {
-                if (newValue.length() > 2) fillAutoCompleteText(autoCompleteToNav, false);
-            }
-        });
-
     }
 
     private void removeChildren(){
@@ -379,7 +369,8 @@ public class Controller {
         routeNavigation.setNodeToWayMap(mapData.getNodeToHighWay());
         routeNavigation.setNodeToRestriction(mapData.getNodeToRestriction());
         routeNavigation.setWayToRestriction(mapData.getWayToRestriction());
-        addressFilter.setAddressTree(mapData.getAddressTree());
+        fromAddressFilter.setAddressTree(mapData.getAddressTree());
+        toAddressFilter.setAddressTree(mapData.getAddressTree());
         taskSuccess();
         initMapCanvas();
         resetView();
@@ -515,61 +506,6 @@ public class Controller {
 
         return fileChooser;
     }
-
-    private void fillAutoCompleteText(VBox autoComplete, boolean fromNav) {
-        autoComplete.getChildren().removeAll(autoComplete.getChildren());
-        fillAutoCompleteText(fromNav);
-    }
-
-
-    private void fillAutoCompleteText(boolean fromNav){
-            if (fromNav) {
-                for(AddressTrieNode addressNode : mapData.getAutoCompleteAdresses(textFieldFromNav.getText())) {
-                    labelForAutoComplete(addressNode, autoCompleteFromNav, textFieldFromNav, ScrollpaneAutoCompleteFromNav, fromNav);
-                    ScrollpaneAutoCompleteFromNav.setVisible(true);
-                }
-            } else {
-                for(AddressTrieNode addressNode : mapData.getAutoCompleteAdresses(textFieldToNav.getText())) {
-                    labelForAutoComplete(addressNode, autoCompleteToNav, textFieldToNav, ScrollpaneAutoCompleteToNav, fromNav);
-                    ScrollpaneAutoCompleteToNav.setVisible(true);
-                }
-            }
-    }
-
-
-    private void labelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav) {
-
-        for (Map.Entry<Integer, String> entry : addressNode.getAddresses().entrySet()){
-            String address = entry.getValue();
-            Label label = new Label(address);
-            autoComplete.getChildren().add(label);
-            label.prefWidth(autoComplete.getWidth());
-            label.setOnMouseClicked((ActionEvent) -> {
-                autoComplete.getChildren().removeAll(autoComplete.getChildren());
-
-                fullAddressLabelForAutoComplete(addressNode, autoComplete, textField, scrollPane, fromNav, entry.getKey());
-            });
-        }
-    }
-
-    private void fullAddressLabelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav, int postcode) {
-        for (Map.Entry<String, Node> houseNumber : addressNode.getHouseNumbersOnStreet(postcode).entrySet()) {
-            String addressWithHouseNumber = houseNumber.getKey();
-            Node node = houseNumber.getValue();
-            Label labelHouseNumber = new Label(addressWithHouseNumber);
-            autoComplete.getChildren().add(labelHouseNumber);
-            labelHouseNumber.prefWidth(autoComplete.getWidth());
-            labelHouseNumber.setOnMouseClicked((ActionEvent2) -> {
-                System.out.println("here");
-                textField.setText(addressWithHouseNumber);
-                if (fromNav) currentFromNode = node;
-                else currentToNode = node;
-                autoComplete.getChildren().removeAll(autoComplete.getChildren());
-                scrollPane.setVisible(false);
-            });
-        }
-    }
-
 
     @FXML
     private void setRTreeDebug() {

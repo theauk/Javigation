@@ -50,7 +50,7 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
     }
 
     public Map<Integer, String> getAddresses(){
-        if(addresses != null){
+        if(addresses != null) {
             return addresses;
         } else {
             addresses = new HashMap<>();
@@ -63,15 +63,6 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
 
     private String getAddressWithOutHouseNumber(int postcode){
         return (this.streetname +  ", " + postcode + " " + AddressTriesTree.POSTCODE_TO_CITIES.get(postcode));
-    }
-
-    public Map<String, Node> getHouseNumbersOnStreet(int postcode){
-        Map<String, Node> map = new HashMap<>();
-        for(HouseNumberNode houseNumberNode : citiesWithThisStreet.get(postcode) ){
-            map.put((this.streetname + "  " + houseNumberNode.houseNumber + ", " + postcode + " " + AddressTriesTree.POSTCODE_TO_CITIES.get(postcode)), houseNumberNode.node);
-        }
-
-        return map;
     }
 
     public List<String> getAddressesOnStreet() {
@@ -118,14 +109,14 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
 
     public Node findNode(String houseNumber, int postCode) {
         List<HouseNumberNode> nodes = citiesWithThisStreet.get(postCode);
-        return nodes.get(binarySearch(nodes, houseNumber)).node;
+        return nodes.get(getHouseNumberIndex(nodes, houseNumber)).node;
     }
 
     public boolean isValidAddress(String houseNumber, int postCode, String city)  {
         if(!isValidCity(postCode, city)) return false;
         List<HouseNumberNode> nodes = citiesWithThisStreet.get(postCode);
 
-        return binarySearch(nodes, houseNumber) != -1;
+        return getHouseNumberIndex(nodes, houseNumber) != -1;
     }
 
     private boolean isValidCity(int postCode, String city) {
@@ -134,7 +125,7 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
         return realCity.equals(city);
     }
 
-    private int binarySearch(List<HouseNumberNode> nodes, String houseNumber)
+    private int getHouseNumberIndex(List<HouseNumberNode> nodes, String houseNumber)
     {
         int left = 0;
         int right = nodes.size() - 1;
