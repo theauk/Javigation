@@ -173,13 +173,6 @@
                             </VBox>
                         </ScrollPane>
 
-                       <GridPane hgap="5" vgap="5">
-
-                        </GridPane>
-
-                        <HBox spacing="5">
-                        </HBox>
-
                         <Button fx:id="searchNav" text="Search" onAction="#searchNav"/>
                       <Label fx:id="distanceAndTimeNav" visible="false"></Label>
                         <Label fx:id="specialPathFeaturesNav" visible="false"></Label>
