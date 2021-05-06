@@ -5,9 +5,8 @@ import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.*;
-import bfst21.Exceptions.KDTreeEmptyException;
+import bfst21.exceptions.KDTreeEmptyException;
 import bfst21.view.CanvasBounds;
-import bfst21.view.MapCanvas;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -136,7 +135,7 @@ public class MapData implements Serializable {
      * @return The nearest Way.
      */
     public Way getNearestRoadRTree(float x, float y) {
-        return getNearestRoadRTreePQEntry(x, y).getWay();
+        return getNearestRoadRTreePQEntry(x, y, null).getWay();
     }
 
     /**
@@ -145,13 +144,9 @@ public class MapData implements Serializable {
      * @param y The query point's y-coordinate.
      * @return The priority queue entry with the nearest Way.
      */
-    public RTree.NearestRoadPriorityQueueEntry getNearestRoadRTreePQEntry(float x, float y) {
-        return rTreeHolder.getNearestRoad(x, y);
+    public RTree.NearestRoadPriorityQueueEntry getNearestRoadRTreePQEntry(float x, float y, String addressWayName) {
+        return rTreeHolder.getNearestRoad(x, y, addressWayName);
     }
-
-    /*public RTree.NearestRoadPriorityQueueEntry getNearestRoadRTreePQEntry(float x, float y, String addressWayName) {
-        return rTree.getNearestRoad(x, y, addressWayName);
-    }*/
 
     /**
      * Gets the nearest road to a query point via the KD-tree.

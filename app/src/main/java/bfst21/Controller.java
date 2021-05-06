@@ -5,8 +5,8 @@ import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.AddressTrieNode;
 import bfst21.data_structures.RTree;
 import bfst21.data_structures.RouteNavigation;
-import bfst21.Exceptions.NoOSMInZipFileException;
-import bfst21.Exceptions.UnsupportedFileFormatException;
+import bfst21.exceptions.NoOSMInZipFileException;
+import bfst21.exceptions.UnsupportedFileFormatException;
 import bfst21.file_io.Loader;
 import bfst21.file_io.Serializer;
 import bfst21.utils.AddressFilter;
@@ -645,7 +645,7 @@ public class Controller {
             setDistanceAndTimeNav(routeNavigation.getTotalDistance(), routeNavigation.getTotalTime());
             setDirections(routeNavigation.getDirections());
             setSpecialPathFeatures(routeNavigation.getSpecialPathFeatures());
-            mapCanvas.panToRoute(routeNavigation.getCoordinatesForPanToRoute());
+            //mapCanvas.panToRoute(routeNavigation.getCoordinatesForPanToRoute());
             mapCanvas.repaint();
         });
         routeNavigation.setOnFailed(e -> {
@@ -752,13 +752,13 @@ public class Controller {
     @FXML
     public void rightCLickPointNavFrom(ActionEvent actionEvent) {
         Point2D point =  mapCanvas.getTransCoords(currentRightClick.getX(), currentRightClick.getY());
-        updateNodesNavigation(true,point.getX(), point.getY());
+        updateNodesNavigation(true, point.getX(), point.getY(), null, null); // TODO: 5/6/21 null kan ændres for at skrive anden tekst i felterne 
     }
 
     @FXML
     public void rightClickPointNavTo(ActionEvent actionEvent) {
         Point2D point =  mapCanvas.getTransCoords(currentRightClick.getX(), currentRightClick.getY());
-        updateNodesNavigation(false,point.getX(), point.getY());
+        updateNodesNavigation(false, point.getX(), point.getY(), null, null);
     }
 
     private enum State {

@@ -52,8 +52,7 @@ public class RTreeHolder {
 
     public ArrayList<ArrayList<Element>> search(float xMin, float xMax, float yMin, float yMax, boolean debug, int currentZoomLevel){
         ArrayList<ArrayList<Element>> results = getCleanArrayList();
-
-        for(int i = 0; i<= currentZoomLevel; i++) {
+        for(int i = 0; i <= currentZoomLevel; i++) {
             for (RTree rTree : rTreeList.get(i)) {
                 rTree.search(xMin, xMax, yMin, yMax, debug, results);
             }
@@ -62,8 +61,8 @@ public class RTreeHolder {
         return results;
     }
 
-    public RTree.NearestRoadPriorityQueueEntry getNearestRoad(float x, float y){
-        return closetRoadRTree.getNearestRoad(x,y);
+    public RTree.NearestRoadPriorityQueueEntry getNearestRoad(float x, float y, String addressWayName){
+        return closetRoadRTree.getNearestRoad(x, y, addressWayName);
     }
 
     /**

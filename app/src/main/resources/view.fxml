@@ -164,7 +164,7 @@
         <left>
             <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                 <children>
-                    <AnchorPane fx:id="navigationLeftPane" prefHeight="616.0" prefWidth="200.0" visible="false" managed="${navigationLeftPane.visible}">
+                    <AnchorPane fx:id="navigationLeftPane" prefHeight="616.0" prefWidth="200.0" visible="true" managed="${navigationLeftPane.visible}">
                         <children>
                             <GridPane layoutY="39.0" prefHeight="91.0" prefWidth="185.0">
                                 <columnConstraints>
@@ -281,7 +281,7 @@
 
                     <!--Second left pane-->
 
-                    <AnchorPane fx:id="Address_myPlacesPane" prefHeight="616.0" prefWidth="200.0" visible="true" managed="${Address_myPlacesPane.visible}">
+                    <AnchorPane fx:id="Address_myPlacesPane" prefHeight="616.0" prefWidth="200.0" visible="false" managed="${Address_myPlacesPane.visible}">
                         <children>
                             <GridPane layoutX="7.0" layoutY="54.0" prefHeight="91.0" prefWidth="185.0">
                                 <columnConstraints>

@@ -4,7 +4,7 @@ import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
-import bfst21.Exceptions.NoNavigationResultException;
+import bfst21.exceptions.NoNavigationResultException;
 import bfst21.utils.MapMath;
 import bfst21.utils.VehicleType;
 import javafx.concurrent.Service;
@@ -147,8 +147,8 @@ public class RouteNavigation extends Service<List<Element>> {
      * @param to The to Node.
      * @param fromWay The from Way.
      * @param toWay The to Way.
-     * @param nearestFromWaySegmentIndices The indices in the to way where the to Node should be.
-     * @param nearestToWaySegmentIndices The indices in the from way where the from Node should be.
+     * @param nearestFromWaySegmentIndices The indices in the from way where the to Node should be.
+     * @param nearestToWaySegmentIndices The indices in the to way where the from Node should be.
      * @param vehicleType The selected vehicle type.
      * @param fastest True if fastest route needs to be found. False if shortest route should be found.
      * @param aStar True if the A* algorithm should be used. False if Dijkstra should be used.
@@ -281,8 +281,6 @@ public class RouteNavigation extends Service<List<Element>> {
             waysWithFromNode = nodeToHighwayMap.getElementsFromNode(currentFrom);
         } else if (currentFrom == from) {
             waysWithFromNode.add(fromWay);
-        } else if (currentFrom == to) {
-            waysWithFromNode.add(toWay);
         }
 
         for (Way w : waysWithFromNode) {

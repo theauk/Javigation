@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 class RouteNavigationTest {
 
@@ -191,11 +190,6 @@ class RouteNavigationTest {
     }
 
     @Test
-    void takeFastestWayTest() {
-
-    }
-
-    @Test
     void ferrySpecialPathFeaturesTest() throws NoNavigationResultException {
         ArrayList<Node> nodes = new ArrayList<>();
         nodes.add(createNode(12.1934f, 55.4453));
@@ -222,21 +216,64 @@ class RouteNavigationTest {
         routeNavigation.setupRoute(from, to, w, w, new int[]{0, 1}, new int[]{1, 2}, VehicleType.CAR, false, true);
         routeNavigation.testGetCurrentRoute();
 
-        System.out.println(Arrays.toString(routeNavigation.getCoordinatesForPanToRoute()));
         double yMin = MapMath.convertToScreen(55.445);
         double yMax = MapMath.convertToScreen(55.438);
 
-        // y-min and max are inserted opposite due to the conversion to screen coordinates
         assertArrayEquals(new float[]{12.19f, 12.21f, (float) yMin, (float) yMax}, routeNavigation.getCoordinatesForPanToRoute());
     }
 
     @Test
-    void onlyBikeOnBikeRoadsTest() {
+    void onlyBikeOnBikeRoadsTest() throws NoNavigationResultException {
+        Node from = createNode(12.19f, 55.445);
+        Node to = createNode(12.21f, 55.438);
 
+        ArrayList<Node> nodesMotorway = new ArrayList<>();
+        nodesMotorway.add(from);
+        nodesMotorway.add(createNode(12.20f, 55.437));
+        nodesMotorway.add(to);
+        Way motorway = createWay(nodesMotorway, 110, "Motorway", "motorway");
+
+        ArrayList<Node> nodesBikeWay = new ArrayList<>();
+        nodesBikeWay.add(from);
+        nodesBikeWay.add(createNode(12.4f, 55.437));
+        nodesBikeWay.add(to);
+        createWay(nodesBikeWay, 20, "Bike Way", "cycleway");
+
+        setTreeMaps();
+        routeNavigation.setupRoute(from, to, motorway, motorway, new int[]{0, 1}, new int[]{1, 2}, VehicleType.BIKE, false, true);
+        routeNavigation.testGetCurrentRoute();
+
+        assertFalse(routeNavigation.getDirections().get(0).contains("Motorway"));
+        assertTrue(routeNavigation.getDirections().get(0).contains("Bike Way"));
     }
 
     @Test
-    void onlyWalkOnWalkingRoadsTest() {
+    void onlyWalkOnWalkingRoadsTest() throws NoNavigationResultException {
+        Node from = createNode(13.19f, 55.445);
+        Node to = createNode(13.21f, 55.438);
+
+        ArrayList<Node> nodesMotorway = new ArrayList<>();
+        nodesMotorway.add(from);
+        nodesMotorway.add(createNode(14.20f, 55.437));
+        nodesMotorway.add(to);
+        Way motorway = createWay(nodesMotorway, 110, "Motorway", "motorway");
+
+        ArrayList<Node> nodesWalkWay = new ArrayList<>();
+        nodesWalkWay.add(from);
+        nodesWalkWay.add(createNode(16f, 55.437));
+        nodesWalkWay.add(to);
+        Way walkWay = createWay(nodesMotorway, 5, "Walk Way", "footway");
+
+        setTreeMaps();
+        routeNavigation.setupRoute(from, to, motorway, walkWay, new int[]{1, 2}, new int[]{0, 1}, VehicleType.WALK, false, true);
+        routeNavigation.testGetCurrentRoute();
+
+        assertFalse(routeNavigation.getDirections().get(0).contains("Motorway"));
+        assertTrue(routeNavigation.getDirections().get(0).contains("Walk Way"));
+    }
+
+    @Test
+    void takeFastestWayTest() {
 
     }
 

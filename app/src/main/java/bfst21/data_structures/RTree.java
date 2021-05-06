@@ -56,7 +56,6 @@ public class RTree implements Serializable {
     public ArrayList<ArrayList<Element>> search(float xMin, float xMax, float yMin, float yMax, boolean debug, ArrayList<ArrayList<Element>> results) {
         if (root != null) {
             float[] searchCoordinates = new float[]{xMin, xMax, yMin, yMax};
-            ArrayList<ArrayList<Element>> results = prepareResultArray(); // TODO: 5/6/21 ???
             if (debug) {
                 float coordinateChange = xMin * 0.0005f;
                 searchCoordinates = new float[]{xMin + coordinateChange, xMax + (-coordinateChange), yMin + coordinateChange, yMax + (-coordinateChange)};

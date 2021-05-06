@@ -1,6 +1,6 @@
 package bfst21.data_structures;
 
-import bfst21.Exceptions.KDTreeEmptyException;
+import bfst21.exceptions.KDTreeEmptyException;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
 import org.junit.jupiter.api.AfterAll;
@@ -22,7 +22,7 @@ public class KDTreeTest {
     }
 
     @Test
-    void searchGetNearestNodeTest() throws bfst21.Exceptions.KDTreeEmptyException {
+    void searchGetNearestNodeTest() throws bfst21.exceptions.KDTreeEmptyException {
         List<Node> list = new ArrayList<>();
         Node node1 = new Node(1, (float) 12.5972367, (float) 55.6952510);
         Node node2 = new Node(2, (float) 12.5991499, (float) 55.6951851);
@@ -52,7 +52,7 @@ public class KDTreeTest {
 
 
     @Test
-    void WayAndGetNearestNodeTest() throws bfst21.Exceptions.KDTreeEmptyException {
+    void WayAndGetNearestNodeTest() throws bfst21.exceptions.KDTreeEmptyException {
         Node n1 = new Node(1, 1, 1);
         Node n2 = new Node(2, 2, 2);
         Node n3 = new Node(3, 3, 3);

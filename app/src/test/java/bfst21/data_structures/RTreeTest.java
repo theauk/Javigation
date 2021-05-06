@@ -5,10 +5,10 @@ import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RTreeTest {
 
@@ -69,61 +69,51 @@ class RTreeTest {
         w7.addNode(n13);
         w7.addNode(n14);
 
-        for(int i = -10; i<0; i++){
-            for(int j = -10; j<0; j++){
-                Node node = new Node(0,i,j);
+        for (int i = -10; i < 0; i++) {
+            for (int j = -10; j < 0; j++) {
+                Node node = new Node(0, i, j);
                 rTree.insert(node);
             }
         }
-
-
-
         rTree.insert(w1);
         rTree.insert(w5);
         rTree.insert(w2);
         rTree.insert(w6);
         rTree.insert(w4);
         rTree.insert(w3);
-
-
     }
 
     @Test
     void getNearestRoad() {
-
-        RTree.NearestRoadPriorityQueueEntry w = rTree.getNearestRoad(n.getxMax(), n.getyMax());
+        RTree.NearestRoadPriorityQueueEntry w = rTree.getNearestRoad(n.getxMax(), n.getyMax(), null);
         assertEquals("w2", w.getWay().getName());
     }
 
     @Test
-    void mapSegtment() {
-
-        ArrayList<ArrayList<Element>> result = rTree.search(1,10,1,6,false, getCleanArrayList());
-        assertEquals(3,elementsInList(result));
+    void mapSegmentTest() {
+        ArrayList<ArrayList<Element>> result = rTree.search(1, 10, 1, 6, false, getCleanArrayList());
+        assertEquals(3, elementsInList(result));
     }
 
     @Test
-    void mapSegtmentDebug() {
-        ArrayList<ArrayList<Element>> result = rTree.search(1,10,1,6,true, getCleanArrayList());
+    void mapSegmentDebug() {
+        ArrayList<ArrayList<Element>> result = rTree.search(1, 10, 1, 6, true, getCleanArrayList());
 
         int numberOfDebugRectangleWays = 4;
-        int numberOfELements = 3;
+        int numberOfElements = 3;
         int numberOfBoundingRectangleWaysToElement = 4;
-        int amount = numberOfDebugRectangleWays + numberOfELements + numberOfELements * numberOfBoundingRectangleWaysToElement;
+        int amount = numberOfDebugRectangleWays + numberOfElements + numberOfElements * numberOfBoundingRectangleWaysToElement;
 
-        assertEquals(amount,elementsInList(result));
+        assertEquals(amount, elementsInList(result));
     }
 
     @Test
-    void emptyMapSegtment() {
-        ArrayList<ArrayList<Element>> result = rTree.search(13,14,1,2,false, getCleanArrayList());
-        assertEquals(0,elementsInList(result));
+    void emptyMapSegment() {
+        ArrayList<ArrayList<Element>> result = rTree.search(13, 14, 1, 2, false, getCleanArrayList());
+        assertEquals(0, elementsInList(result));
     }
 
-
-
-
-    private ArrayList<ArrayList<Element>> getCleanArrayList(){
+    private ArrayList<ArrayList<Element>> getCleanArrayList() {
         ArrayList<ArrayList<Element>> results = new ArrayList<>();
         while (results.size() <= 19) {
             results.add(new ArrayList<>());
@@ -131,14 +121,11 @@ class RTreeTest {
         return results;
     }
 
-    private int elementsInList(ArrayList<ArrayList<Element>> lists){
+    private int elementsInList(ArrayList<ArrayList<Element>> lists) {
         int i = 0;
-        for(ArrayList<Element> list : lists){
+        for (ArrayList<Element> list : lists) {
             i += list.size();
         }
         return i;
     }
-
-
-
 }
