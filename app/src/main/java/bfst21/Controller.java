@@ -186,17 +186,20 @@ public class Controller {
                 mapCanvas.removeEventHandler(ContextMenuEvent.CONTEXT_MENU_REQUESTED, this);
             }
         });
+
         //Route navigation text fields
         textFieldFromNav.textProperty().addListener(((observable, oldValue, newValue) -> {
             fromAddressFilter.search(newValue);
             textFieldFromNav.suggest(fromAddressFilter.getSuggestions());
-            currentFromNode = fromAddressFilter.getMatchedAddress();
+            Node resultNode = fromAddressFilter.getMatchedAddress();
+            updateNodesNavigation(true, resultNode.getxMax(), resultNode.getyMax(), "test1", "Sveasvej"); // TODO: 5/7/21 fix
         }));
 
         textFieldToNav.textProperty().addListener(((observable, oldValue, newValue) -> {
             toAddressFilter.search(newValue);
             textFieldToNav.suggest(toAddressFilter.getSuggestions());
-            currentToNode = toAddressFilter.getMatchedAddress();
+            Node resultNode = toAddressFilter.getMatchedAddress();
+            updateNodesNavigation(false, resultNode.getxMax(), resultNode.getyMax(), "test1", "Sveasvej"); // TODO: 5/7/21 fix
         }));
 
 
@@ -578,7 +581,7 @@ public class Controller {
         EventHandler<MouseEvent> event = new EventHandler<>() {
             @Override
             public void handle(MouseEvent e) {
-                Point2D coords = mapCanvas.getTransCoords(e.getX(), e.getY()); // TODO: 5/1/21 coordinates how?
+                Point2D coords = mapCanvas.getTransCoords(e.getX(), e.getY());
                 updateNodesNavigation(fromSelected, coords.getX(), coords.getY(), null, null);
                 mapCanvas.removeEventHandler(MouseEvent.MOUSE_CLICKED, this);
             }
@@ -591,7 +594,7 @@ public class Controller {
         Way nearestWay = entry.getWay();
         Way nearestSegment = entry.getSegment();
         int[] nearestWaySegmentIndices = entry.getSegmentIndices();
-        Node nearestNodeOnNearestWay = MapMath.getClosestPointOnWayAsNode(x, y, nearestSegment); // TODO: 5/1/21 hvorfor kommer X og Y ud omvendt???
+        Node nearestNodeOnNearestWay = MapMath.getClosestPointOnWayAsNode(x, y, nearestSegment);
 
         if (fromSelected) {
             textFieldFromNav.setSuggest(false);
