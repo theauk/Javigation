@@ -35,7 +35,7 @@ class RouteNavigationTest {
     }
 
     private float convertCoordinate(double coordinate) {
-        return (float) MapMath.convertToScreen(coordinate);
+        return (float) - coordinate / 0.56f;
     }
 
     private Node createNode(float x, double y) {
@@ -216,8 +216,8 @@ class RouteNavigationTest {
         routeNavigation.setupRoute(from, to, w, w, new int[]{0, 1}, new int[]{1, 2}, VehicleType.CAR, false, true);
         routeNavigation.testGetCurrentRoute();
 
-        double yMin = MapMath.convertToScreen(55.445);
-        double yMax = MapMath.convertToScreen(55.438);
+        double yMin = convertCoordinate(55.445);
+        double yMax = convertCoordinate(55.438);
 
         assertArrayEquals(new float[]{12.19f, 12.21f, (float) yMin, (float) yMax}, routeNavigation.getCoordinatesForPanToRoute());
     }

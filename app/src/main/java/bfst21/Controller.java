@@ -69,8 +69,6 @@ public class Controller {
     private Node currentToNode;
     private Way currentFromWay;
     private Way currentToWay;
-    private int currentFromNodeIndexInWay;
-    private int currentToNodeIndexInWay;
     private int[] nearestFromWaySegmentIndices;
     private int[] nearestToWaySegmentIndices;
 
@@ -147,8 +145,6 @@ public class Controller {
         disableMenus();
         CustomKeyCombination.setTarget(mapCanvas);
         addListeners();
-        textFieldFromNav.setFilter(addressFilter);
-        textFieldToNav.setFilter(addressFilter);
     }
 
     private void initMapCanvas() {

@@ -62,13 +62,13 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
     }
 
     private String getAddressWithOutHouseNumber(int postcode){
-        return (this.streetname +  ", " + postcode + " " + postCodesToCities.get(postcode));
+        return (this.streetname +  ", " + postcode + " " + AddressTriesTree.POSTCODE_TO_CITIES.get(postcode));
     }
 
     public Map<String, Node> getHouseNumbersOnStreet(int postcode){
         Map<String, Node> map = new HashMap<>();
         for(HouseNumberNode houseNumberNode : citiesWithThisStreet.get(postcode) ){
-            map.put((this.streetname + " " + houseNumberNode.houseNumber + ", " + postcode + " " + postCodesToCities.get(postcode)), houseNumberNode.node);
+            map.put((this.streetname + " " + houseNumberNode.houseNumber + ", " + postcode + " " + AddressTriesTree.POSTCODE_TO_CITIES.get(postcode)), houseNumberNode.node);
         }
 
         return map;

@@ -177,17 +177,12 @@
                                 <children>
                                     <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0">
                                         <children>
-                                            <AutoFillTextField fx:id="textFieldFromNav" promptText="From" prefHeight="27.0" prefWidth="113.0">
-
-                                                <HBox.margin>
-                                                    <Insets />
-                                                </HBox.margin>
+                                            <AutoFillTextField fx:id="textFieldFromNav" promptText="From" prefHeight="27.0" prefWidth="113.0" maxEntries="10">
                                                 <padding>
                                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                                 </padding>
                                             </AutoFillTextField>
                                             <Button mnemonicParsing="false" text="Find route" fx:id="searchNav" onAction="#searchNav"/>
-
                                         </children>
                                         <padding>
                                             <Insets bottom="20.0" left="5.0" top="10.0" />
@@ -195,7 +190,7 @@
                                     </HBox>
                                     <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.rowIndex="1">
                                         <children>
-                                            <AutoFillTextField fx:id="textFieldToNav" promptText="To" prefHeight="22.0" prefWidth="113.0">
+                                            <AutoFillTextField fx:id="textFieldToNav" promptText="To" prefHeight="22.0" prefWidth="113.0" maxEntries="10">
                                                 <padding>
                                                     <Insets left="5.0" right="5.0" top="5.0" />
                                                 </padding>
