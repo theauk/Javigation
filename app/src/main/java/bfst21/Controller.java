@@ -13,7 +13,10 @@ import bfst21.utils.AddressFilter;
 import bfst21.utils.CustomKeyCombination;
 import bfst21.utils.MapMath;
 import bfst21.utils.VehicleType;
-import bfst21.view.*;
+import bfst21.view.AutoFillTextField;
+import bfst21.view.CanvasBounds;
+import bfst21.view.MapCanvas;
+import bfst21.view.Theme;
 import javafx.animation.FadeTransition;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -41,13 +44,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Map;
 
 public class Controller {
     private MapData mapData;
     private Creator creator;
     private RouteNavigation routeNavigation;
-    private AddressFilter addressFilter;
+    private AddressFilter fromAddressFilter;
+    private AddressFilter toAddressFilter;
 
     private static final String BINARY_FILE = "/small.bmapdata";
 
@@ -127,13 +130,14 @@ public class Controller {
     public void init() {
         mapData = new MapData();
         routeNavigation = new RouteNavigation();
-        addressFilter = new AddressFilter();
+        fromAddressFilter = new AddressFilter();
+        toAddressFilter = new AddressFilter();
         loadThemes();
         initView();
         openFile();
     }
 
-    private void initView() {
+    private void initView() { // TODO: 5/7/21 flyt listeners
         themeGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> setTheme(((RadioMenuItem) newValue.getToggleGroup().getSelectedToggle()).getUserData().toString()));
         mapCanvas.initTheme(Loader.loadTheme(themeGroup.getSelectedToggle().getUserData().toString()));
         scaleLabel.textProperty().bind(mapCanvas.getRatio());
@@ -172,7 +176,6 @@ public class Controller {
     }
 
     private void addListeners() {
-
         mapCanvas.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() {
             @Override
             public void handle(ContextMenuEvent event) {
@@ -181,6 +184,18 @@ public class Controller {
                 mapCanvas.removeEventHandler(ContextMenuEvent.CONTEXT_MENU_REQUESTED, this);
             }
         });
+        //Route navigation text fields
+        textFieldFromNav.textProperty().addListener(((observable, oldValue, newValue) -> {
+            fromAddressFilter.search(newValue);
+            textFieldFromNav.suggest(fromAddressFilter.getSuggestions());
+            currentFromNode = fromAddressFilter.getMatchedAddress();
+        }));
+
+        textFieldToNav.textProperty().addListener(((observable, oldValue, newValue) -> {
+            toAddressFilter.search(newValue);
+            textFieldToNav.suggest(toAddressFilter.getSuggestions());
+            currentToNode = toAddressFilter.getMatchedAddress();
+        }));
 
     }
 
@@ -388,7 +403,8 @@ public class Controller {
         routeNavigation.setNodeToHighwayMap(mapData.getNodeToHighWay());
         routeNavigation.setNodeToRestriction(mapData.getNodeToRestriction());
         routeNavigation.setWayToRestriction(mapData.getWayToRestriction());
-        addressFilter.setAddressTree(mapData.getAddressTree());
+        fromAddressFilter.setAddressTree(mapData.getAddressTree());
+        toAddressFilter.setAddressTree(mapData.getAddressTree());
         taskSuccess();
         initMapCanvas();
         resetView();
@@ -525,39 +541,6 @@ public class Controller {
         return fileChooser;
     }
 
-
-    private void labelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav) {
-
-        for (Map.Entry<Integer, String> entry : addressNode.getAddresses().entrySet()){
-            String address = entry.getValue();
-            Label label = new Label(address);
-            autoComplete.getChildren().add(label);
-            label.prefWidth(autoComplete.getWidth());
-            label.setOnMouseClicked((ActionEvent) -> {
-                autoComplete.getChildren().removeAll(autoComplete.getChildren());
-
-                fullAddressLabelForAutoComplete(addressNode, autoComplete, textField, scrollPane, fromNav, entry.getKey());
-            });
-        }
-    }
-
-    private void fullAddressLabelForAutoComplete(AddressTrieNode addressNode, VBox autoComplete, TextField textField, ScrollPane scrollPane, boolean fromNav, int postcode) {
-        for (Map.Entry<String, Node> houseNumber : addressNode.getHouseNumbersOnStreet(postcode).entrySet()) {
-            String addressWithHouseNumber = houseNumber.getKey();
-            Node node = houseNumber.getValue();
-            Label labelHouseNumber = new Label(addressWithHouseNumber);
-            autoComplete.getChildren().add(labelHouseNumber);
-            labelHouseNumber.prefWidth(autoComplete.getWidth());
-            labelHouseNumber.setOnMouseClicked((ActionEvent2) -> {
-                textField.setText(addressWithHouseNumber);
-                updateNodesNavigation(fromNav, node.getxMax(), node.getyMax(), addressWithHouseNumber, addressNode.getStreetName());
-                autoComplete.getChildren().removeAll(autoComplete.getChildren());
-                scrollPane.setVisible(false);
-            });
-        }
-    }
-
-
     @FXML
     private void setRTreeDebug() {
         mapData.setRTreeDebug(rTreeDebug.isSelected());
@@ -595,17 +578,21 @@ public class Controller {
         Node nearestNodeOnNearestWay = MapMath.getClosestPointOnWayAsNode(x, y, nearestSegment); // TODO: 5/1/21 hvorfor kommer X og Y ud omvendt???
 
         if (fromSelected) {
+            textFieldFromNav.setSuggest(false);
             if (addressWay == null) textFieldFromNav.setText(nearestWay.getName());
             else textFieldFromNav.setText(fullAddress);
             currentFromWay = nearestWay;
             nearestFromWaySegmentIndices = nearestWaySegmentIndices;
             currentFromNode = nearestNodeOnNearestWay;
+            textFieldFromNav.setSuggest(true);
         } else {
+            textFieldToNav.setSuggest(false);
             if (addressWay == null) textFieldToNav.setText(nearestWay.getName());
             else textFieldToNav.setText(fullAddress);
             currentToWay = nearestWay;
             currentToNode = nearestNodeOnNearestWay;
             nearestToWaySegmentIndices = nearestWaySegmentIndices;
+            textFieldToNav.setSuggest(true);
         }
     }
 
@@ -752,7 +739,7 @@ public class Controller {
     @FXML
     public void rightCLickPointNavFrom(ActionEvent actionEvent) {
         Point2D point =  mapCanvas.getTransCoords(currentRightClick.getX(), currentRightClick.getY());
-        updateNodesNavigation(true, point.getX(), point.getY(), null, null); // TODO: 5/6/21 null kan ændres for at skrive anden tekst i felterne 
+        updateNodesNavigation(true, point.getX(), point.getY(), null, null); // TODO: 5/6/21 null kan ændres for at skrive anden tekst i felterne
     }
 
     @FXML
