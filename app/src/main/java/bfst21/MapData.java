@@ -212,7 +212,7 @@ public class MapData implements Serializable {
     @Serial
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        currentRoute = new ArrayList<>();
+        resetCurrentRoute();
         userAddedPoints = new ArrayList<>();
     }
 
@@ -230,6 +230,13 @@ public class MapData implements Serializable {
      */
     public void setCurrentRoute(List<Element> currentRoute) {
         this.currentRoute = currentRoute;
+    }
+
+    /**
+     * Deletes the current route.
+     */
+    public void resetCurrentRoute(){
+        currentRoute = new ArrayList<>();
     }
 
     /**

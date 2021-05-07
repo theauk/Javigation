@@ -15,9 +15,6 @@ public abstract class Element implements Spatializable, Serializable {
     protected String type;
     protected int layer;
 
-    public Element() { // TODO: 5/7/21 necessary? er det ikke default 
-
-    }
 
     public Element(long id) {
         this.id = id;

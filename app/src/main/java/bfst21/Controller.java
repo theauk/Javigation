@@ -210,6 +210,7 @@ public class Controller {
         backButton.setOnAction(e -> {
             navigationLeftPane.setVisible(false);
             address_myPlacesPane.setVisible(true);
+            mapData.resetCurrentRoute();
         });
 
 
@@ -561,17 +562,6 @@ public class Controller {
     private void setRTreeDebug() {
         mapData.setRTreeDebug(rTreeDebug.isSelected());
         mapCanvas.rTreeDebugMode();
-    }
-
-    // TODO: 05-05-2021 is this needed?
-    @FXML
-    public void getPointNavFrom() {
-        getPointNav(true);
-    }
-
-    @FXML
-    public void getPointNavTo() {
-        getPointNav(false);
     }
 
     public void getPointNav(boolean fromSelected) {
