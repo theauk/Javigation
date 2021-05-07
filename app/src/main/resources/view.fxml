@@ -333,9 +333,7 @@
                             </GridPane>
                             <ScrollPane fx:id="ScrollPaneListView" layoutX="5.0" layoutY="414.0" prefHeight="188.0" prefWidth="179.0">
                                 <content>
-                                    <ListView fx:id="myPlacesListView" prefHeight="200.0" prefWidth="200.0" onMouseClicked="#moveToPoint">
-
-                                    </ListView>
+                                    <ListView fx:id="myPlacesListView" prefHeight="200.0" prefWidth="200.0" onMouseClicked="#moveToPoint"/>
                                 </content>
                             </ScrollPane>
                             <Label layoutX="21.0" layoutY="24.0" prefHeight="29.0" prefWidth="147.0" text="Search for an address">

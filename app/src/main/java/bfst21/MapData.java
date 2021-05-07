@@ -7,7 +7,6 @@ import bfst21.Osm_Elements.Way;
 import bfst21.data_structures.*;
 import bfst21.Exceptions.KDTreeEmptyException;
 import bfst21.view.CanvasBounds;
-import bfst21.view.MapCanvas;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -175,7 +174,7 @@ public class MapData implements Serializable {
     public String getNodeHighWayNames(Node node) {
         String names = "";
         ArrayList<String> list = new ArrayList<>();
-        ArrayList<Way> ways = nodeToHighWay.getElementsFromNode(node);
+        ArrayList<Way> ways = nodeToHighWay.getElementsFromKeyElement(node);
         if (ways != null) {
             for (Way way : ways) {
                 if (way.getName() != null && !list.contains(way.getName())) list.add(way.getName());

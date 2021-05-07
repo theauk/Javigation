@@ -3,6 +3,7 @@ package bfst21.data_structures;
 import bfst21.Osm_Elements.Element;
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,7 +13,7 @@ import java.util.ArrayList;
 
 class RTreeTest {
 
-    private RTree rTree;
+    private static RTree rTree;
     private Way w1, w2, w3, w4, w5, w6, w7;
     private Node n;
 
@@ -118,6 +119,11 @@ class RTreeTest {
     void emptyMapSegtment() {
         ArrayList<ArrayList<Element>> result = rTree.search(13,14,1,2,false, getCleanArrayList());
         assertEquals(0,elementsInList(result));
+    }
+
+    @AfterAll
+    static void afterAll() {
+        rTree = null;
     }
 
 

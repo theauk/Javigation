@@ -265,8 +265,8 @@ public class RouteNavigation extends Service<List<Element>> {
      */
     private void relax(Node currentFrom) {
         ArrayList<Way> waysWithFromNode = new ArrayList<>();
-        if (nodeToHighwayMap.getElementsFromNode(currentFrom) != null) {
-            waysWithFromNode = nodeToHighwayMap.getElementsFromNode(currentFrom);
+        if (nodeToHighwayMap.getElementsFromKeyElement(currentFrom) != null) {
+            waysWithFromNode = nodeToHighwayMap.getElementsFromKeyElement(currentFrom);
         } else if (currentFrom == from) {
             waysWithFromNode.add(fromWay);
         } else if (currentFrom == to) {
@@ -353,7 +353,7 @@ public class RouteNavigation extends Service<List<Element>> {
      * @return True if there is a restriction. False if not.
      */
     private boolean checkRestrictionViaNode(Way fromWay, Node viaNode, Way toWay) {
-        List<Relation> restrictionsViaNode = nodeToRestriction.getElementsFromNode(viaNode);
+        List<Relation> restrictionsViaNode = nodeToRestriction.getElementsFromKeyElement(viaNode);
         if (restrictionsViaNode != null) {
             for (Relation restriction : restrictionsViaNode) {
                 if (restriction.getRestriction().contains("no_") && restriction.getFrom() == fromWay && restriction.getViaNode() == viaNode && restriction.getTo() == toWay) {
@@ -372,7 +372,7 @@ public class RouteNavigation extends Service<List<Element>> {
      * @return True if there is a restriction. False if not.
      */
     private boolean checkRestrictionViaWay(Way fromWay, Node viaNode, Way toWay) {
-        List<Relation> restrictionsViaWay = wayToRestriction.getElementsFromNode(fromWay);
+        List<Relation> restrictionsViaWay = wayToRestriction.getElementsFromKeyElement(fromWay);
         if (restrictionsViaWay != null) {
             for (Relation restriction : restrictionsViaWay) {
                 if (restriction.getRestriction().contains("no_") && restriction.getViaWay() == fromWay && restriction.getTo() == toWay) {
@@ -655,7 +655,7 @@ public class RouteNavigation extends Service<List<Element>> {
     private String getRoundaboutExit(int roundaboutStartNodeIndex, int roundaboutEndIndex, Way roundaboutWay) {
         int exits = 0;
         for (int i = roundaboutStartNodeIndex - 1; i >= roundaboutEndIndex; i--) {
-            ArrayList<Way> ways = nodeToHighwayMap.getElementsFromNode(path.get(i));
+            ArrayList<Way> ways = nodeToHighwayMap.getElementsFromKeyElement(path.get(i));
             if (ways.size() > 1) {
                 for (Way w : ways) {
                     if (w != roundaboutWay) {
