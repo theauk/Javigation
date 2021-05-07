@@ -22,7 +22,7 @@ public class AddressFilter {
     private List<String> suggestions;
     private Node matchedAddress;
 
-    private final String addressRegex = "^ *(?<street>[a-zæøå0-9 \\-.]+?),? *(?<number>\\d{1,3}[a-zæøå]?)?,? *(?<postCode>\\d{1,4})?(?: (?<city>[a-zæøå]+?|[a-zæøå]+? *[a-zæøå]+)?)? *$";
+    private final String addressRegex = "^ *(?<street>[A-Za-zÆØÅæøå0-9 \\-.]+?),? *(?<number>\\d{1,3}[a-zæøå]?)?,? *(?<postCode>\\d{1,4})?(?: (?<city>[A-Za-zÆØÅæøå]+?|[A-Za-zÆØÅæøå]+? *[A-Za-zÆØÅæøå]+)?)? *$";
     private final Pattern pattern = Pattern.compile(addressRegex);
     private Matcher matcher;
 
@@ -67,10 +67,10 @@ public class AddressFilter {
      * @param city a city.
      */
     private void validateInput(List<AddressTrieNode> searchResult, String houseNumber, int postCode, String city) {
-        if(!isMatch(searchResult.get(0), houseNumber, postCode, city)) makeSuggestions(searchResult, houseNumber, postCode, city);
-        else {
+        makeSuggestions(searchResult, houseNumber, postCode, city);
+
+        if(isMatch(searchResult.get(0), houseNumber, postCode, city)) {
             matchedAddress = searchResult.get(0).findNode(houseNumber, postCode);
-            System.out.println("Match at: " + matchedAddress.getxMax() + ", " + matchedAddress.getyMax());
         }
     }
 
