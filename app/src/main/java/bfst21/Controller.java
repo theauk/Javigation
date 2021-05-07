@@ -9,10 +9,7 @@ import bfst21.exceptions.NoOSMInZipFileException;
 import bfst21.exceptions.UnsupportedFileFormatException;
 import bfst21.file_io.Loader;
 import bfst21.file_io.Serializer;
-import bfst21.utils.AddressFilter;
-import bfst21.utils.CustomKeyCombination;
-import bfst21.utils.MapMath;
-import bfst21.utils.VehicleType;
+import bfst21.utils.*;
 import bfst21.view.AutoFillTextField;
 import bfst21.view.CanvasBounds;
 import bfst21.view.MapCanvas;
@@ -191,15 +188,15 @@ public class Controller {
         textFieldFromNav.textProperty().addListener(((observable, oldValue, newValue) -> {
             fromAddressFilter.search(newValue);
             textFieldFromNav.suggest(fromAddressFilter.getSuggestions());
-            Node resultNode = fromAddressFilter.getMatchedAddress();
-            updateNodesNavigation(true, resultNode.getxMax(), resultNode.getyMax(), "test1", "Sveasvej"); // TODO: 5/7/21 fix
+            Address address = fromAddressFilter.getMatchedAddress();
+            updateNodesNavigation(true, address.getNode().getxMax(), address.getNode().getyMax(), address.getFullAddress(), address.getStreet()); // TODO: 5/7/21 fix
         }));
 
         textFieldToNav.textProperty().addListener(((observable, oldValue, newValue) -> {
             toAddressFilter.search(newValue);
             textFieldToNav.suggest(toAddressFilter.getSuggestions());
-            Node resultNode = toAddressFilter.getMatchedAddress();
-            updateNodesNavigation(false, resultNode.getxMax(), resultNode.getyMax(), "test1", "Sveasvej"); // TODO: 5/7/21 fix
+            Address address = toAddressFilter.getMatchedAddress();
+            updateNodesNavigation(false, address.getNode().getxMax(), address.getNode().getyMax(), address.getFullAddress(), address.getStreet()); // TODO: 5/7/21 fix
         }));
 
 
