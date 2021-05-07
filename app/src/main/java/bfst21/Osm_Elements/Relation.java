@@ -139,7 +139,7 @@ public class Relation extends NodeHolder implements Serializable {
 
     private ArrayList<Way> mergeWays(ArrayList<Way> toMerge) {
         /*
-         * Inner and outer rings are created from closed ways whenever possible,
+         * Inner and outer rings are created from closed ways whenever possible, // TODO: 5/7/21 keep ?
          * except when these ways become very large (on the order of 2000 nodes). W
          * ays are usually not shared by different multipolygons.
          * From OSM wiki - mapping stype best practice with Relations

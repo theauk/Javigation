@@ -9,21 +9,21 @@ import bfst21.utils.MapMath;
 import bfst21.utils.VehicleType;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.geometry.Point2D;
 
 import java.util.*;
 
-public class RouteNavigation {
+public class RouteNavigation extends Service<List<Element>> {
 
-    private Node to;
-    private ElementToElementsTreeMap<Node, Way> nodeToWayMap;
+    private ElementToElementsTreeMap<Node, Way> nodeToHighwayMap;
     private ElementToElementsTreeMap<Node, Relation> nodeToRestriction;
     private ElementToElementsTreeMap<Way, Relation> wayToRestriction;
 
     private Node from, to;
+    private Way fromWay, toWay;
+    private int[] nearestFromWaySegmentIndices;
+    private int[] nearestToWaySegmentIndices;
     private VehicleType vehicleType;
-    private boolean fastest;
-    private boolean aStar;
+    private boolean fastest, aStar;
 
     private List<Node> path;
 
@@ -39,6 +39,7 @@ public class RouteNavigation {
     private double currentTimeDescription;
     private ArrayList<String> routeDescription;
     private HashSet<String> specialPathFeatures;
+    private float[] coordinatesForPanToRoute;
 
     public RouteNavigation() {
         this.maxSpeed = 130;
@@ -57,30 +58,39 @@ public class RouteNavigation {
             @Override
             protected List<Element> call() throws Exception {
                 updateMessage("Calculating the best route...");
-                List<Node> path = createRoute();
-                List<Element> currentRoute = new ArrayList<>();
-
-                if (path.size() > 0) {
-                    Way route = new Way();
-                    Node start = path.get(0);
-                    Node end = path.get(path.size() - 1);
-
-                    route.setType("navigation");
-                    start.setType("start_route_note");
-                    end.setType("end_route_note");
-
-                    for (int i = 0; i < path.size() - 1; i++) { //TODO SKIPS LAST INDEX?
-                        route.addNode(path.get(i));
-                    }
-
-                    currentRoute.add(route);
-                    currentRoute.add(start);
-                    currentRoute.add(end);
-                }
-
-                return currentRoute;
+                return getCurrentRoute();
             }
         };
+    }
+
+    private List<Element> getCurrentRoute() throws NoNavigationResultException {
+        List<Node> path = createRoute();
+        List<Element> currentRoute = new ArrayList<>();
+
+        if (path.size() > 0) {
+            Way route = new Way();
+            Node start = path.get(0);
+            Node end = path.get(path.size() - 1);
+
+            route.setType("navigation");
+            start.setType("start_route_note");
+            end.setType("end_route_note");
+
+            for (int i = 0; i < path.size(); i++) {
+                route.addNode(path.get(i));
+            }
+
+            currentRoute.add(route);
+            currentRoute.add(start);
+            currentRoute.add(end);
+        }
+
+        removeFromToNodesFromTheirWays();
+        return currentRoute;
+    }
+
+    public List<Element> testGetCurrentRoute() throws NoNavigationResultException {
+        return getCurrentRoute();
     }
 
     private void setup() {
@@ -94,10 +104,11 @@ public class RouteNavigation {
         unitsTo.put(from, new DistanceAndTimeEntry(0, 0, 0));
         routeDescription = new ArrayList<>();
         specialPathFeatures = new HashSet<>();
+        coordinatesForPanToRoute = new float[]{Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY};
     }
 
-    public void setNodeToWayMap(ElementToElementsTreeMap<Node, Way> nodeToWayMap) {
-        this.nodeToWayMap = nodeToWayMap;
+    public void setNodeToHighwayMap(ElementToElementsTreeMap<Node, Way> nodeToHighwayMap) {
+        this.nodeToHighwayMap = nodeToHighwayMap;
     }
 
     public void setNodeToRestriction(ElementToElementsTreeMap<Node, Relation> nodeToRestriction) {
@@ -130,29 +141,60 @@ public class RouteNavigation {
         return path;
     }
 
-
     /**
      * Sets up the planned route to use the specified criteria.
-     *
-     * @param to the to Node.
-     * @param vehicleType the selected vehicle type.
-     * @param fastest true if fastest route needs to be found. False if shortest route should be found.
-     * @param aStar true if the A* algorithm should be used. False if Dijkstra should be used.
+     * @param from The from Node.
+     * @param to The to Node.
+     * @param fromWay The from Way.
+     * @param toWay The to Way.
+     * @param nearestFromWaySegmentIndices The indices in the from way where the to Node should be.
+     * @param nearestToWaySegmentIndices The indices in the to way where the from Node should be.
+     * @param vehicleType The selected vehicle type.
+     * @param fastest True if fastest route needs to be found. False if shortest route should be found.
+     * @param aStar True if the A* algorithm should be used. False if Dijkstra should be used.
      */
-    public void setupRoute(Node from, Node to, VehicleType vehicleType, boolean fastest, boolean aStar) {
+    public void setupRoute(Node from, Node to, Way fromWay, Way toWay, int[] nearestFromWaySegmentIndices, int[] nearestToWaySegmentIndices, VehicleType vehicleType, boolean fastest, boolean aStar) {
         this.from = from;
         this.to = to;
+        this.fromWay = fromWay;
+        this.toWay = toWay;
+        this.nearestFromWaySegmentIndices = nearestFromWaySegmentIndices;
+        this.nearestToWaySegmentIndices = nearestToWaySegmentIndices;
         this.vehicleType = vehicleType;
         this.fastest = fastest;
         this.aStar = aStar;
+        addFromToNodesToFromToWays();
     }
 
     /**
-     * Get the total distance for the path.
+     * Adds the to and from node to their respective ways so that it is possible to navigate from/to them.
+     */
+    private void addFromToNodesToFromToWays() {
+        MapMath.updateNodeCoordinatesIfEndOfWay(fromWay, from);
+        fromWay.addNodeBetweenIndices(from, nearestFromWaySegmentIndices[1]);
+        MapMath.updateNodeCoordinatesIfEndOfWay(toWay, to);
+        toWay.addNodeBetweenIndices(to, nearestToWaySegmentIndices[1]);
+    }
+
+    /**
+     * Removes the to and from nodes from their respective ways.
+     */
+    private void removeFromToNodesFromTheirWays() {
+        if (nearestFromWaySegmentIndices[1] > nearestToWaySegmentIndices[1]) {
+            fromWay.removeNodeFromIndex(nearestFromWaySegmentIndices[1]);
+            toWay.removeNodeFromIndex(nearestToWaySegmentIndices[1]);
+        } else {
+            toWay.removeNodeFromIndex(nearestToWaySegmentIndices[1]);
+            fromWay.removeNodeFromIndex(nearestFromWaySegmentIndices[1]);
+        }
+    }
+
+    /**
+     * Gets the total distance for the path.
      * @return The total distance.
      */
     public double getTotalDistance() {
-        if (unitsTo.get(to) != null) return unitsTo.get(to).distance; // TODO: 4/26/21 back to exception instead?
+        if (unitsTo.get(to) != null) return unitsTo.get(to).distance;
         else return 0;
     }
 
@@ -204,9 +246,29 @@ public class RouteNavigation {
     private List<Node> getTrack(List<Node> nodes, Node currentNode) {
         if (currentNode != null) {
             nodes.add(currentNode);
+            updateCoordinatesForPanToRoute(currentNode);
             getTrack(nodes, nodeBefore.get(currentNode));
         }
         return nodes;
+    }
+
+    /**
+     * Update the coordinates that represents the bounding box that can hold the route.
+     * @param currentNode The current node to check.
+     */
+    private void updateCoordinatesForPanToRoute(Node currentNode) {
+        if (currentNode.getxMax() < coordinatesForPanToRoute[0]) coordinatesForPanToRoute[0] = currentNode.getxMax(); // x_min
+        if (currentNode.getxMax() > coordinatesForPanToRoute[1]) coordinatesForPanToRoute[1] = currentNode.getxMax(); // x_max
+        if (currentNode.getyMax() < coordinatesForPanToRoute[2]) coordinatesForPanToRoute[2] = currentNode.getyMax(); // y_max
+        if (currentNode.getyMax() > coordinatesForPanToRoute[3]) coordinatesForPanToRoute[3] = currentNode.getyMax(); // y_max
+    }
+
+    /**
+     * Gets the coordinates that represents the smallest bounding box that contains the route.
+     * @return A float array with x-min, x-max, y-min, and y-max.
+     */
+    public float[] getCoordinatesForPanToRoute() {
+        return coordinatesForPanToRoute;
     }
 
     /**
@@ -214,10 +276,15 @@ public class RouteNavigation {
      * @param currentFrom The current Node to examine.
      */
     private void relax(Node currentFrom) {
-        List<Way> waysWithFromNode = nodeToWayMap.getElementsFromNode(currentFrom);
+        ArrayList<Way> waysWithFromNode = new ArrayList<>();
+        if (nodeToHighwayMap.getElementsFromKeyElement(currentFrom) != null) {
+            waysWithFromNode = nodeToHighwayMap.getElementsFromKeyElement(currentFrom);
+        } else if (currentFrom == from) {
+            waysWithFromNode.add(fromWay);
+        }
 
         for (Way w : waysWithFromNode) {
-            List<Node> adjacentNodes = new ArrayList<>();
+            ArrayList<Node> adjacentNodes = new ArrayList<>();
 
             if (vehicleType == VehicleType.CAR) {
                 if (w.isDriveable()) {
@@ -296,7 +363,7 @@ public class RouteNavigation {
      * @return True if there is a restriction. False if not.
      */
     private boolean checkRestrictionViaNode(Way fromWay, Node viaNode, Way toWay) {
-        List<Relation> restrictionsViaNode = nodeToRestriction.getElementsFromNode(viaNode);
+        List<Relation> restrictionsViaNode = nodeToRestriction.getElementsFromKeyElement(viaNode);
         if (restrictionsViaNode != null) {
             for (Relation restriction : restrictionsViaNode) {
                 if (restriction.getRestriction().contains("no_") && restriction.getFrom() == fromWay && restriction.getViaNode() == viaNode && restriction.getTo() == toWay) {
@@ -315,7 +382,7 @@ public class RouteNavigation {
      * @return True if there is a restriction. False if not.
      */
     private boolean checkRestrictionViaWay(Way fromWay, Node viaNode, Way toWay) {
-        List<Relation> restrictionsViaWay = wayToRestriction.getElementsFromNode(fromWay);
+        List<Relation> restrictionsViaWay = wayToRestriction.getElementsFromKeyElement(fromWay);
         if (restrictionsViaWay != null) {
             for (Relation restriction : restrictionsViaWay) {
                 if (restriction.getRestriction().contains("no_") && restriction.getViaWay() == fromWay && restriction.getTo() == toWay) {
@@ -440,7 +507,12 @@ public class RouteNavigation {
     private void getRouteDescriptionLessThanThreeNodes() {
         Node f = path.get(path.size() - 1);
         Node t = path.get(path.size() - 2);
-        routeDescription.add("Head " + MapMath.compassDirection(f, t).toLowerCase() + " on " + wayBefore.get(t).getName() + " and you will arrive at your destination" + getCurrentDistanceAndTimeText());
+        if (fromWay.getType().equals("ferry")) {
+            routeDescription.add(getFerryText(fromWay.getName()));
+            specialPathFeatures.add("a ferry");
+        } else {
+            routeDescription.add("Head " + MapMath.compassDirection(f, t).toLowerCase() + " on " + wayBefore.get(t).getName() + " and you will arrive at your destination" + getCurrentDistanceAndTimeText());
+        }
     }
 
     /**
@@ -571,8 +643,6 @@ public class RouteNavigation {
      * @return The direction between two ways.
      */
     private String getDirection(double angle, Way wayBeforeTo, String wayBeforeToName) {
-
-        System.out.println("Angle: " + angle);
         String type = wayBeforeTo.getType();
 
         if (type.contains("_toll")) specialPathFeatures.add("toll"); // TODO: 4/29/21 fix
@@ -585,6 +655,9 @@ public class RouteNavigation {
             else return "Turn right onto " + wayBeforeToName;
         } else if (angle < 0) {
             return "Turn left onto " + wayBeforeToName;
+        } else if (angle == 0) {
+            System.out.println("Angle is 0...."); // TODO: 5/4/21 delete
+            return "";
         } else {
             throw new RuntimeException("getDirection Error"); // TODO: 4/29/21 ???
         }
@@ -600,7 +673,7 @@ public class RouteNavigation {
     private String getRoundaboutExit(int roundaboutStartNodeIndex, int roundaboutEndIndex, Way roundaboutWay) {
         int exits = 0;
         for (int i = roundaboutStartNodeIndex - 1; i >= roundaboutEndIndex; i--) {
-            ArrayList<Way> ways = nodeToWayMap.getElementsFromNode(path.get(i));
+            ArrayList<Way> ways = nodeToHighwayMap.getElementsFromKeyElement(path.get(i));
             if (ways.size() > 1) {
                 for (Way w : ways) {
                     if (w != roundaboutWay) {

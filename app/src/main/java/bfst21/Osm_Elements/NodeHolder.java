@@ -51,6 +51,15 @@ public abstract class NodeHolder extends Element implements Serializable {
         }
     }
 
+    public void addNodeBetweenIndices(Node node, int index) {
+        // not necessary to update max and min as the node is on a line between i and j nodes.
+        nodes.add(index, node);
+    }
+
+    public void removeNodeFromIndex(int i) {
+        nodes.remove(i);
+    }
+
     protected void checkMaxAndMin(Node node) {
         if (nodes.size() > 1) {
             checkX(node.getxMin());
@@ -104,6 +113,7 @@ public abstract class NodeHolder extends Element implements Serializable {
         for (int i = 0; i < nodes.size() - 1; i++) {
             if (nodes.get(i) == currentNode) {
                 nextNode = nodes.get(i + 1);
+                break;
             }
         }
         return nextNode;
@@ -114,6 +124,7 @@ public abstract class NodeHolder extends Element implements Serializable {
         for (int i = 1; i < nodes.size(); i++) {
             if (nodes.get(i) == currentNode) {
                 previousNode = nodes.get(i - 1);
+                break;
             }
         }
         return previousNode;

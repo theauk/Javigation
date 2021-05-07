@@ -44,3 +44,36 @@
     -fx-border-color: rgba(255, 0, 0, 0.4);
     -fx-background-color: rgba(255, 255, 255, 0.4);
 }
+
+#directionsButton{
+    -fx-graphic: url("icons/directions_from_figma.png");
+}
+
+#searchForAddress{
+    -fx-graphic: url("icons/search_icon.png");
+}
+
+#backButton{
+    -fx-background-color: rgba(220, 20, 60, 100);
+    -fx-graphic: url("icons/back_icon.png");
+}
+
+#searchNav{
+    -fx-graphic: url("icons/directions_from_figma_2.png");
+}
+
+#switchButton{
+    -fx-graphic: url("icons/switch_icon.png");
+}
+
+#carNavToggleButton{
+    -fx-graphic: url("icons/car_vroom_test.png");
+}
+
+#bikeNavToggleButton{
+    -fx-graphic: url("icons/bike_test.png");
+}
+
+#WalkNavToggleButton{
+    -fx-graphic: url("icons/person_test.png");
+}
