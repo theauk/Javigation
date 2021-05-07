@@ -262,7 +262,7 @@ class RouteNavigationTest {
         nodesWalkWay.add(from);
         nodesWalkWay.add(createNode(16f, 55.437));
         nodesWalkWay.add(to);
-        Way walkWay = createWay(nodesMotorway, 5, "Walk Way", "footway");
+        Way walkWay = createWay(nodesWalkWay, 5, "Walk Way", "footway");
 
         setTreeMaps();
         routeNavigation.setupRoute(from, to, motorway, walkWay, new int[]{1, 2}, new int[]{0, 1}, VehicleType.WALK, false, true);
@@ -273,8 +273,28 @@ class RouteNavigationTest {
     }
 
     @Test
-    void takeFastestWayTest() {
+    void takeFastestWayTest() throws NoNavigationResultException {
+        Node from = createNode(13f, 55.4);
+        Node to = createNode(15f, 55.5);
 
+        ArrayList<Node> nodesSlowWay = new ArrayList<>();
+        nodesSlowWay.add(from);
+        nodesSlowWay.add(createNode(14f, 55.45));
+        nodesSlowWay.add(to);
+        Way slowWay = createWay(nodesSlowWay, 30, "Slow Way", "unclassified");
+
+        ArrayList<Node> nodesFastWay = new ArrayList<>();
+        nodesFastWay.add(from);
+        nodesFastWay.add(createNode(14f, 55.45));
+        nodesFastWay.add(to);
+        createWay(nodesFastWay, 100, "Fast Way", "unclassified");
+
+        setTreeMaps();
+        routeNavigation.setupRoute(from, to, slowWay, slowWay, new int[]{0, 1}, new int[]{1, 2}, VehicleType.CAR, true, true);
+        routeNavigation.testGetCurrentRoute();
+
+        assertFalse(routeNavigation.getDirections().get(0).contains("Slow Way"));
+        assertTrue(routeNavigation.getDirections().get(0).contains("Fast Way"));
     }
 
     @Test

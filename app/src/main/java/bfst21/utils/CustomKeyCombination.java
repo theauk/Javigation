@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * Represents a subclass of {@link KeyCombination} which allows any combination of keys instead of only function keys plus a normal key.
- * It must observe a JavaFX Node in order to keep track of which keys has been pressed/released.
+ * It must observe a JavaFX Node in order to keep track of which keys have been pressed/released.
  */
 public class CustomKeyCombination extends KeyCombination {
     public static final List<KeyCode> keyCodes = new ArrayList<>();

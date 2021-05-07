@@ -645,7 +645,7 @@ public class Controller {
             setDistanceAndTimeNav(routeNavigation.getTotalDistance(), routeNavigation.getTotalTime());
             setDirections(routeNavigation.getDirections());
             setSpecialPathFeatures(routeNavigation.getSpecialPathFeatures());
-            //mapCanvas.panToRoute(routeNavigation.getCoordinatesForPanToRoute());
+            mapCanvas.panToRoute(routeNavigation.getCoordinatesForPanToRoute());
             mapCanvas.repaint();
         });
         routeNavigation.setOnFailed(e -> {

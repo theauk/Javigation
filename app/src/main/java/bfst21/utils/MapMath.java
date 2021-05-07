@@ -23,7 +23,7 @@ public final class MapMath {
      * @param p3 the end point.
      * @return the cross product of the two vectors V1 = (p2 - p1) and V2 = (p3 - p2).
      */
-    public static double crossProduct(Point2D p1, Point2D p2, Point2D p3) {
+    public static double crossProduct(Point2D p1, Point2D p2, Point2D p3) { // TODO: 5/7/21 delete?
         Point2D v1 = new Point2D((p2.getX() - p1.getX()), (p2.getY() - p1.getY()));
         Point2D v2 = new Point2D((p3.getX() - p2.getX()), (p3.getY() - p2.getY()));
         return v1.getX() * v2.getX() - v1.getY() * v2.getX();
@@ -37,7 +37,7 @@ public final class MapMath {
      * @param p3 the end point.
      * @return the dot product of the two vectors V1 = (p2 - p1) and V2 = (p3 - p2).
      */
-    public static double dotProduct(Point2D p1, Point2D p2, Point2D p3) {
+    public static double dotProduct(Point2D p1, Point2D p2, Point2D p3) { // TODO: 5/7/21 delete?
         Point2D v1 = new Point2D((p2.getX() - p1.getX()), (p2.getY() - p1.getY()));
         Point2D v2 = new Point2D((p3.getX() - p2.getX()), (p3.getY() - p2.getY()));
         return v1.getX() * v2.getX() + v1.getY() * v2.getY();

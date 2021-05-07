@@ -320,8 +320,8 @@ public class MapCanvas extends Canvas {
         double boundsHeight = bounds.getMaxY() - bounds.getMinY();
         double minYMap = bounds.getMinY() + ((boundsHeight - mapHeight) / 2);
 
-        double dx = (minXMap - boundingBoxRouteCoordinates[0]);                           
-        double dy = (minYMap - boundingBoxRouteCoordinates[2]);
+        double dx = (minXMap - boundingBoxRouteCoordinates[0]) * Math.sqrt(trans.determinant());
+        double dy = (minYMap - boundingBoxRouteCoordinates[2]) * Math.sqrt(trans.determinant());
 
         double zoom = getWidth() / mapWidth; 
         int levels = (int) (Math.log(zoom) / Math.log(ZOOM_FACTOR));
@@ -340,7 +340,7 @@ public class MapCanvas extends Canvas {
         dx = dx * Math.sqrt(trans.determinant());
         dy = dy * Math.sqrt(trans.determinant());
 
-        pan(dx,dy);
+        pan(dx, dy);
     }
 
     public void rTreeDebugMode() {
