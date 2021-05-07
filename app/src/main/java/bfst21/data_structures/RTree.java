@@ -8,15 +8,20 @@ import bfst21.view.MapCanvas;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
+import java.util.PriorityQueue;
 
 public class RTree implements Serializable {
-    @Serial private static final long serialVersionUID = 7154862203691144752L;
+    @Serial
+    private static final long serialVersionUID = 7154862203691144752L;
 
     private final int minimumChildren, maximumChildren, numberOfCoordinates;
     ArrayList<ArrayList<Long>> splitInsertResults;
     private RTreeNode root;
-    private long size;
+    private long size; // TODO: 5/4/21 necessary???
+    private int returnListSize;
 
     public RTree(int minimumChildren, int maximumChildren, int numberOfCoordinates) {
         this.minimumChildren = minimumChildren;
@@ -51,7 +56,6 @@ public class RTree implements Serializable {
     public ArrayList<ArrayList<Element>> search(float xMin, float xMax, float yMin, float yMax, boolean debug, ArrayList<ArrayList<Element>> results) {
         if (root != null) {
             float[] searchCoordinates = new float[]{xMin, xMax, yMin, yMax};
-
             if (debug) {
                 float coordinateChange = xMin * 0.0005f;
                 searchCoordinates = new float[]{xMin + coordinateChange, xMax + (-coordinateChange), yMin + coordinateChange, yMax + (-coordinateChange)};
@@ -63,7 +67,6 @@ public class RTree implements Serializable {
         }
         return results;
     }
-
 
     /**
      * Search for elements in the R-tree based on search coordinates.
@@ -539,7 +542,8 @@ public class RTree implements Serializable {
                 }
                 if (elementsToSplit.get(j).getCoordinates()[i + 1] < leftmostRightSide) { // for the leftmost right side
                     leftmostRightSide = elementsToSplit.get(j).getCoordinates()[i + 1];
-                    if (currentFurthestPairIndices[0] != j) currentFurthestPairIndices[1] = j; // to avoid getting the same element twice
+                    if (currentFurthestPairIndices[0] != j)
+                        currentFurthestPairIndices[1] = j; // to avoid getting the same element twice
                 }
                 if (elementsToSplit.get(j).getCoordinates()[i] < leftmostSide) { // for the greatest width
                     leftmostSide = elementsToSplit.get(j).getCoordinates()[i];
@@ -628,22 +632,20 @@ public class RTree implements Serializable {
    //     return areaWithBoth - areaElement1 - areaElement2;
    // }
 
-
-
     /**
      * Gets the nearest way from a point.
+     * Adapted from Hjaltason, Gísli, and Hanan Samet. “Distance Browsing in Spatial Databases.” ACM transactions on database systems 24.2 (1999): 265–318. Web.
+     *
      * @param x The point's x-coordinate.
      * @param y The points y-coordinate.
      * @return An priority queue entry containing the nearest way.
      */
-    public NearestRoadPriorityQueueEntry getNearestRoad(float x, float y) {
-        // Adapted from Hjaltason, Gísli, and Hanan Samet. “Distance Browsing in Spatial Databases.” ACM transactions on database systems 24.2 (1999): 265–318. Web.
+    public NearestRoadPriorityQueueEntry getNearestRoad(float x, float y, String addressWayName) { // TODO: 5/4/21 hvis vi kun kigger i ways kan jeg komme af med instance of
         PriorityQueue<NearestRoadPriorityQueueEntry> pq = new PriorityQueue<>();
         pq.add(new NearestRoadPriorityQueueEntry(true, false, root, null, null, null, 0));
 
         while (!pq.isEmpty()) {
             NearestRoadPriorityQueueEntry entry = pq.poll();
-
             if (!entry.isRTreeNode || entry.isBoundingRectangle) {
                 // check if the distance to the first pq entry's actual element is smaller than the next pq entry's distance
                 if (entry.isBoundingRectangle && !pq.isEmpty() && MapMath.shortestDistanceToElement(x, y, entry.segment) > pq.peek().distance) {
@@ -656,7 +658,7 @@ public class RTree implements Serializable {
                     for (Element e : n.getElementEntries()) {
                         if (e instanceof Way) { // only look for ways
                             Way w = (Way) e;
-                            if (w.isHighWay() && w.hasName()) {
+                            if (isValidWay(w, addressWayName)) {
                                 for (int i = 0; i < w.getNodes().size() - 1; i++) {
                                     Way segment = createWaySegment(w, i);
                                     NearestRoadPriorityQueueEntry newEntry = new NearestRoadPriorityQueueEntry(false, true, null, w, segment, new int[]{i, i + 1}, minDistMBB(x, y, segment.getCoordinates()));
@@ -672,7 +674,23 @@ public class RTree implements Serializable {
                 }
             }
         }
-        return null;
+        return null; // TODO: 5/4/21 handle
+    }
+
+    /**
+     * Determines if the search method should place the way in the priority queue. A way is valid if it is a highway and has a name.
+     * If searching for an address way, the way name should be equal to the address street name searched for.
+     *
+     * @param w              The current way to check.
+     * @param addressWayName The street name if searching for an address way. Otherwise, null.
+     * @return True, if the way should be added to the pq. Otherwise, false
+     */
+    private boolean isValidWay(Way w, String addressWayName) {
+        if (w.isHighWay() && w.hasName()) {
+            // right part necessary to ensure that address nodes are matched with the way searched for even if another way is nearer
+            return addressWayName == null || w.getName().toLowerCase().equals(addressWayName);
+        }
+        return false;
     }
 
     /**
@@ -733,6 +751,10 @@ public class RTree implements Serializable {
 
         public int[] getSegmentIndices() {
             return segmentIndices;
+        }
+
+        public Way getSegment() {
+            return segment;
         }
 
         @Override

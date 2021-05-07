@@ -16,34 +16,6 @@ public final class MapMath {
     private MapMath() { }
 
     /**
-     * Calculates the cross product between the two vectors from p1 to p2 na dp2 to p3.
-     *
-     * @param p1 the start point.
-     * @param p2 the via point.
-     * @param p3 the end point.
-     * @return the cross product of the two vectors V1 = (p2 - p1) and V2 = (p3 - p2).
-     */
-    public static double crossProduct(Point2D p1, Point2D p2, Point2D p3) {
-        Point2D v1 = new Point2D((p2.getX() - p1.getX()), (p2.getY() - p1.getY()));
-        Point2D v2 = new Point2D((p3.getX() - p2.getX()), (p3.getY() - p2.getY()));
-        return v1.getX() * v2.getX() - v1.getY() * v2.getX();
-    }
-
-    /**
-     * Calculates the dot product between the two vectors from p1 to p2 and p2 to p3.
-     *
-     * @param p1 the start point.
-     * @param p2 the via point.
-     * @param p3 the end point.
-     * @return the dot product of the two vectors V1 = (p2 - p1) and V2 = (p3 - p2).
-     */
-    public static double dotProduct(Point2D p1, Point2D p2, Point2D p3) {
-        Point2D v1 = new Point2D((p2.getX() - p1.getX()), (p2.getY() - p1.getY()));
-        Point2D v2 = new Point2D((p3.getX() - p2.getX()), (p3.getY() - p2.getY()));
-        return v1.getX() * v2.getX() + v1.getY() * v2.getY();
-    }
-
-    /**
      * Calculates the angle between p1 and p3 through p2 in degrees ranging from -180 to 180.
      *
      * @param p1 the start point.
@@ -128,8 +100,6 @@ public final class MapMath {
 
         double earthRadius = 6371e3; //in meters
 
-        //double lat1 = Math.toRadians(p1.getX()); // TODO: 4/29/21 what on earth...? Det her tror jeg virker
-        //double lat2 = Math.toRadians(p2.getX());
         double lat1 = p1.getX();
         double lat2 = p2.getX();
         double lon1 = p1.getY();
@@ -137,6 +107,9 @@ public final class MapMath {
 
         double deltaLat = Math.toRadians(lat2 - lat1);
         double deltaLon = Math.toRadians(lon2 - lon1);
+
+        lat1 = Math.toRadians(lat1);
+        lat2 = Math.toRadians(lat2);
 
         double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
@@ -164,15 +137,6 @@ public final class MapMath {
      */
     public static double convertToGeo(double yCoordinate) {
         return -yCoordinate * 0.56f;
-    }
-
-    /**
-     * Converts a screen coordinate to a geo-coordinate.
-     * @param yCoordinate The coordinate as a screen coordinate.
-     * @return
-     */
-    public static double convertToScreen(double yCoordinate) {
-        return yCoordinate / -0.56f;
     }
 
     /**
@@ -254,14 +218,19 @@ public final class MapMath {
      * @return The point on the way as a Node with the coordinates.
      */
     public static Node getClosestPointOnWayAsNode(double queryX, double queryY, Way nearestWay) {
+        // The two nodes in the way segment (max 2 nodes because of way segment split in the R-tree)
         Node p1NearestWay = nearestWay.getNodes().get(0);
-        Node p2NearestWay = nearestWay.getNodes().get(1); // the way has max 2 nodes because of way segment split in R-tree
+        Node p2NearestWay = nearestWay.getNodes().get(1);
+
+        // Find the slope of the way and find the equation of the line in standard form
         double slopeNearestWay = getSlopeBetweenTwoNodes(p1NearestWay, p2NearestWay);
         double[] nearestWayStandardEquation = getStandardFormEquationFromPointAndSlope(p1NearestWay.getxMax(), p1NearestWay.getyMax(), slopeNearestWay);
 
+        // Find the perpendicular slope of the way and find the equation of the line in standard form using the cursor point
         double perpendicularSlope = getReciprocalSlope(slopeNearestWay);
         double[] perpendicularStandardEquation = getStandardFormEquationFromPointAndSlope(queryX, queryY, perpendicularSlope);
 
+        // Find the nearest point on the way using Cramer's rule (find the intersection of the two lines)
         double[] coordinatesPointOnNearestWay = findIntersectionCramersRule(perpendicularStandardEquation, nearestWayStandardEquation);
 
         return new Node(0, (float) coordinatesPointOnNearestWay[1], (float) coordinatesPointOnNearestWay[0]); // TODO: 4/30/21 better to cast and have more precise cals or change to floats all the way through?
@@ -326,6 +295,13 @@ public final class MapMath {
         return new double[]{x, y};
     }
 
+    /**
+     * Formats a distance string. If the distance is less than 1000 m "m" is used.
+     * Otherwise, "km" is used.
+     * @param meters The distance in meters.
+     * @param digits How many digits should be used.
+     * @return A string with the distance followed by the unit.
+     */
     public static String formatDistance(double meters, int digits) {
         String s = "";
         if (meters < 1000) s += MapMath.round(meters, digits) + " m";
@@ -333,11 +309,37 @@ public final class MapMath {
         return s;
     }
 
+    /**
+     * Formats a time string. If the time is less than 50 seconds "s" is used.
+     * Otherwise, "min" is used.
+     * @param seconds The time in seconds.
+     * @param digits How many digits should be used.
+     * @return A string with the time followed by the unit.,
+     */
     public static String formatTime(double seconds, int digits) {
         String s = "";
         if (seconds < 60) s += " , Total time: " + round(seconds, digits) + " s";
         else s += " , Total time: " + round(seconds / 60f, digits) + " min";
         return s;
+    }
+
+    /**
+     * Ensures that the coordinates for a nearest node on a way are not outside the way itself
+     * if the user has clicked along the infinite line the nearest way forms (mainly relevant on smaller
+     * map segments where ways can suddenly end).
+     * @param w The way where the node should lay on.
+     * @param n The node to check.
+     */
+    public static void updateNodeCoordinatesIfEndOfWay(Way w, Node n) {
+        if (n.getxMin() < w.getxMin()) {
+            Node waysFirstNode = w.getNodes().get(0);
+            n.setX(waysFirstNode.getxMin());
+            n.setY(waysFirstNode.getyMax());
+        } else if (n.getxMax() > w.getxMax()) {
+            Node waysLastNode = w.getNodes().get(w.getNodes().size() - 1);
+            n.setX(waysLastNode.getxMin());
+            n.setY(waysLastNode.getyMax());
+        }
     }
 
 }

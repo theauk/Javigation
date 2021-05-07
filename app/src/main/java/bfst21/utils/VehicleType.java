@@ -1,5 +1,8 @@
 package bfst21.utils;
 
+/**
+ * Holds the different vehicle types and their default speeds (in km/h) used in navigation.
+ */
 public enum VehicleType {
     CAR(130), //max speed Denmark
     BIKE(16), //from Google Maps 16 km/h

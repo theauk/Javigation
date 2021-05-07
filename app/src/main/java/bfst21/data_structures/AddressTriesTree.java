@@ -11,11 +11,10 @@ public class AddressTriesTree implements Serializable {
     private static final long serialVersionUID = 5713923887785799744L;
 
     private final AddressTrieNode root;
-    private final Map<Integer, String> citiesToPostCodes;
+    public static final Map<Integer, String> POSTCODE_TO_CITIES = new HashMap<>();
 
     public AddressTriesTree() {
         root = new AddressTrieNode();
-        citiesToPostCodes = new HashMap<>();
     }
 
     /**
@@ -36,7 +35,7 @@ public class AddressTriesTree implements Serializable {
         streetname = streetname.toLowerCase();
         city = city.toLowerCase();
         houseNumber = houseNumber.toLowerCase();
-        citiesToPostCodes.put(postcode, city);
+        POSTCODE_TO_CITIES.put(postcode, city);
         insert_address_with_streetname(root,0 , node, streetname, postcode, houseNumber);
     }
 
@@ -55,7 +54,7 @@ public class AddressTriesTree implements Serializable {
     private void insert_address_with_streetname(AddressTrieNode trieNode, int index, Node node, String streetname, int postcode, String houseNumber) {
         if (index == streetname.length()) {
             if(trieNode.isAddress()) trieNode.addHouseNumber(postcode, node, houseNumber);
-            else trieNode.setAddress(node, postcode, streetname, houseNumber, citiesToPostCodes);
+            else trieNode.setAddress(node, postcode, streetname, houseNumber);
         }
         else {
             Character currentChar = streetname.charAt(index);
@@ -116,14 +115,14 @@ public class AddressTriesTree implements Serializable {
     }
 
     public List<Integer> getPostCodes() {
-        List<Integer> postCodes = new ArrayList<>(citiesToPostCodes.keySet());
+        List<Integer> postCodes = new ArrayList<>(POSTCODE_TO_CITIES.keySet());
         Collections.sort(postCodes);
 
         return postCodes;
     }
 
     public List<String> getCities() {
-        List<String> cities = new ArrayList<>(citiesToPostCodes.values());
+        List<String> cities = new ArrayList<>(POSTCODE_TO_CITIES.values());
         Collections.sort(cities);
 
         return cities;
