@@ -41,7 +41,7 @@ public class ElementToElementsTreeMap<Key extends Element, Value extends Element
         }
     }
 
-    public ArrayList<Value> getElementsFromNode(Key key) {
+    public ArrayList<Value> getElementsFromKeyElement(Key key) {
         return map.get(key.getId());
     }
 
