@@ -54,12 +54,12 @@
 }
 
 #backButton{
-    -fx-text-fill: rgba(220, 20, 60, 100);
+    -fx-background-color: rgba(220, 20, 60, 100);
     -fx-graphic: url("icons/back_icon.png");
 }
 
 #searchNav{
-    -fx-graphic: url("icons/directions_from_figma.png");
+    -fx-graphic: url("icons/directions_from_figma_2.png");
 }
 
 #switchButton{

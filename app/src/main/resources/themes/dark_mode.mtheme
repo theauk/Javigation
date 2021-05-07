@@ -61,8 +61,8 @@ name = "Dark Mode";
 "wetland" = {iColor = [202, 252, 226], oColor = [0, 0, 0]}, {filled = true};
 "farmland" = {iColor = [238, 240, 213], oColor = [0, 0, 0]}, {filled = true};
 
-#Water
-"water" = {iColor = [170, 211, 223]}, {filled = true};
-
 #Building
 "building" = {iColor = [216, 208, 201]}, {filled = true};
+
+#Water
+"water" = {iColor = [170, 211, 223]}, {filled = true};
