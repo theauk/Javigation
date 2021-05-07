@@ -677,9 +677,8 @@ public class RouteNavigation extends Service<List<Element>> {
             if (ways.size() > 1) {
                 for (Way w : ways) {
                     if (w != roundaboutWay) {
-                        if (!w.isOnewayRoad()) exits++;
+                        if (!w.isOnewayRoad() && w.isDriveable()) exits++;
                         else if (w.getNextNode(path.get(i)) != null) exits++; // to ensure that we do not count one-way roads
-                        break;
                     }
                 }
             }
