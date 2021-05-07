@@ -191,6 +191,20 @@ public class Controller {
             }
         });
 
+
+            directionsButton.setOnAction(e -> {
+                address_myPlacesPane.setVisible(false);
+                navigationLeftPane.setVisible(true);
+            });
+
+
+
+            backButton.setOnAction(e -> {
+                navigationLeftPane.setVisible(false);
+                address_myPlacesPane.setVisible(true);
+            });
+
+
     }
 
     private void removeChildren(){
@@ -768,21 +782,7 @@ public class Controller {
         updateNodesNavigation(false,point.getX(), point.getY());
     }
 
-    @FXML
-    public void directionsButtonToPane(ActionEvent actionEvent){
-        directionsButton.setOnAction(e -> {
-            address_myPlacesPane.setVisible(false);
-            navigationLeftPane.setVisible(true);
-        });
-    }
 
-    @FXML
-    public void setBackButton(){
-        backButton.setOnAction(e -> {
-            navigationLeftPane.setVisible(false);
-            address_myPlacesPane.setVisible(true);
-        });
-    }
 
     private enum State {
         MENU,
