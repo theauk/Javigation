@@ -501,6 +501,7 @@ public class Controller {
     }
 
     private void setLabels(Point2D point) {
+        //System.out.println(point.getX() + " " + point.getY());
         Point2D coords = mapCanvas.getTransCoords(point.getX(), point.getY());
         Point2D geoCoords = MapMath.convertToGeoCoords(mapCanvas.getTransCoords(point.getX(), point.getY()));
         setCoordsLabel((float) coords.getX(), (float) coords.getY());
@@ -663,9 +664,9 @@ public class Controller {
 
     public void setDistanceAndTimeNav(double meters, double seconds) {
         distanceAndTimeNav.setVisible(true);
-        String s = "Total distance: ";
+        String s = "Total Distance: ";
         s += MapMath.formatDistance(meters, 2);
-        s += MapMath.formatTime(seconds, 2);
+        s += "\nTotal Time: " + MapMath.formatTime(seconds, 2);
         distanceAndTimeNav.setText(s);
     }
 
@@ -737,20 +738,28 @@ public class Controller {
     }
 
     @FXML
-    public void rightCLickAddUserPoint(ActionEvent actionEvent) {
+    public void rightClickAddUserPoint(ActionEvent actionEvent) {
         Point2D point = mapCanvas.getTransCoords(currentRightClick.getX(), currentRightClick.getY());
         addUserPoint(point);
     }
 
     @FXML
-    public void rightCLickPointNavFrom(ActionEvent actionEvent) {
+    public void rightClickPointNavFrom(ActionEvent actionEvent) {
         Point2D point =  mapCanvas.getTransCoords(currentRightClick.getX(), currentRightClick.getY());
+        if (!navigationLeftPane.isVisible()) {
+            navigationLeftPane.setVisible(true);
+            address_myPlacesPane.setVisible(false);
+        }
         updateNodesNavigation(true, point.getX(), point.getY(), null, null); // TODO: 5/6/21 null kan ændres for at skrive anden tekst i felterne
     }
 
     @FXML
     public void rightClickPointNavTo(ActionEvent actionEvent) {
         Point2D point =  mapCanvas.getTransCoords(currentRightClick.getX(), currentRightClick.getY());
+        if (!navigationLeftPane.isVisible()) {
+            navigationLeftPane.setVisible(true);
+            address_myPlacesPane.setVisible(false);
+        }
         updateNodesNavigation(false, point.getX(), point.getY(), null, null);
     }
 
