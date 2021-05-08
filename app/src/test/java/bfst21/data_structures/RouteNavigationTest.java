@@ -309,6 +309,35 @@ class RouteNavigationTest {
 
     @Test
     void roundaboutExitTest() {
+        // exit nodes
+        Node exitNode1 = createNode(13f, 55.4);
+        Node exitNode2 = createNode(15f, 55.5);
+        Node exitNode3 = createNode(15f, 55.5);
+
+        // exit ways
+        ArrayList<Node> exit1WayNodes = new ArrayList<>();
+        exit1WayNodes.add(exitNode1);
+        exit1WayNodes.add(createNode(15f, 55.5));
+        Way exit1Way = createWay(exit1WayNodes, 30, "Exit 1", "unclassified");
+
+        // TODO: 5/8/21 exit way 2 + 3, ændrer koordinater, add start og slut koordinat. Tænk også oneway i en anden test 
+
+        // ways in roundabout
+        ArrayList<Node> wayFrom1To2Nodes = new ArrayList<>();
+        wayFrom1To2Nodes.add(exitNode1);
+        wayFrom1To2Nodes.add(exitNode2);
+        Way way1To2 = createWay(wayFrom1To2Nodes, 30, "Way 1 to 2", "roundabout");
+
+        ArrayList<Node> wayFrom2To3Nodes = new ArrayList<>();
+        wayFrom2To3Nodes.add(exitNode2);
+        wayFrom2To3Nodes.add(exitNode3);
+        Way way2To3 = createWay(wayFrom2To3Nodes, 30, "Way 2 to 3", "roundabout");
+
+        ArrayList<Node> wayFrom3To1Nodes = new ArrayList<>();
+        wayFrom3To1Nodes.add(exitNode3);
+        wayFrom3To1Nodes.add(exitNode1);
+        Way way3To1 = createWay(wayFrom3To1Nodes, 30, "Way 3 to 1", "roundabout");
+
 
     }
 

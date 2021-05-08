@@ -2,7 +2,6 @@ package bfst21;
 
 import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Way;
-import bfst21.data_structures.AddressTrieNode;
 import bfst21.data_structures.RTree;
 import bfst21.data_structures.RouteNavigation;
 import bfst21.exceptions.NoOSMInZipFileException;
@@ -19,7 +18,6 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
@@ -28,15 +26,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
@@ -53,7 +47,7 @@ public class Controller {
     private AddressFilter fromAddressFilter;
     private AddressFilter toAddressFilter;
 
-    private static final String BINARY_FILE = "/small.bmapdata";
+    private static final String BINARY_FILE = "/small.bmapdata"; // TODO: 5/8/21 edit 
 
     private Point2D lastMouse = new Point2D(0, 0);
     private Point2D currentRightClick = new Point2D(0,0);
@@ -189,30 +183,25 @@ public class Controller {
             fromAddressFilter.search(newValue);
             textFieldFromNav.suggest(fromAddressFilter.getSuggestions());
             Address address = fromAddressFilter.getMatchedAddress();
-            updateNodesNavigation(true, address.getNode().getxMax(), address.getNode().getyMax(), address.getFullAddress(), address.getStreet()); // TODO: 5/7/21 fix
+            if (address != null) updateNodesNavigation(true, address.getNode().getxMax(), address.getNode().getyMax(), address.getFullAddress(), address.getStreet()); // TODO: 5/7/21 fix
         }));
 
         textFieldToNav.textProperty().addListener(((observable, oldValue, newValue) -> {
             toAddressFilter.search(newValue);
             textFieldToNav.suggest(toAddressFilter.getSuggestions());
             Address address = toAddressFilter.getMatchedAddress();
-            updateNodesNavigation(false, address.getNode().getxMax(), address.getNode().getyMax(), address.getFullAddress(), address.getStreet()); // TODO: 5/7/21 fix
+            if (address != null) updateNodesNavigation(false, address.getNode().getxMax(), address.getNode().getyMax(), address.getFullAddress(), address.getStreet()); // TODO: 5/7/21 fix
         }));
-
 
         directionsButton.setOnAction(e -> {
             address_myPlacesPane.setVisible(false);
             navigationLeftPane.setVisible(true);
         });
 
-
-
         backButton.setOnAction(e -> {
             navigationLeftPane.setVisible(false);
             address_myPlacesPane.setVisible(true);
         });
-
-
     }
 
     private void removeChildren(){
