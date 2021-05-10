@@ -4,13 +4,13 @@ import bfst21.Osm_Elements.Node;
 import bfst21.Osm_Elements.Relation;
 import bfst21.Osm_Elements.Way;
 import bfst21.exceptions.NoNavigationResultException;
-import bfst21.utils.MapMath;
 import bfst21.utils.VehicleType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class RouteNavigationTest {
 
@@ -35,7 +35,7 @@ class RouteNavigationTest {
     }
 
     private float convertCoordinate(double coordinate) {
-        return (float) - coordinate / 0.56f;
+        return (float) -coordinate / 0.56f;
     }
 
     private Node createNode(float x, double y) {
@@ -63,18 +63,18 @@ class RouteNavigationTest {
 
     @Test
     void rightTurnTest() throws NoNavigationResultException {
-        Node from = createNode(12.1879864f , 55.449707);
+        Node from = createNode(12.1879864f, 55.449707);
         Node to = createNode(12.1882954f, 55.4500809);
         Node turnNode = createNode(12.1877728f, 55.4498749);
 
         ArrayList<Node> nodesStartWay = new ArrayList<>();
-        nodesStartWay.add(createNode(12.1879864f , 55.449707));
+        nodesStartWay.add(createNode(12.1879864f, 55.449707));
         nodesStartWay.add(turnNode);
         Way startWay = createWay(nodesStartWay, 1, "Way 1", "unclassified");
 
         ArrayList<Node> nodesTurnRightOntoWay = new ArrayList<>();
         nodesTurnRightOntoWay.add(turnNode);
-        nodesTurnRightOntoWay.add(createNode(12.1882954f , 55.4500809));
+        nodesTurnRightOntoWay.add(createNode(12.1882954f, 55.4500809));
         Way turnRightOntoWay = createWay(nodesTurnRightOntoWay, 1, "Way 2", "unclassified");
 
         setTreeMaps();
@@ -94,16 +94,16 @@ class RouteNavigationTest {
     @Test
     void leftTurnTest() throws NoNavigationResultException {
         Node from = createNode(12.1882954f, 55.4500809);
-        Node to = createNode(12.1879864f , 55.449707);
+        Node to = createNode(12.1879864f, 55.449707);
         Node turnNode = createNode(12.1877728f, 55.4498749);
 
         ArrayList<Node> nodesStartWay = new ArrayList<>();
         nodesStartWay.add(turnNode);
-        nodesStartWay.add(createNode(12.1882954f , 55.4500809));
+        nodesStartWay.add(createNode(12.1882954f, 55.4500809));
         Way startWay = createWay(nodesStartWay, 1, "Way 1", "unclassified");
 
         ArrayList<Node> turnLeftOntoWayNodes = new ArrayList<>();
-        turnLeftOntoWayNodes.add(createNode(12.1879864f , 55.449707));
+        turnLeftOntoWayNodes.add(createNode(12.1879864f, 55.449707));
         turnLeftOntoWayNodes.add(turnNode);
         Way turnLeftOntoWay = createWay(turnLeftOntoWayNodes, 1, "Way 2", "unclassified");
 
@@ -129,10 +129,10 @@ class RouteNavigationTest {
         fromNodes.add(createNode(12.1882955f, 55.4500806));
         Way fromWay = createWay(fromNodes, 50, "Way 1", "unclassified");
 
-        Node to = createNode(12.1879864f , 55.449707);
+        Node to = createNode(12.1879864f, 55.449707);
         ArrayList<Node> toNodes = new ArrayList<>();
         toNodes.add(to);
-        toNodes.add(createNode(12.1879863f , 55.449705));
+        toNodes.add(createNode(12.1879863f, 55.449705));
         Way toWay = createWay(toNodes, 50, "Way 2", "unclassified");
 
         setTreeMaps();
@@ -169,16 +169,16 @@ class RouteNavigationTest {
     @Test
     void continueOnSameWayTest() throws NoNavigationResultException {
         Node from = createNode(12.1882954f, 55.4500809);
-        Node to = createNode(12.1879864f , 55.449707);
+        Node to = createNode(12.1879864f, 55.449707);
         Node turnNode = createNode(12.1877728f, 55.4498749);
 
         ArrayList<Node> nodesStartWay = new ArrayList<>();
         nodesStartWay.add(turnNode);
-        nodesStartWay.add(createNode(12.1882954f , 55.4500809));
+        nodesStartWay.add(createNode(12.1882954f, 55.4500809));
         Way startWay = createWay(nodesStartWay, 1, "WayName", "unclassified");
 
         ArrayList<Node> turnLeftOntoWayNodes = new ArrayList<>();
-        turnLeftOntoWayNodes.add(createNode(12.1879864f , 55.449707));
+        turnLeftOntoWayNodes.add(createNode(12.1879864f, 55.449707));
         turnLeftOntoWayNodes.add(turnNode);
         Way turnLeftOntoWay = createWay(turnLeftOntoWayNodes, 1, "WayName", "unclassified");
 
@@ -190,7 +190,7 @@ class RouteNavigationTest {
     }
 
     @Test
-    void ferrySpecialPathFeaturesTest() throws NoNavigationResultException { // TODO: 5/9/21 add extra way to hit the while loop with ferry 
+    void ferrySpecialPathFeaturesTest() throws NoNavigationResultException { // TODO: 5/9/21 add extra way to hit the while loop with ferry
         ArrayList<Node> nodes = new ArrayList<>();
         nodes.add(createNode(12.1934f, 55.4453));
         nodes.add(createNode(12.2024f, 55.4378));
@@ -354,14 +354,14 @@ class RouteNavigationTest {
 
     @Test
     void keepRightTest() throws NoNavigationResultException {
-        Node linkNode = createNode(12.1879863f , 55.449706);
+        Node linkNode = createNode(12.1879863f, 55.449706);
 
         ArrayList<Node> wayBeforeExitNodes = new ArrayList<>();
-        wayBeforeExitNodes.add(createNode(12.1879864f , 55.449707));
+        wayBeforeExitNodes.add(createNode(12.1879864f, 55.449707));
         wayBeforeExitNodes.add(linkNode);
         Way wayBeforeExit = createWay(wayBeforeExitNodes, 130, "Motorway", "motorway");
 
-        Node linkNodeAfterExit = createNode(12.1879862f , 55.449705);
+        Node linkNodeAfterExit = createNode(12.1879862f, 55.449705);
         ArrayList<Node> exitWayNodes = new ArrayList<>();
         exitWayNodes.add(linkNode);
         exitWayNodes.add(linkNodeAfterExit);
@@ -369,11 +369,11 @@ class RouteNavigationTest {
 
         ArrayList<Node> wayAfterExitNodes = new ArrayList<>();
         wayAfterExitNodes.add(linkNodeAfterExit);
-        wayAfterExitNodes.add(createNode(12.1879859f , 55.449707));
+        wayAfterExitNodes.add(createNode(12.1879859f, 55.449707));
         Way wayAfterExit = createWay(wayAfterExitNodes, 130, "Way after exit", "motorway_link");
 
         setTreeMaps();
-        routeNavigation.setupRoute(createNode(12.1879865f , 55.449707), createNode(12.187984f , 55.449707), wayBeforeExit, wayAfterExit, new int[]{0, 1}, new int[]{1, 2}, VehicleType.CAR, true, true);
+        routeNavigation.setupRoute(createNode(12.1879865f, 55.449707), createNode(12.187984f, 55.449707), wayBeforeExit, wayAfterExit, new int[]{0, 1}, new int[]{1, 2}, VehicleType.CAR, true, true);
         routeNavigation.testGetCurrentRoute();
 
         String keepRightDirection = routeNavigation.getDirections().get(1);

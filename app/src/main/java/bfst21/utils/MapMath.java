@@ -194,7 +194,7 @@ public final class MapMath {
      * @param nodeHolder The line.
      * @return The shortest distance.
      */
-    public static double shortestDistanceToElement(float queryX, float queryY, NodeHolder nodeHolder) {
+    public static double shortestDistanceToElement(float queryX, float queryY, NodeHolder nodeHolder) { // // TODO: 5/10/21 fix hvis nul (ligger på linjen eller i forlængelse med) 
         double minDistance = Double.POSITIVE_INFINITY;
         List<Node> nodes = nodeHolder.getNodes();
 
@@ -205,6 +205,11 @@ public final class MapMath {
             double numerator = Math.abs(((lastNode.getX() - firstNode.getX() ) * (firstNode.getY() - queryY)) - ((firstNode.getX() - queryX) * (lastNode.getY() - firstNode.getY())));
             double denominator = Math.sqrt(Math.pow(lastNode.getX() - firstNode.getX(), 2) + Math.pow(lastNode.getY() - firstNode.getY(), 2));
             double distance = numerator / denominator;
+            /*if (distance == 0 && ) {
+                
+            } else {
+                
+            }*/
             if (distance < minDistance) minDistance = distance;
         }
         return minDistance;
