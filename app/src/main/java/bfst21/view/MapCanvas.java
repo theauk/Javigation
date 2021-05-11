@@ -91,8 +91,8 @@ public class MapCanvas extends Canvas {
             drawRectangleNode(gc, point);
         }
 
-        for (Node point : mapData.getUserSearchResults()) {
-            drawRectangleNode(gc, point);
+        if(mapData.getUserSearchResult() != null){
+            drawRectangleNode(gc, mapData.getUserSearchResult());
         }
         gc.restore();
     }
