@@ -61,6 +61,8 @@ public class Controller {
 
     private State state = State.MENU;
 
+    private boolean useKDTreeNearestRoad;
+
     private Node currentFromNode;
     private Node currentToNode;
     private Way currentFromWay;
@@ -98,6 +100,7 @@ public class Controller {
     @FXML private MenuItem dumpItem;
     @FXML private RadioMenuItem rTreeDebug;
     @FXML private RadioMenuItem kdTreeNearestNode;
+    @FXML public RadioMenuItem rTreeNearestNode;
 
     @FXML private Button zoomInButton;
     @FXML private Button zoomOutButton;
@@ -153,10 +156,32 @@ public class Controller {
         mapCanvas.widthProperty().addListener((observable, oldValue, newValue) -> setBoundsLabels());
         mapCanvas.heightProperty().addListener((observable, oldValue, newValue) -> setBoundsLabels());
 
+        determineNearestRoadMethod();
+
         textFieldToNav.clear();
         textFieldFromNav.clear();
         addressSearchTextField.clear();
         myPlacesListView.getItems().removeAll(myPlacesListView.getItems());
+    }
+
+    /**
+     * Determines if the nearest road should be determined through the KD-tree or the R-tree. For maps with an area bigger
+     * than 2.5 the KD-tree is used and the user cannot change the method to the R-tree. For maps smaller than 2.5 R-tree
+     * is set as default but the user can also change to the KD-tree.
+     */
+    private void determineNearestRoadMethod() {
+        double mapWidth = Math.abs(mapData.getMaxX() - mapData.getMinX());
+        double mapHeight = Math.abs(mapData.getMaxY() - mapData.getMinY());
+        double mapArea = mapWidth * mapHeight;
+        if (mapArea < 2.5) {
+            useKDTreeNearestRoad = false;
+            rTreeNearestNode.setDisable(false);
+            rTreeNearestNode.setSelected(true);
+        } else {
+            useKDTreeNearestRoad = true;
+            rTreeNearestNode.setDisable(true);
+            kdTreeNearestNode.setSelected(true);
+        }
     }
 
     private void loadThemes() {
@@ -545,7 +570,7 @@ public class Controller {
     }
 
     private void setNearestRoadLabel(double x, double y) {
-        nearestRoadLabel.setText("Nearest Road: " + mapData.getNearestRoad((float) x, (float) y, kdTreeNearestNode.isSelected()));
+        nearestRoadLabel.setText("Nearest Road: " + mapData.getNearestRoad((float) x, (float) y, useKDTreeNearestRoad));
     }
 
     private void setBoundsLabels() {
@@ -740,15 +765,15 @@ public class Controller {
     @FXML
     public void addUserPoint(ActionEvent actionEvent) {
 
-            EventHandler<MouseEvent> event = new EventHandler<>() {
-                @Override
-                public void handle(MouseEvent e) {
-                    Point2D cursorPoint = mapCanvas.getTransCoords(e.getX(), e.getY());
-                    addUserPoint(cursorPoint);
-                    mapCanvas.removeEventHandler(MouseEvent.MOUSE_CLICKED, this);
-                }
-            };
-             mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
+        EventHandler<MouseEvent> event = new EventHandler<>() {
+            @Override
+            public void handle(MouseEvent e) {
+                Point2D cursorPoint = mapCanvas.getTransCoords(e.getX(), e.getY());
+                addUserPoint(cursorPoint);
+                mapCanvas.removeEventHandler(MouseEvent.MOUSE_CLICKED, this);
+            }
+        };
+        mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
     }
 
 
