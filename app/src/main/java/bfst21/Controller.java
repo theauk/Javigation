@@ -470,6 +470,8 @@ public class Controller {
 
     private void disableMenus() {
         if (state == State.MENU) {
+            address_myPlacesPane.setVisible(false);
+            navigationLeftPane.setVisible(false);
             openItem.setDisable(false);
             zoomInItem.setDisable(true);
             zoomOutItem.setDisable(true);
@@ -477,6 +479,8 @@ public class Controller {
             cancelItem.setDisable(true);
             dumpItem.setDisable(true);
         } else if (state == State.LOADING) {
+            address_myPlacesPane.setVisible(false);
+            navigationLeftPane.setVisible(false);
             openItem.setDisable(true);
             zoomInItem.setDisable(true);
             zoomOutItem.setDisable(true);
@@ -484,6 +488,7 @@ public class Controller {
             cancelItem.setDisable(false);
             dumpItem.setDisable(true);
         } else if (state == State.MAP) {
+            address_myPlacesPane.setVisible(true);
             openItem.setDisable(false);
             zoomInItem.setDisable(false);
             zoomOutItem.setDisable(false);

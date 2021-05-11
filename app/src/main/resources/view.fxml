@@ -162,7 +162,7 @@
         <left>
             <AnchorPane prefHeight="630.0" prefWidth="254.0" BorderPane.alignment="CENTER">
                 <children>
-                    <AnchorPane fx:id="address_myPlacesPane" prefHeight="630.0" prefWidth="254.0" managed="${address_myPlacesPane.visible}" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <AnchorPane fx:id="address_myPlacesPane" prefHeight="630.0" prefWidth="254.0" visible="false" managed="${address_myPlacesPane.visible}" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                         <children>
                             <GridPane layoutX="16.0" layoutY="42.0" prefHeight="95.0" prefWidth="225.0">
                                 <columnConstraints>
