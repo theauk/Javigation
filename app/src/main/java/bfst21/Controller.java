@@ -209,29 +209,6 @@ public class Controller {
         });
     }
 
-    private void switchDirections() {
-        textFieldFromNav.setSuggest(false);
-        textFieldToNav.setSuggest(false);
-        
-        String currentFromTextCopy = textFieldFromNav.getText();
-        Way currentFromWayCopy = currentFromWay;
-        int[] currentNearestFromWaySegmentIndicesCopy = nearestFromWaySegmentIndices;
-        Node currentFromNodeCopy = currentFromNode;
-
-        textFieldFromNav.setText(textFieldToNav.getText());
-        currentFromWay = currentToWay;
-        nearestFromWaySegmentIndices = nearestToWaySegmentIndices;
-        currentFromNode = currentToNode;
-
-        textFieldToNav.setText(currentFromTextCopy);
-        currentToWay = currentFromWayCopy;
-        nearestToWaySegmentIndices = currentNearestFromWaySegmentIndicesCopy;
-        currentToNode = currentFromNodeCopy;
-
-        textFieldFromNav.setSuggest(true);
-        textFieldToNav.setSuggest(true);
-    }
-
     private void removeChildren(){
         // TODO: 28-04-2021 Remove search when under 2 charachters
     }
@@ -628,6 +605,29 @@ public class Controller {
             nearestToWaySegmentIndices = nearestWaySegmentIndices;
             textFieldToNav.setSuggest(true);
         }
+    }
+
+    private void switchDirections() {
+        textFieldFromNav.setSuggest(false);
+        textFieldToNav.setSuggest(false);
+
+        String currentFromTextCopy = textFieldFromNav.getText();
+        Way currentFromWayCopy = currentFromWay;
+        int[] currentNearestFromWaySegmentIndicesCopy = nearestFromWaySegmentIndices;
+        Node currentFromNodeCopy = currentFromNode;
+
+        textFieldFromNav.setText(textFieldToNav.getText());
+        currentFromWay = currentToWay;
+        nearestFromWaySegmentIndices = nearestToWaySegmentIndices;
+        currentFromNode = currentToNode;
+
+        textFieldToNav.setText(currentFromTextCopy);
+        currentToWay = currentFromWayCopy;
+        nearestToWaySegmentIndices = currentNearestFromWaySegmentIndicesCopy;
+        currentToNode = currentFromNodeCopy;
+
+        textFieldFromNav.setSuggest(true);
+        textFieldToNav.setSuggest(true);
     }
 
     @FXML
