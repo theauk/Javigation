@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Optional;
 
 public class Controller {
     private MapData mapData;
@@ -740,20 +741,22 @@ public class Controller {
              mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
     }
 
+
+    public String getUserPointName() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Name Your Point");
+        dialog.setHeaderText("Please enter a name for your point");
+        dialog.setContentText("Point name:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isEmpty() || result.get().equals("")) return "Point " + (myPlacesListView.getItems().size() + 1);
+        else return result.get();
+    }
+
     private void addUserPoint(Point2D point){
         Node node = new Node(0, (float) point.getX(), (float) point.getY());
-        //String nodeName = textFieldPointName.getText();
-        // TODO: 06-05-2021 does the user want to name points?
-
         mapData.addToUserPointList(node);
-        //if(nodeName.equals("")){
-            myPlacesListView.getItems().add("Point " + (myPlacesListView.getItems().size()+1));
-        //} else {
-                //myPlacesListView.getItems().add(nodeName);
-                //}
+        myPlacesListView.getItems().add(getUserPointName());
         mapCanvas.repaint();
-        //textFieldPointName.setText("");
-
     }
 
     @FXML
