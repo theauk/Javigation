@@ -208,18 +208,6 @@ public class Controller {
             textFieldToNav.clear();
             textFieldFromNav.clear();
         });
-
-        switchButton.setOnAction(e -> {
-            String from = textFieldFromNav.getText();
-            String to = textFieldToNav.getText();
-
-            textFieldFromNav.setSuggest(false);
-            textFieldToNav.setSuggest(false);
-            textFieldFromNav.setText(to);
-            textFieldToNav.setText(from);
-            textFieldFromNav.setSuggest(true);
-            textFieldToNav.setSuggest(true);
-        });
     }
 
     private void removeChildren(){
