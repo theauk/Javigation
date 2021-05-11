@@ -186,7 +186,6 @@ public class Controller {
             if (address != null) updateNodesNavigation(true, address.getNode().getxMax(), address.getNode().getyMax(), address.getFullAddress(), address.getStreet()); // TODO: 5/7/21 fix
         }));
 
-        //// TODO: 09-05-2021 Hvor skal søge resultatrerne tilføjes? og hvor skal de fjernes? i forhold til at tegnes
 
         textFieldToNav.textProperty().addListener(((observable, oldValue, newValue) -> {
             toAddressFilter.search(newValue);
@@ -198,9 +197,14 @@ public class Controller {
         addressSearchTextField.textProperty().addListener(((observable, oldValue, newValue) -> {
             toAddressFilter.search(newValue);
             addressSearchTextField.suggest(toAddressFilter.getSuggestions());
+            if(toAddressFilter.getMatchedAddress() != null){
+                mapData.addUserSearchResult(toAddressFilter.getMatchedAddress().getNode());
+                mapCanvas.repaint();
+            }
         }));
 
         directionsButton.setOnAction(e -> {
+            mapData.resetCurrentSearchResult();
             textFieldToNav.setSuggest(false);
             textFieldToNav.setText(addressSearchTextField.getText());
             address_myPlacesPane.setVisible(false);
@@ -218,6 +222,7 @@ public class Controller {
             textFieldToNav.clear();
             textFieldFromNav.clear();
             mapData.resetCurrentRoute();
+            mapData.resetCurrentSearchResult();
         });
     }
 

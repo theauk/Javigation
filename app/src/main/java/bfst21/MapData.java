@@ -31,7 +31,7 @@ public class MapData implements Serializable {
     private ElementToElementsTreeMap<Node, Way> nodeToHighWay;
     private ElementToElementsTreeMap<Way, Relation> wayToRestriction;
     private transient List<Element> currentRoute;
-    private transient List<Node> searchResults;
+    private transient Node searchResult;
 
     private transient List<Node> userAddedPoints;
     private Relation coastlines;
@@ -60,7 +60,6 @@ public class MapData implements Serializable {
         this.wayToRestriction = wayToRestriction;
         currentRoute = new ArrayList<>();
         userAddedPoints = new ArrayList<>();
-        searchResults = new ArrayList<>();
         buildKDTrees();
     }
 
@@ -243,8 +242,8 @@ public class MapData implements Serializable {
     /**
      * Resets search results shown on map.
      */
-    public void resetCurrentSearchResults(){
-        searchResults = new ArrayList<>();
+    public void resetCurrentSearchResult(){
+        searchResult = null;
     }
 
     /**
@@ -252,7 +251,7 @@ public class MapData implements Serializable {
      */
     public void resetAllUserInput(){
         resetCurrentRoute();
-        resetCurrentSearchResults();
+        resetCurrentSearchResult();
         userAddedPoints = new ArrayList<>();
     }
 
@@ -261,15 +260,15 @@ public class MapData implements Serializable {
      * @param node node to add
      */
     public void addUserSearchResult(Node node){
-        searchResults.add(node);
+        searchResult = node;
     }
 
     /**
      * Search results from user input
      * @return List of nodes to be drawn
      */
-    public List<Node> getUserSearchResults(){
-        return searchResults;
+    public Node getUserSearchResult(){
+        return searchResult;
     }
 
     /**
