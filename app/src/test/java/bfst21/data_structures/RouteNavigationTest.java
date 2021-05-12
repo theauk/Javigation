@@ -318,51 +318,52 @@ class RouteNavigationTest {
     }
 
     @Test
-    void roundaboutExitTest() throws NoNavigationResultException { // TODO: 5/9/21 fix by looking at real coordinates 
+    void roundaboutExitTest() throws NoNavigationResultException {
         // exit nodes
-        Node exitNode1 = createNode(14f, 55.4);
-        Node exitNode2 = createNode(15f, 55.5);
-        Node exitNode3 = createNode(16f, 55.5);
+        Node exitNode1 = createNode(12.21058f, 55.51891);
+        Node exitNode2 = createNode(12.21081f, 55.51913);
+        Node exitNode3 = createNode(12.21051f, 55.51910);
 
         // exit ways
         ArrayList<Node> exit1WayNodes = new ArrayList<>();
-        exit1WayNodes.add(createNode(14f, 55.5));
+        exit1WayNodes.add(createNode(12.21045f, 55.51882));
         exit1WayNodes.add(exitNode1);
         Way exit1Way = createWay(exit1WayNodes, 30, "Exit 1", "unclassified");
 
         ArrayList<Node> exit2WayNodes = new ArrayList<>();
-        exit2WayNodes.add(createNode(15f, 55.5));
+        exit2WayNodes.add(createNode(12.21102f, 55.51931));
         exit2WayNodes.add(exitNode2);
         Way exit2Way = createWay(exit2WayNodes, 30, "Exit 2", "unclassified");
 
         ArrayList<Node> exit3WayNodes = new ArrayList<>();
-        exit3WayNodes.add(createNode(16f, 55.5));
+        exit3WayNodes.add(createNode(12.20993f, 55.51923));
         exit3WayNodes.add(exitNode3);
         Way exit3Way = createWay(exit3WayNodes, 30, "Exit 3", "unclassified");
 
-        // ways in roundabout
-        ArrayList<Node> wayFrom1To2Nodes = new ArrayList<>();
-        wayFrom1To2Nodes.add(exitNode1);
-        wayFrom1To2Nodes.add(exitNode2);
-        Way way1To2 = createWay(wayFrom1To2Nodes, 30, "Way 1 to 2", "roundabout");
-
-        ArrayList<Node> wayFrom2To3Nodes = new ArrayList<>();
-        wayFrom2To3Nodes.add(exitNode2);
-        wayFrom2To3Nodes.add(exitNode3);
-        Way way2To3 = createWay(wayFrom2To3Nodes, 30, "Way 2 to 3", "roundabout");
-
-        ArrayList<Node> wayFrom3To1Nodes = new ArrayList<>();
-        wayFrom3To1Nodes.add(exitNode3);
-        wayFrom3To1Nodes.add(exitNode1);
-        Way way3To1 = createWay(wayFrom3To1Nodes, 30, "Way 3 to 1", "roundabout");
+        // roundabout way
+        ArrayList<Node> roundaboutWayNodes = new ArrayList<>();
+        roundaboutWayNodes.add(exitNode1);
+        roundaboutWayNodes.add(exitNode2);
+        roundaboutWayNodes.add(exitNode3);
+        Way roundaboutWay = createWay(roundaboutWayNodes, 30, "Roundabout Way", "roundabout");
+        roundaboutWay.setOnewayRoad();
 
         setTreeMaps();
-        routeNavigation.setupRoute(createNode(14f, 55.5), createNode(15f, 55.5), exit1Way, exit2Way, new int[]{0, 1}, new int[]{1, 2}, VehicleType.CAR, true, true);
+        routeNavigation.setupRoute(createNode(12.21045f, 55.51882), createNode(12.20993f, 55.51923), exit1Way, exit3Way, new int[]{0, 1}, new int[]{0, 1}, VehicleType.CAR, true, true);
         routeNavigation.testGetCurrentRoute();
 
-        for (String s : routeNavigation.getDirections()) {
-            System.out.println(s);
-        }
+        ArrayList<String> directions = routeNavigation.getDirections();
+        assertTrue(directions.get(1).contains("At the roundabout, take the 2. exit onto Exit 3"));
+        assertTrue(directions.get(2).contains("Follow Exit 3 and you will arrive at your destination"));
+
+        // Test that one-way exits should not be counted
+        exit2Way.setOnewayRoad();
+        setTreeMaps();
+        routeNavigation.setupRoute(createNode(12.21045f, 55.51882), createNode(12.20993f, 55.51923), exit1Way, exit3Way, new int[]{0, 1}, new int[]{0, 1}, VehicleType.CAR, true, true);
+        routeNavigation.testGetCurrentRoute();
+        directions = routeNavigation.getDirections();
+        assertTrue(directions.get(1).contains("At the roundabout, take the 1. exit onto Exit 3"));
+        assertTrue(directions.get(2).contains("Follow Exit 3 and you will arrive at your destination"));
     }
 
     @Test
