@@ -656,8 +656,7 @@ public class RouteNavigation extends Service<List<Element>> {
         } else if (angle < 0) {
             return "Turn left onto " + wayBeforeToName;
         } else if (angle == 0) {
-            System.out.println("Angle is 0...."); // TODO: 5/4/21 delete
-            return "";
+            return "Continue on " + wayBeforeToName;
         } else {
             throw new RuntimeException("getDirection Error"); // TODO: 4/29/21 ???
         }
