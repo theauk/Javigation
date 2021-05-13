@@ -209,7 +209,7 @@ public class Controller {
             fromAddressFilter.search(newValue);
             textFieldFromNav.suggest(fromAddressFilter.getSuggestions());
             Address address = fromAddressFilter.getMatchedAddress();
-            if (address != null) updateNodesNavigation(true, address.getNode().getxMax(), address.getNode().getyMax(), address.getFullAddress(), address.getStreet()); // TODO: 5/7/21 fix
+            if (address != null) updateNodesNavigation(true, address.getNode().getxMax(), address.getNode().getyMax(), address.toString(), address.getStreet()); // TODO: 5/7/21 fix
         }));
 
 
@@ -217,7 +217,7 @@ public class Controller {
             toAddressFilter.search(newValue);
             textFieldToNav.suggest(toAddressFilter.getSuggestions());
             Address address = toAddressFilter.getMatchedAddress();
-            if (address != null) updateNodesNavigation(false, address.getNode().getxMax(), address.getNode().getyMax(), address.getFullAddress(), address.getStreet()); // TODO: 5/7/21 fix
+            if (address != null) updateNodesNavigation(false, address.getNode().getxMax(), address.getNode().getyMax(), address.toString(), address.getStreet()); // TODO: 5/7/21 fix
         }));
 
         addressSearchTextField.textProperty().addListener(((observable, oldValue, newValue) -> {
