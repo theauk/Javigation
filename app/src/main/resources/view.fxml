@@ -165,7 +165,7 @@
         </center>
 
         <left>
-            <VBox prefWidth="254.0" BorderPane.alignment="CENTER">
+            <VBox BorderPane.alignment="CENTER">
                 <children>
                     <VBox fx:id="address_myPlacesPane" spacing="13.0" visible="true"
                           managed="${address_myPlacesPane.visible}">
@@ -214,7 +214,7 @@
                                     <Insets/>
                                 </VBox.margin>
                             </HBox>
-                            <ListView fx:id="myPlacesListView">
+                            <ListView fx:id="myPlacesListView" maxHeight="Infinity">
                                 <VBox.margin>
                                     <Insets bottom="7.0" top="5.0"/>
                                 </VBox.margin>
@@ -274,10 +274,10 @@
                             <HBox spacing="7">
                                 <children>
                                     <AutoFillTextField fx:id="textFieldToNav" promptText="To" maxEntries="10"
-                                                       prefHeight="25" maxHeight="30">
+                                                       prefHeight="33">
                                     </AutoFillTextField>
                                     <Button fx:id="switchButton" mnemonicParsing="false"
-                                            GridPane.columnIndex="1" prefHeight="${textFieldToNav.height}"
+                                            prefHeight="32"
                                             prefWidth="59.0">
                                     </Button>
                                 </children>
@@ -286,16 +286,11 @@
                                 <children>
                                     <AutoFillTextField fx:id="textFieldFromNav"
                                                        promptText="From"
-                                                       GridPane.rowIndex="1"
-                                                       maxEntries="10"
-                                                       prefHeight="25"
-                                                       maxHeight="30">
+                                                       maxEntries="10" prefHeight="33">
                                     </AutoFillTextField>
                                     <Button mnemonicParsing="false" fx:id="searchNav" onAction="#searchNav"
-                                            GridPane.columnIndex="1" GridPane.rowIndex="1"
                                             prefWidth="59.0"
-                                            prefHeight="${textFieldFromNav.height}"
-                                            >
+                                            prefHeight="32.0">
                                     </Button>
                                 </children>
                             </HBox>
@@ -346,14 +341,14 @@
                                 </children>
                             </HBox>
 
-                            <ListView fx:id="directionsList">
+                            <ListView fx:id="directionsList" maxHeight="Infinity">
                                 <VBox.margin>
-                                    <Insets bottom="20.0" left="5.0" right="5.0"/>
+                                    <Insets left="5.0" right="5.0"/>
                                 </VBox.margin>
                             </ListView>
                         </children>
                         <padding>
-                            <Insets left="15.0" right="15.0" top="20.0"/>
+                            <Insets bottom="14.0" left="15.0" right="15.0" top="20.0"/>
                         </padding>
                     </VBox>
                 </children>
