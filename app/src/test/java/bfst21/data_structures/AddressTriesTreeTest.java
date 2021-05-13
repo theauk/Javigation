@@ -8,17 +8,14 @@ import org.junit.jupiter.api.Test;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-// TODO: 19-04-2021 out-commented the parts where the test will fail or give errors.
-//Test for indsættelse af duplikerede adresser.
-//Test for indsættelse af empty string.
-
-class AddressTriesTreeTest {
+public class AddressTriesTreeTest {
     private static AddressTriesTree addressTrie;
     private static List<Node> nodes;
     private static List<String> streets;
@@ -33,7 +30,7 @@ class AddressTriesTreeTest {
         postCodes = new ArrayList<>();
         cities = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(AddressTrieNodeTest.class.getResourceAsStream("/tests/addresses.txt")))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(AddressTrieNodeTest.class.getResourceAsStream("/tests/addresses.txt"), StandardCharsets.UTF_8))) {
             String line;
             int id = 0;
             while ((line = reader.readLine()) != null) {
@@ -50,7 +47,7 @@ class AddressTriesTreeTest {
                 if (!cities.contains(city)) cities.add(city);
                 nodes.add(node);
 
-                addressTrie.put(node, city, street, postCode, number);
+                addressTrie.put(node, street, number, postCode, city);
 
                 id++;
             }
@@ -74,8 +71,8 @@ class AddressTriesTreeTest {
         AddressTrieNode n1 = nodes.get(0);
         AddressTrieNode n2 = nodes.get(1);
 
-        assertEquals("1. februarvej 999, 6070 christiansfeld", n1.getAddressFor("999").get(0));
-        assertEquals("10. februarvej 999, 6070 christiansfeld", n2.getAddressFor("999").get(0));
+        assertEquals("1. februarvej 999, 6070 christiansfeld", n1.getAddressesFor("999").get(0));
+        assertEquals("10. februarvej 999, 6070 christiansfeld", n2.getAddressesFor("999").get(0));
     }
 
     private List<AddressTrieNode> getSearchResultFor(String prefix) {
@@ -135,7 +132,8 @@ class AddressTriesTreeTest {
 
     @Test
     public void checkAllPostCodes() {
-        List<Integer> triePostCodes = new ArrayList<>(addressTrie.getPostCodes());
+        List<Integer> triePostCodes = new ArrayList<>(AddressTriesTree.POSTCODE_TO_CITIES.keySet());
+        Collections.sort(triePostCodes);
 
         for (int i = 0; i < postCodes.size(); i++) {
             assertEquals(postCodes.get(i), triePostCodes.get(i));
@@ -144,7 +142,8 @@ class AddressTriesTreeTest {
 
     @Test
     public void checkAllCities() {
-        List<String> trieCities = addressTrie.getCities();
+        List<String> trieCities = new ArrayList<>(AddressTriesTree.POSTCODE_TO_CITIES.values());
+        Collections.sort(trieCities);
 
         for (int i = 0; i < cities.size(); i++) {
             assertEquals(cities.get(i), trieCities.get(i));
@@ -163,6 +162,7 @@ class AddressTriesTreeTest {
     @AfterAll
     public static void tearDown() {
         addressTrie = null;
+        AddressTriesTree.POSTCODE_TO_CITIES.clear();
     }
 }
 

@@ -1,8 +1,8 @@
 10. Februarvej, 999, 6070, Christiansfeld
 9. Februarvej, 999, 6070, Christiansfeld
 8. Februarvej, 999, 6070, Christiansfeld
-7. Februarvej, 999, 6070, Christiansfeld
-6. Februarvej, 999, 6070, Christiansfeld
+Februar 7 Vej, 999, 6070, Christiansfeld
+Februarvej 6, 999, 6070, Christiansfeld
 5. Februarvej, 999, 6070, Christiansfeld
 4. Februarvej, 999, 6070, Christiansfeld
 3. Februarvej, 999, 6070, Christiansfeld
@@ -14,12 +14,12 @@ Cirose Allé, 3, 2500, Valby
 Dwight-Robinsonvej, 55H, 2640, Hedehusene
 Elizabeth-Hansen Allé, 9, 2650, Hvidovre
 Feltvej, 777a, 2660, Brøndby Strand
-Gustavs gade, 66,  7100, Vejle
+Härnösandvej, 66,  7100, Vejle
 Heinos' gade, 233, 7130, Juelsminde
 Idavej, 1, 7323, Give
 Jens' vej, 8, 7430, Ikast
 Kælkestræde, 2, 8305, Samsø
-Lars Løkke vej, 7, 8370, Hadsten
+Klüwersgade, 7, 8370, Hadsten
 Møns Allé, 135, 9990, Skagen
 Nicklas Steiner vej, 198, 9940, Læsø
 Oluf Ridsens gade, 768, 9600, Aars
