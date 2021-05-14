@@ -222,7 +222,7 @@ public class Controller {
             toAddressFilter.search(newValue);
             textFieldToNav.suggest(toAddressFilter.getSuggestions());
             Address address = toAddressFilter.getMatchedAddress();
-            if (address != null) updateNodesWithoutVehicleType(false, address.getNode().getxMax(), address.getNode().getyMax(), address.toString(), address.getStreet()); // TODO: 5/7/21 fix
+            if (address != null) updateNodesWithoutVehicleType(false, address.getNode().getxMax(), address.getNode().getyMax(), address.toString(), address.getStreet());
         }));
 
         addressSearchTextField.textProperty().addListener(((observable, oldValue, newValue) -> {
@@ -875,7 +875,7 @@ public class Controller {
             navigationLeftPane.setVisible(true);
             address_myPlacesPane.setVisible(false);
         }
-        updateNodesWithoutVehicleType(true, point.getX(), point.getY(), null, null); // TODO: 5/6/21 null kan ændres for at skrive anden tekst i felterne
+        updateNodesWithoutVehicleType(true, point.getX(), point.getY(), null, null);
     }
 
     /**
