@@ -131,7 +131,8 @@ public class RouteNavigation extends Service<List<Element>> {
 
         if (n != to) {
             setup();
-            needToCheckUTurns = true; // TODO: 4/19/21 really not the most beautiful thing... for u-turns
+            // Run the algorithm again and check for u-turns
+            needToCheckUTurns = true;
             n = checkNode();
             if (n != to) throw new NoNavigationResultException();
         }
@@ -216,7 +217,7 @@ public class RouteNavigation extends Service<List<Element>> {
     }
 
     /**
-     * Gets a list of special features on a path such as if it is necessary to take a ferry, if the route has tolls, etc. // TODO: 4/29/21 toll??
+     * Gets a list of special features on a path such as if it is necessary to take a ferry.
      * @return A list of special path features.
      */
     public HashSet<String> getSpecialPathFeatures() {
@@ -471,7 +472,7 @@ public class RouteNavigation extends Service<List<Element>> {
         nodeBefore.put(currentTo, currentFrom);
         wayBefore.put(currentTo, w);
         if (unitsTo.containsKey(currentTo))
-            pq.remove(currentTo); //TODO: 4/23/21 før var check + tilføj til pq O(1) fordi det var HM. NU: check er O(1) mens remove og add er log
+            pq.remove(currentTo);
         unitsTo.put(currentTo, new DistanceAndTimeEntry(unitsTo.get(currentFrom).distance + distanceBetweenFromTo, unitsTo.get(currentFrom).time + timeBetweenFromTo, newCost));
         pq.add(currentTo);
     }
@@ -589,7 +590,7 @@ public class RouteNavigation extends Service<List<Element>> {
      * @return The ferry direction string.
      */
     private String getFerryText(String wayBeforeViaName) {
-        return "Take the " + wayBeforeViaName + " ferry " + getCurrentDistanceAndTimeText(); // TODO: 4/29/21 time in this case?
+        return "Take the " + wayBeforeViaName + " ferry " + getCurrentDistanceAndTimeText();
     }
 
     /**

@@ -234,7 +234,7 @@ public final class MapMath {
         // Find the nearest point on the way using Cramer's rule (find the intersection of the two lines)
         double[] coordinatesPointOnNearestWay = findIntersectionCramersRule(perpendicularStandardEquation, nearestWayStandardEquation);
 
-        return new Node(0, (float) coordinatesPointOnNearestWay[1], (float) coordinatesPointOnNearestWay[0]); // TODO: 4/30/21 better to cast and have more precise cals or change to floats all the way through?
+        return new Node(0, (float) coordinatesPointOnNearestWay[1], (float) coordinatesPointOnNearestWay[0]);
     }
 
     /**
