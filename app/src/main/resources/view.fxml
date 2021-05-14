@@ -241,60 +241,70 @@
                                     <Insets right="12.0"/>
                                 </padding>
                             </HBox>
-
-                            <HBox spacing="12.0">
-                                <children>
-                                    <ToggleButton fx:id="carNavToggleButton" prefHeight="${bikeNavToggleButton.height}">
-                                        <toggleGroup>
-                                            <ToggleGroup fx:id="vehicleNavGroup"/>
-                                        </toggleGroup>
-                                        <userData>
-                                            <VehicleType fx:constant="CAR"/>
-                                        </userData>
-                                    </ToggleButton>
-                                    <ToggleButton fx:id="bikeNavToggleButton">
-                                        <toggleGroup>
-                                            <fx:reference source="vehicleNavGroup"/>
-                                        </toggleGroup>
-                                        <userData>
-                                            <VehicleType fx:constant="BIKE"/>
-                                        </userData>
-                                    </ToggleButton>
-                                    <ToggleButton fx:id="WalkNavToggleButton">
-                                        <toggleGroup>
-                                            <fx:reference source="vehicleNavGroup"/>
-                                        </toggleGroup>
-                                        <userData>
-                                            <VehicleType fx:constant="WALK"/>
-                                        </userData>
-                                    </ToggleButton>
-                                </children>
-                            </HBox>
-
-                            <HBox spacing="7">
-                                <children>
-                                    <AutoFillTextField fx:id="textFieldToNav" promptText="To" maxEntries="10"
-                                                       prefHeight="33">
-                                    </AutoFillTextField>
-                                    <Button fx:id="switchButton" mnemonicParsing="false"
-                                            prefHeight="32"
-                                            prefWidth="59.0">
-                                    </Button>
-                                </children>
-                            </HBox>
-                            <HBox spacing="7">
-                                <children>
-                                    <AutoFillTextField fx:id="textFieldFromNav"
-                                                       promptText="From"
-                                                       maxEntries="10" prefHeight="33">
-                                    </AutoFillTextField>
-                                    <Button mnemonicParsing="false" fx:id="searchNav" onAction="#searchNav"
-                                            prefWidth="59.0"
-                                            prefHeight="32.0">
-                                    </Button>
-                                </children>
-                            </HBox>
-
+                                    <GridPane hgap="6.0" vgap="12.0">
+                                        <columnConstraints>
+                                            <ColumnConstraints hgrow="SOMETIMES" maxWidth="175.0" minWidth="10.0"/>
+                                            <ColumnConstraints hgrow="SOMETIMES" maxWidth="95.0" minWidth="10.0"/>
+                                        </columnConstraints>
+                                        <rowConstraints>
+                                            <RowConstraints minHeight="32.0" vgrow="SOMETIMES" />
+                                            <RowConstraints minHeight="32.0" vgrow="SOMETIMES" />
+                                            <RowConstraints minHeight="32.0" vgrow="SOMETIMES" />
+                                        </rowConstraints>
+                                        <children>
+                                            <HBox spacing="18.0">
+                                                <children>
+                                                        <ToggleButton fx:id="carNavToggleButton" prefHeight="${bikeNavToggleButton.height}">
+                                                            <toggleGroup>
+                                                                <ToggleGroup fx:id="vehicleNavGroup"/>
+                                                            </toggleGroup>
+                                                            <userData>
+                                                                <VehicleType fx:constant="CAR"/>
+                                                            </userData>
+                                                        </ToggleButton>
+                                                        <ToggleButton fx:id="bikeNavToggleButton">
+                                                            <toggleGroup>
+                                                                <fx:reference source="vehicleNavGroup"/>
+                                                            </toggleGroup>
+                                                            <userData>
+                                                                <VehicleType fx:constant="BIKE"/>
+                                                            </userData>
+                                                        </ToggleButton>
+                                                        <ToggleButton fx:id="WalkNavToggleButton">
+                                                            <toggleGroup>
+                                                                <fx:reference source="vehicleNavGroup"/>
+                                                            </toggleGroup>
+                                                            <userData>
+                                                                <VehicleType fx:constant="WALK"/>
+                                                            </userData>
+                                                        </ToggleButton>
+                                                </children>
+                                                <GridPane.margin>
+                                                    <Insets bottom="5.0" />
+                                                </GridPane.margin>
+                                            </HBox>
+                                            <AutoFillTextField fx:id="textFieldToNav" promptText="To" maxEntries="10" prefHeight="33.0" GridPane.rowIndex="1">
+                                                <GridPane.margin>
+                                                    <Insets bottom="5.0" top="5.0" />
+                                                </GridPane.margin>
+                                            </AutoFillTextField>
+                                            <Button fx:id="switchButton" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                                <GridPane.margin>
+                                                    <Insets bottom="5.0" top="5.0" />
+                                                </GridPane.margin>
+                                            </Button>
+                                            <AutoFillTextField fx:id="textFieldFromNav" promptText="From" maxEntries="10" prefHeight="33.0" GridPane.rowIndex="2">
+                                                <GridPane.margin>
+                                                    <Insets bottom="5.0" top="5.0" />
+                                                </GridPane.margin>
+                                            </AutoFillTextField>
+                                            <Button mnemonicParsing="false" fx:id="searchNav" onAction="#searchNav" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                                <GridPane.margin>
+                                                    <Insets bottom="5.0" top="5.0" />
+                                                </GridPane.margin>
+                                            </Button>
+                                        </children>
+                                    </GridPane>
 
                             <HBox spacing="35.0">
                                 <children>
