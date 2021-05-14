@@ -242,8 +242,11 @@ public class Controller {
         backButton.setOnAction(e -> {
             navigationLeftPane.setVisible(false);
             address_myPlacesPane.setVisible(true);
-            textFieldToNav.clear();
             textFieldFromNav.clear();
+            textFieldToNav.clear();
+            directionsList.getItems().clear();
+            timeNav.setVisible(false);
+            distanceNav.setVisible(false);
             mapData.resetCurrentRoute();
             mapData.resetCurrentSearchResult();
             mapCanvas.repaint();
@@ -723,6 +726,11 @@ public class Controller {
             mapCanvas.repaint();
         });
         routeNavigation.setOnFailed(e -> {
+            mapData.resetCurrentRoute();
+            directionsList.getItems().clear();
+            distanceNav.setVisible(false);
+            timeNav.setVisible(false);
+            mapCanvas.repaint();
             showDialogBox("No Route Found", "Could not find a route between the two points");
         });
         mapCanvas.repaint();
