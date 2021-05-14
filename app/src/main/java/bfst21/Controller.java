@@ -778,22 +778,22 @@ public class Controller {
         mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
     }
 
-
-    public String getUserPointName() {
+    private void addUserPoint(Point2D point){
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Name Your Point");
         dialog.setHeaderText("Please enter a name for your point");
         dialog.setContentText("Point name:");
         Optional<String> result = dialog.showAndWait();
-        if (result.isEmpty() || result.get().equals("")) return "Point " + (myPlacesListView.getItems().size() + 1);
-        else return result.get();
-    }
 
-    private void addUserPoint(Point2D point){
-        Node node = new Node(0, (float) point.getX(), (float) point.getY());
-        mapData.addToUserPointList(node);
-        myPlacesListView.getItems().add(getUserPointName());
-        mapCanvas.repaint();
+        if (result.isPresent()) {
+            String name;
+            if (result.get().equals("")) name = "Point " + (myPlacesListView.getItems().size() + 1);
+            else name = result.get();
+            Node node = new Node(0, (float) point.getX(), (float) point.getY());
+            mapData.addToUserPointList(node);
+            myPlacesListView.getItems().add(name);
+            mapCanvas.repaint();
+        }
     }
 
     @FXML
