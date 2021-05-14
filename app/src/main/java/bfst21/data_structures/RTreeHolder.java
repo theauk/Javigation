@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Sorts elements into different R-trees depending on their type.
+ * Sorts elements into different R-trees depending on their type, returns range search list of elements from rTrees based on paint order.
  */
 public class RTreeHolder implements Serializable {
     @Serial
@@ -22,6 +22,13 @@ public class RTreeHolder implements Serializable {
     private Map<String, Byte> zoomMap;
     private RTree closetRoadRTree;
 
+    /**
+     * Creates Rtreeholder which makes list of rtrees. Rtrees are made based on which type they represent. The rtrees are then sorted in lists based zoomlevel.
+     * @param minimumChildren of Rtree nodes
+     * @param maximumChildren of Rtree nodes
+     * @param numberOfCoordinates dimension of coordinates.
+     * @param returnListSize Paint layers.
+     */
     public RTreeHolder(int minimumChildren, int maximumChildren, int numberOfCoordinates, int returnListSize) {
         rTreeList = new ArrayList<>();
         rTreeMap = new HashMap<>();
@@ -39,10 +46,18 @@ public class RTreeHolder implements Serializable {
         }
     }
 
+    /**
+     * Sets the Rtree that solely holds ways which can be traveled on.
+     * @param rTree Rtree with only travelable ways.
+     */
     public void setClosetRoadRTree(RTree rTree) {
         closetRoadRTree = rTree;
     }
 
+    /**
+     * Inserts element into the Rtree corresponding to type.
+     * @param element element to insert.
+     */
     public void insert(Element element) {
         String type = element.getType();
         if (zoomMap.get(type) != null) {

@@ -8,6 +8,10 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * Kd based on Values X max and y Max
+ * @param <Value> Value extends element.
+ */
 public class KDTree<Value extends Element> implements Serializable {
     @Serial
     private static final long serialVersionUID = 2546489468741939125L;
@@ -39,6 +43,11 @@ public class KDTree<Value extends Element> implements Serializable {
         hashList = new HashSet<>();
     }
 
+    /**
+     * Returns the comparator to used based on the dimension of the node that needs to be compared.
+     * @param dim dimension to compare
+     * @return comparator
+     */
     private Comparator<KDTreeNode> getComparatorFromDimension(int dim) {
         return dim == 0 ? comparatorX : comparatorY;
     }
