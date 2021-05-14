@@ -160,9 +160,9 @@
         </center>
 
         <left>
-            <VBox BorderPane.alignment="CENTER">
+            <VBox BorderPane.alignment="CENTER" maxWidth="325">
                 <children>
-                    <VBox fx:id="address_myPlacesPane" spacing="18.0" visible="true"
+                    <VBox fx:id="address_myPlacesPane" spacing="18.0" visible="true" prefWidth="325"
                           managed="${address_myPlacesPane.visible}">
                         <children>
                             <Label text="Search for an address">
@@ -225,7 +225,7 @@
 
                     <!-- second left pane-->
 
-                    <VBox fx:id="navigationLeftPane" spacing="13.0" visible="false"
+                    <VBox fx:id="navigationLeftPane" spacing="13.0" visible="false" prefWidth="325"
                           managed="${navigationLeftPane.visible}">
                         <children>
                             <HBox alignment="CENTER_RIGHT">
@@ -236,7 +236,7 @@
                                     <Insets/>
                                 </VBox.margin>
                                 <padding>
-                                    <Insets right="12.0"/>
+                                    <Insets right="25.0"/>
                                 </padding>
                             </HBox>
                                     <GridPane hgap="6.0" vgap="12.0">
@@ -288,7 +288,7 @@
                                             </AutoFillTextField>
                                             <Button fx:id="switchButton" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                                 <GridPane.margin>
-                                                    <Insets bottom="5.0" top="5.0" />
+                                                    <Insets bottom="5.0" top="5.0" left="10"/>
                                                 </GridPane.margin>
                                             </Button>
                                             <AutoFillTextField fx:id="textFieldToNav" promptText="To" maxEntries="10" minHeight="35.0" GridPane.rowIndex="2">
@@ -298,7 +298,7 @@
                                             </AutoFillTextField>
                                             <Button mnemonicParsing="false" fx:id="searchNav" onAction="#searchNav" GridPane.columnIndex="1" GridPane.rowIndex="2">
                                                 <GridPane.margin>
-                                                    <Insets bottom="5.0" top="5.0" />
+                                                    <Insets bottom="5.0" top="5.0" left="10"/>
                                                 </GridPane.margin>
                                             </Button>
                                         </children>
