@@ -702,9 +702,9 @@ public class RTree implements Serializable {
             } else { // if not valid type
                 return false;
             }
+        } else {
+            return w.isHighWay() && w.hasName();
         }
-
-        return false;
     }
 
     /**
