@@ -644,7 +644,7 @@ public class RTree implements Serializable {
      * @param y The points y-coordinate.
      * @return An priority queue entry containing the nearest way.
      */
-    public NearestRoadPriorityQueueEntry getNearestRoad(float x, float y, String addressWayName, VehicleType vehicleType) { // TODO: 5/4/21 hvis vi kun kigger i ways kan jeg komme af med instance of
+    public NearestRoadPriorityQueueEntry getNearestRoad(float x, float y, String addressWayName, VehicleType vehicleType) {
         PriorityQueue<NearestRoadPriorityQueueEntry> pq = new PriorityQueue<>();
         pq.add(new NearestRoadPriorityQueueEntry(true, root, null, null, null, 0));
 
@@ -676,7 +676,7 @@ public class RTree implements Serializable {
                 }
             }
         }
-        return null; // TODO: 5/4/21 handle
+        return null;
     }
 
     /**
