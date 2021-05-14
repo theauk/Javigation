@@ -170,7 +170,7 @@ public class AddressFilter {
      * @return a List of Strings containing possible addresses.
      */
     private List<String> getAddressesWithAllCriteria(AddressTrieNode node, String houseNumber, int postCode) {
-        return node.getAddressesFor(houseNumber, postCode);
+        return node.getAddressesStartingWithPostCode(houseNumber, postCode);
     }
 
     /**

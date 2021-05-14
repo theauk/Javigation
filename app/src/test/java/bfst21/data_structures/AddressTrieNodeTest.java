@@ -39,15 +39,6 @@ public class AddressTrieNodeTest {
         assertEquals(3, expected);
     }
 
-    @Test
-    public void testAddressSizeForAddress() {
-        int expected = node.getAddressesFor("5", 2300).size();
-        assertEquals(1, expected);
-
-        expected = node.getAddressesFor("4", 2300).size();
-        assertEquals(3, expected);
-    }
-
     private int getExpectedSizeHouseNumber(String houseNumber) {
         return node.getAddressesFor(houseNumber).size();
     }

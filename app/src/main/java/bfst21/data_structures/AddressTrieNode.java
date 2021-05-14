@@ -98,18 +98,17 @@ public class AddressTrieNode implements Comparable<AddressTrieNode>, Serializabl
     }
 
     /**
-     * Creates and returns a List of Strings, containing addresses that either starts or equals to the house number
+     * Creates and returns a List of Strings, containing addresses that starts with the house number
      * in the specified city (post code).
      *
      * @param houseNumber the house number to be searched for.
      * @param postCode the post code to be a parameter of the search.
      * @return a List containing the addresses found given the parameters.
      */
-    public List<String> getAddressesFor(String houseNumber, int postCode) {
+    private List<String> getAddressesFor(String houseNumber, int postCode) {
         List<String> list = new ArrayList<>();
 
         List<HouseNumberNode> nodes = citiesWithThisStreet.get(postCode);
-
         for(HouseNumberNode node: nodes) {
             if(node.houseNumber.startsWith(houseNumber)) {
                 String address = streetname + " " + node.houseNumber + ", " + postCode + " " + AddressTriesTree.POSTCODE_TO_CITIES.get(postCode);

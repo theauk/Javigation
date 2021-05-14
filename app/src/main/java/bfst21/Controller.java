@@ -627,7 +627,6 @@ public class Controller {
         if (fromSelected) {
             textFieldFromNav.setSuggest(false);
             if (addressWay == null) textFieldFromNav.setText(nearestWay.getName());
-            else textFieldFromNav.setText(fullAddress);
             currentFromWay = nearestWay;
             nearestFromWaySegmentIndices = nearestWaySegmentIndices;
             currentFromNode = nearestNodeOnNearestWay;
@@ -635,7 +634,6 @@ public class Controller {
         } else {
             textFieldToNav.setSuggest(false);
             if (addressWay == null) textFieldToNav.setText(nearestWay.getName());
-            else textFieldToNav.setText(fullAddress);
             currentToWay = nearestWay;
             currentToNode = nearestNodeOnNearestWay;
             nearestToWaySegmentIndices = nearestWaySegmentIndices;
