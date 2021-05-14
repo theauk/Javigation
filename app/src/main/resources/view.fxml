@@ -281,7 +281,7 @@
                                                     <Insets bottom="5.0" />
                                                 </GridPane.margin>
                                             </HBox>
-                                            <AutoFillTextField fx:id="textFieldToNav" promptText="To" maxEntries="10" minHeight="35.0" GridPane.rowIndex="1">
+                                            <AutoFillTextField fx:id="textFieldFromNav" promptText="From" maxEntries="10" minHeight="35.0" GridPane.rowIndex="1">
                                                 <GridPane.margin>
                                                     <Insets bottom="5.0" top="5.0" />
                                                 </GridPane.margin>
@@ -291,7 +291,7 @@
                                                     <Insets bottom="5.0" top="5.0" />
                                                 </GridPane.margin>
                                             </Button>
-                                            <AutoFillTextField fx:id="textFieldFromNav" promptText="From" maxEntries="10" minHeight="35.0" GridPane.rowIndex="2">
+                                            <AutoFillTextField fx:id="textFieldToNav" promptText="To" maxEntries="10" minHeight="35.0" GridPane.rowIndex="2">
                                                 <GridPane.margin>
                                                     <Insets bottom="5.0" top="5.0" />
                                                 </GridPane.margin>
