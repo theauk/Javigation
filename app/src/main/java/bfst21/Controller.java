@@ -714,9 +714,7 @@ public class Controller {
             mapCanvas.panToRoute(routeNavigation.getCoordinatesForPanToRoute());
             mapCanvas.repaint();
         });
-        routeNavigation.setOnFailed(e -> {
-            showDialogBox("No Route Found", "Could not find a route between the two points");
-        });
+        routeNavigation.setOnFailed(e -> showDialogBox("No Route Found", "Could not find a route between the two points"));
         mapCanvas.repaint();
     }
 
@@ -740,10 +738,6 @@ public class Controller {
         String s = "Total distance: ";
         s += MapMath.formatDistance(meters, 2);
         distanceNav.setText(s);
-    }
-
-    public void hideDistanceAndTimeNav() {
-        distanceNav.setVisible(false);
     }
 
     public void setTimeNav(double seconds){
