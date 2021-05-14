@@ -89,6 +89,7 @@ public class Controller {
     @FXML private Menu themeMenu;
     @FXML private MenuItem openItem;
     @FXML private MenuItem resetItem;
+    @FXML public RadioMenuItem showLeftView;
     @FXML private MenuItem cancelItem;
     @FXML private MenuItem zoomInItem;
     @FXML private MenuItem zoomOutItem;
@@ -841,6 +842,10 @@ public class Controller {
             address_myPlacesPane.setVisible(false);
         }
         updateNodesNavigation(false, point.getX(), point.getY(), null, null);
+    }
+
+    public void toggleLeftPanel() {
+        address_myPlacesPane.setVisible(showLeftView.isSelected());
     }
 
     private enum State {
