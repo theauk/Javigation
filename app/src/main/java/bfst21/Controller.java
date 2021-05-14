@@ -383,6 +383,10 @@ public class Controller {
         viaZoomSlider = true;
     }
 
+    /**
+     * Method to create a Binary file from the application
+     * A progress bar will be shown to the user and how much data the method has dumped
+     */
     @FXML
     private void dumpBinary() {
         String contentText = "The dumping process of MapData takes excessive amount of memory. If not enough memory is available an Out of Memory Error might be thrown, causing the program to crash. \n\nDo you want to continue?";
@@ -697,6 +701,15 @@ public class Controller {
         createAlert(Alert.AlertType.INFORMATION, title, null, contentText).showAndWait();
     }
 
+    /**
+     * helper method to create Alert windows
+     * @param alertType The type of alert the pop up
+     * @param title The title of the window
+     * @param header the header for the text
+     * @param text The text that is the content of the alert
+     * @param buttons The buttons such as "Confirm" and "cancel"
+     * @return
+     */
     private Alert createAlert(Alert.AlertType alertType, String title, String header, String text, ButtonType... buttons) {
         Alert alert = new Alert(alertType, text, buttons);
         alert.setTitle(title);
@@ -704,6 +717,10 @@ public class Controller {
         return alert;
     }
 
+    /**
+     * Starts the route finding process in its own thread <br>
+     * Sets the time, distance, and if there is a special path feature, to the given label <br>
+     */
     @FXML
     public void getRoute() {
         routeNavigation.setupRoute(currentFromNode, currentToNode, currentFromWay, currentToWay, nearestFromWaySegmentIndices, nearestToWaySegmentIndices, (VehicleType) vehicleNavGroup.getSelectedToggle().getUserData(), radioButtonFastestNav.isSelected(), aStarNav.isSelected());
@@ -724,6 +741,10 @@ public class Controller {
         mapCanvas.repaint();
     }
 
+    /**
+     * Inserts the directions into the given ListView
+     * @param directions the list of directions to be inserted in the ListView
+     */
     public void setDirections(ArrayList<String> directions) {
         directionsList.getItems().removeAll(directionsList.getItems());
         int order = 1;
@@ -746,9 +767,6 @@ public class Controller {
         distanceNav.setText(s);
     }
 
-    public void hideDistanceAndTimeNav() {
-        distanceNav.setVisible(false);
-    }
 
     public void setTimeNav(double seconds){
         timeNav.setVisible(true);
@@ -771,6 +789,10 @@ public class Controller {
         mapCanvas.centerOnPoint(node.getxMax(), node.getyMax());
     }
 
+    /**
+     * Makes the user able to choose a point on the map, name it, and add it to the list of user points
+     * this method is used by the "add" button
+     */
     public void addUserPoint() {
         EventHandler<MouseEvent> event = new EventHandler<>() {
             @Override
@@ -783,6 +805,11 @@ public class Controller {
         mapCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event);
     }
 
+    /**
+     *
+     * @param point The point that the user chooses on the map to be saved to the list over user points
+     *              this method is used by the right click menu and the other addUserPoint() method
+     */
     private void addUserPoint(Point2D point){
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Name Your Point");
@@ -801,6 +828,9 @@ public class Controller {
         }
     }
 
+    /**
+     * Deletes the selected point from the Listview containing the user's points on the map
+     */
     @FXML
     public void deleteUserPoint(){
         if(myPlacesListView.getSelectionModel().getSelectedItem() != null){
@@ -812,19 +842,21 @@ public class Controller {
 
     }
 
+    /**
+     * add user point via the ContextMenu (right click menu)
+     */
     @FXML
-    public void setRightClickMenu(ContextMenuEvent actionEvent) {
-
-    }
-
-    @FXML
-    public void rightClickAddUserPoint(ActionEvent actionEvent) {
+    public void rightClickAddUserPoint() {
         Point2D point = mapCanvas.getTransCoords(currentRightClick.getX(), currentRightClick.getY());
         addUserPoint(point);
     }
 
+    /**
+     * Finds the streetname closest to where the user opened the context menu and updates the "from" AutoTextField
+     * with the streetname
+     */
     @FXML
-    public void rightClickPointNavFrom(ActionEvent actionEvent) {
+    public void rightClickPointNavFrom() {
         Point2D point =  mapCanvas.getTransCoords(currentRightClick.getX(), currentRightClick.getY());
         if (!navigationLeftPane.isVisible()) {
             navigationLeftPane.setVisible(true);
@@ -833,8 +865,12 @@ public class Controller {
         updateNodesNavigation(true, point.getX(), point.getY(), null, null); // TODO: 5/6/21 null kan ændres for at skrive anden tekst i felterne
     }
 
+    /**
+     * Finds the streetname closest to where the context menu was opened and updates the "to" AutoTextField with the
+     * streetname
+     */
     @FXML
-    public void rightClickPointNavTo(ActionEvent actionEvent) {
+    public void rightClickPointNavTo() {
         Point2D point =  mapCanvas.getTransCoords(currentRightClick.getX(), currentRightClick.getY());
         if (!navigationLeftPane.isVisible()) {
             navigationLeftPane.setVisible(true);

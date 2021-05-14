@@ -91,7 +91,6 @@
                                onMouseReleased="#onMouseReleased"
                                onKeyPressed="#onKeyPressed"
                                onKeyReleased="#onKeyReleased"
-                               onContextMenuRequested="#setRightClickMenu"
                     />
                 </Pane>
 
