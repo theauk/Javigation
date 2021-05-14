@@ -3,11 +3,11 @@ package bfst21.utils;
 import bfst21.Osm_Elements.Node;
 
 public class Address {
-    private String street;
-    private String houseNumber;
-    private int postCode;
-    private String city;
-    private Node node;
+    private final String street;
+    private final String houseNumber;
+    private final int postCode;
+    private final String city;
+    private final Node node;
 
     public Address(String street, String houseNumber, int postCode, String city, Node node) {
         this.street = street;
@@ -37,7 +37,8 @@ public class Address {
         return node;
     }
 
-    public String getFullAddress() {
+    @Override
+    public String toString() {
         return street + " " + houseNumber + ", " + postCode + " " + city;
     }
 }

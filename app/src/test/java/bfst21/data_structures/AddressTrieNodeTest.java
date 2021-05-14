@@ -15,21 +15,16 @@ public class AddressTrieNodeTest {
     @BeforeAll
     public static void setUp() {
         addressTree = new AddressTriesTree();
-        addressTree.put(new Node(0, 0, 0), "København S", "Olymposvej", 2300, "50");
-        addressTree.put(new Node(0, 0, 0), "Klarup", "Olymposvej", 9270, "50");
+        addressTree.put(new Node(0, 0, 0), "Olymposvej", "50", 2300, "København S");
+        addressTree.put(new Node(0, 0, 0), "Olymposvej", "50", 9270, "Klarup");
 
         node = new AddressTrieNode();
-        node.setAddress(new Node(0, 0, 0), 2300, "olymposvej", "50");
-        node.addHouseNumber(2300, new Node(1, 1, 1), "49");
-        node.addHouseNumber(2300, new Node(2, 2, 2), "49a");
-        node.addHouseNumber(2300, new Node(3, 3, 3), "48");
-        node.addHouseNumber(9270, new Node(4, 4, 4), "50");
-        node.addHouseNumber(9270, new Node(5, 5, 5), "49");
-    }
-
-    @Test
-    public void testCreateAddressTrieNode() {
-
+        node.setAddress(new Node(0, 0, 0), "olymposvej", "50", 2300);
+        node.addHouseNumber(new Node(1, 1, 1), "49", 2300);
+        node.addHouseNumber(new Node(2, 2, 2), "49a", 2300);
+        node.addHouseNumber(new Node(3, 3, 3), "48", 2300);
+        node.addHouseNumber(new Node(4, 4, 4), "50", 9270);
+        node.addHouseNumber(new Node(5, 5, 5), "49", 9270);
     }
 
     @Test
@@ -44,21 +39,14 @@ public class AddressTrieNodeTest {
         assertEquals(3, expected);
     }
 
-    @Test
-    public void testAddressSizeForAddress() {
-        int expected = node.getAddressesFor("5", 2300, "københavn s".toLowerCase()).size();
-        assertEquals(1, expected);
-
-        expected = node.getAddressesFor("4", 2300, "københavn s".toLowerCase()).size();
-        assertEquals(3, expected);
-    }
-
     private int getExpectedSizeHouseNumber(String houseNumber) {
-        return node.getAddressFor(houseNumber).size();
+        return node.getAddressesFor(houseNumber).size();
     }
 
     @AfterAll
     public static void tearDown() {
+        node = null;
         addressTree = null;
+        AddressTriesTree.POSTCODE_TO_CITIES.clear();
     }
 }

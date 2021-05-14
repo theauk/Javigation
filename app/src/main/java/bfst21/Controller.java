@@ -213,7 +213,7 @@ public class Controller {
             fromAddressFilter.search(newValue);
             textFieldFromNav.suggest(fromAddressFilter.getSuggestions());
             Address address = fromAddressFilter.getMatchedAddress();
-            if (address != null) updateNodesNavigation(true, address.getNode().getxMax(), address.getNode().getyMax(), address.getFullAddress(), address.getStreet()); // TODO: 5/7/21 fix
+            if (address != null) updateNodesNavigation(true, address.getNode().getxMax(), address.getNode().getyMax(), address.toString(), address.getStreet()); // TODO: 5/7/21 fix
         }));
 
 
@@ -221,7 +221,7 @@ public class Controller {
             toAddressFilter.search(newValue);
             textFieldToNav.suggest(toAddressFilter.getSuggestions());
             Address address = toAddressFilter.getMatchedAddress();
-            if (address != null) updateNodesNavigation(false, address.getNode().getxMax(), address.getNode().getyMax(), address.getFullAddress(), address.getStreet()); // TODO: 5/7/21 fix
+            if (address != null) updateNodesNavigation(false, address.getNode().getxMax(), address.getNode().getyMax(), address.toString(), address.getStreet()); // TODO: 5/7/21 fix
         }));
 
         addressSearchTextField.textProperty().addListener(((observable, oldValue, newValue) -> {
@@ -631,7 +631,6 @@ public class Controller {
         if (fromSelected) {
             textFieldFromNav.setSuggest(false);
             if (addressWay == null) textFieldFromNav.setText(nearestWay.getName());
-            else textFieldFromNav.setText(fullAddress);
             currentFromWay = nearestWay;
             nearestFromWaySegmentIndices = nearestWaySegmentIndices;
             currentFromNode = nearestNodeOnNearestWay;
@@ -639,7 +638,6 @@ public class Controller {
         } else {
             textFieldToNav.setSuggest(false);
             if (addressWay == null) textFieldToNav.setText(nearestWay.getName());
-            else textFieldToNav.setText(fullAddress);
             currentToWay = nearestWay;
             currentToNode = nearestNodeOnNearestWay;
             nearestToWaySegmentIndices = nearestWaySegmentIndices;
