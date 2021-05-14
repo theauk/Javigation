@@ -326,9 +326,9 @@ public class RouteNavigation extends Service<List<Element>> {
                 }
             } else if (vehicleType == VehicleType.BIKE) {
                 if (w.isCycleable()) {
-                    if (!w.isOneWayForBikes()) {
+                    //if (!w.isOneWayForBikes()) {
                         getPreviousNode(adjacentNodes, w, currentFrom);
-                    }
+                    //}
                     getNextNode(adjacentNodes, w, currentFrom);
                 }
             } else if (vehicleType == VehicleType.WALK) {
@@ -339,7 +339,7 @@ public class RouteNavigation extends Service<List<Element>> {
             }
             if (!adjacentNodes.isEmpty()) {
                 for (Node n : adjacentNodes) {
-                    if (!isThereARestriction(wayBefore.get(currentFrom), currentFrom, w)) {
+                    if (vehicleType == VehicleType.WALK || !isThereARestriction(wayBefore.get(currentFrom), currentFrom, w)) {
                         if (aStar) {
                             checkDistanceAStar(currentFrom, n, w);
                         } else {
