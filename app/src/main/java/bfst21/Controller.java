@@ -29,6 +29,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
@@ -132,6 +133,10 @@ public class Controller {
     @FXML private Button backButton;
     @FXML private VBox address_myPlacesPane;
     @FXML private VBox navigationLeftPane;
+    @FXML private ToggleButton bikeNavToggleButton;
+    @FXML private ToggleButton walkNavToggleButton;
+    @FXML private HBox fastestShortestGroup;
+    @FXML private ToggleButton carNavToggleButton;
 
     public void init() {
         mapData = new MapData();
@@ -946,6 +951,18 @@ public class Controller {
 
     public void toggleLeftPanel() {
         address_myPlacesPane.setVisible(showLeftView.isSelected());
+    }
+
+    @FXML
+    public void toggleShortestFastest(){
+        if(bikeNavToggleButton.isSelected()|| walkNavToggleButton.isSelected()){
+            radioButtonShortestNav.setSelected(true);
+            fastestShortestGroup.setVisible(false);
+        }
+        if(carNavToggleButton.isSelected()){
+            fastestShortestGroup.setVisible(true);
+            radioButtonShortestNav.setSelected(false);
+        }
     }
 
     private enum State {
