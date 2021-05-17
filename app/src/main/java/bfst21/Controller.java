@@ -843,7 +843,6 @@ public class Controller {
         int order = 1;
         for (String s : directions) {
             ListCell<String> l = new ListCell<>();
-            if(order % 2 == 0) l.setStyle("-fx-background-color: rgb(249, 249, 249)");
             l.setText(order + ". " + s);
             l.setEditable(false);
             l.setWrapText(true);
