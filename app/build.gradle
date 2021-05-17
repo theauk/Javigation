@@ -101,4 +101,5 @@ jar {
             it.isDirectory() ? it : zipTree(it)
         }
     }
+    archivesBaseName = 'javigation'
 }
