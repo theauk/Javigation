@@ -240,7 +240,7 @@
                                         <children>
                                             <HBox spacing="18.0">
                                                 <children>
-                                                        <ToggleButton fx:id="carNavToggleButton" prefHeight="${bikeNavToggleButton.height}">
+                                                        <ToggleButton fx:id="carNavToggleButton" prefHeight="${bikeNavToggleButton.height}" onAction="#toggleShortestFastest">
                                                             <toggleGroup>
                                                                 <ToggleGroup fx:id="vehicleNavGroup"/>
                                                             </toggleGroup>
@@ -248,7 +248,7 @@
                                                                 <VehicleType fx:constant="CAR"/>
                                                             </userData>
                                                         </ToggleButton>
-                                                        <ToggleButton fx:id="bikeNavToggleButton">
+                                                        <ToggleButton fx:id="bikeNavToggleButton" onAction="#toggleShortestFastest">
                                                             <toggleGroup>
                                                                 <fx:reference source="vehicleNavGroup"/>
                                                             </toggleGroup>
@@ -256,7 +256,7 @@
                                                                 <VehicleType fx:constant="BIKE"/>
                                                             </userData>
                                                         </ToggleButton>
-                                                        <ToggleButton fx:id="WalkNavToggleButton">
+                                                        <ToggleButton fx:id="walkNavToggleButton" onAction="#toggleShortestFastest">
                                                             <toggleGroup>
                                                                 <fx:reference source="vehicleNavGroup"/>
                                                             </toggleGroup>
@@ -292,7 +292,7 @@
                                         </children>
                                     </GridPane>
 
-                            <HBox spacing="35.0">
+                            <HBox spacing="35.0" fx:id="fastestShortestGroup">
                                 <children>
                                     <RadioButton fx:id="radioButtonShortestNav" text="Shortest">
                                         <toggleGroup>

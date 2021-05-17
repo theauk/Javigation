@@ -90,6 +90,6 @@
     -fx-graphic: url("../icons/bike_icon_bigger.png");
 }
 
-#WalkNavToggleButton{
+#walkNavToggleButton{
     -fx-graphic: url("../icons/walk_icon_bigger.png");
 }
