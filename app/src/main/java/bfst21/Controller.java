@@ -703,7 +703,7 @@ public class Controller {
                     return;
                 }
 
-             if (fromAddressFilter.getMatchedAddress().getNode() == toAddressFilter.getMatchedAddress().getNode()) {
+             if (currentFromNode.getxMax() == currentToNode.getxMax() && currentFromNode.getyMax() == currentToNode.getyMax()) {
                  createAlert(Alert.AlertType.INFORMATION, "Navigation Error", "Navigation Error", "From and to are the same address").showAndWait();
              } else {
                  getRoute();
