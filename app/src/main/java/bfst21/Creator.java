@@ -248,8 +248,8 @@ public class Creator extends Task<MapData> {
                                     }
                                     if (way.isHighWay()) {
                                         nodeToHighwayMap.putAll(way.getNodes(), way);
+                                        closetRoadRTree.insert(way);
                                         if (way.hasName()) {
-                                            closetRoadRTree.insert(way);
                                             highWayRoadNodes.addAll(way.getNodes());
                                         }
                                     }
