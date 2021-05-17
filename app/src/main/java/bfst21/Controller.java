@@ -47,7 +47,7 @@ public class Controller {
     private AddressFilter fromAddressFilter;
     private AddressFilter toAddressFilter;
 
-    private static final String BINARY_FILE = "/small.bmapdata";
+    private static final String BINARY_FILE = "/bornholm.bmapdata";
 
     private Point2D lastMouse = new Point2D(0, 0);
     private Point2D currentRightClick = new Point2D(0,0);
