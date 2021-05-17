@@ -728,17 +728,17 @@ public class Controller {
         String currentFromTextCopy = textFieldFromNav.getText();
         Way currentFromWayCopy = currentFromWay;
         int[] currentNearestFromWaySegmentIndicesCopy = nearestFromWaySegmentIndices;
-        Node currentFromNodeCopy = currentFromNode;
+        Node clickedNodeFromCopy = clickedNodeFrom;
 
         textFieldFromNav.setText(textFieldToNav.getText());
         currentFromWay = currentToWay;
         nearestFromWaySegmentIndices = nearestToWaySegmentIndices;
-        currentFromNode = currentToNode;
+        clickedNodeFrom = clickedNodeTo;
 
         textFieldToNav.setText(currentFromTextCopy);
         currentToWay = currentFromWayCopy;
         nearestToWaySegmentIndices = currentNearestFromWaySegmentIndicesCopy;
-        currentToNode = currentFromNodeCopy;
+        clickedNodeTo = clickedNodeFromCopy;
 
         textFieldFromNav.setSuggest(true);
         textFieldToNav.setSuggest(true);
