@@ -125,13 +125,10 @@ public class Way extends NodeHolder implements Serializable {
     public boolean isOneWayForBikes() {
         if (onewayBikeRoad) {
             return true;
-        } else if (onewayRoad && type.equals("cycleway")) {
-            return true;
-        } else if (type != null && type.equals("roundabout")) {
-            return true;
-        } else {
-            return onewayRoad;
+        } else if (type != null) {
+            if ((onewayRoad && type.equals("cycleway")) || type.equals("roundabout")) return true;
         }
+        return onewayRoad;
     }
 
     @Override
