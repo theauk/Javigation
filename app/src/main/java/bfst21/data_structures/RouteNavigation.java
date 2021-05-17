@@ -563,8 +563,10 @@ public class RouteNavigation extends Service<List<Element>> {
             Way wayBeforeTo = wayBefore.get(t);
             String wayBeforeViaName = wayBeforeVia.getName() != null ? wayBeforeVia.getName() : "unnamed road";
             String wayBeforeToName = wayBeforeTo.getName() != null ? wayBeforeTo.getName() : "unnamed road";
+            String wayBeforeViaType = wayBeforeVia.getType();
+            String wayBeforeToType = wayBeforeTo.getType();
 
-            if (!wayBeforeViaName.equals(wayBeforeToName)) {
+            if (!wayBeforeViaName.equals(wayBeforeToName) || !wayBeforeViaType.equals(wayBeforeToType)) {
                 if (roundabout) {
                     routeDescription.add(getRoundaboutText(roundAboutStartNodeIndex, i, wayBeforeVia, wayBeforeToName));
                     roundabout = false;
